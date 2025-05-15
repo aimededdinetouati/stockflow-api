@@ -1,0 +1,48 @@
+{
+  "generator-jhipster": {
+    "applicationType": "monolith",
+    "authenticationType": "jwt",
+    "baseName": "stockflowApi",
+    "blueprints": [
+      {
+        "name": "generator-jhipster-entity-audit",
+        "version": "5.11.0"
+      }
+    ],
+    "buildTool": "maven",
+    "cacheProvider": "ehcache",
+    "clientFramework": "no",
+    "clientTestFrameworks": null,
+    "clientTheme": null,
+    "creationTimestamp": 1747340999737,
+    "databaseType": "sql",
+    "devDatabaseType": "postgresql",
+    "enableHibernateCache": true,
+    "enableSwaggerCodegen": true,
+    "enableTranslation": true,
+    "entities": [],
+    "feignClient": null,
+    "jhipsterVersion": "8.11.0",
+    "jwtSecretKey": "Y2Q0NWJlOGU2ZjAzZTU2ODgwNGJiZTM4OThiOWIwMTNjZTIxY2FjNWNjOTU1ZjFiYmM2NjU0NDUzODgyYjdjOTNlY2M5MjhmMzZkZWQ4ZjkxMzU5M2VlZjEwODllMDY3MmYyYjc4YjFlYzVjN2Y5NDQ4MzQyYzg5N2VjMjRlYTM=",
+    "languages": ["en"],
+    "lastLiquibaseTimestamp": 1747341045000,
+    "microfrontend": null,
+    "microfrontends": [],
+    "nativeLanguage": "en",
+    "packageName": "com.adeem.stockflow",
+    "prodDatabaseType": "postgresql",
+    "reactive": false,
+    "serverPort": null,
+    "serviceDiscoveryType": null,
+    "skipClient": true,
+    "syncUserWithIdp": null,
+    "testFrameworks": [],
+    "websocket": "spring-websocket",
+    "withAdminUi": null
+  },
+  "generator-jhipster-entity-audit": {
+    "auditFramework": "custom",
+    "auditPage": true,
+    "entityAuditEventChangelogDate": "20250515203045"
+  }
+}
