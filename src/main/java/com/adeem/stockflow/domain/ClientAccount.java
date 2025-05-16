@@ -66,12 +66,12 @@ public class ClientAccount extends AbstractAuditingEntity<Long> implements Seria
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "clientAccount")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonIgnoreProperties(value = { "quotas", "planFormula", "clientAccount" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "planFormula", "clientAccount" }, allowSetters = true)
     private Set<Subscription> subscriptions = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "clientAccount")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonIgnoreProperties(value = { "clientAccount", "subscription" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "clientAccount" }, allowSetters = true)
     private Set<Quota> quotas = new HashSet<>();
 
     // jhipster-needle-entity-add-field - JHipster will add fields here

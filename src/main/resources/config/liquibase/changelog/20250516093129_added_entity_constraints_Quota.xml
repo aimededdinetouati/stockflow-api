@@ -16,12 +16,5 @@
                                  referencedColumnNames="id"
                                  referencedTableName="client_account"
                                  />
-
-        <addForeignKeyConstraint baseColumnNames="subscription_id"
-                                 baseTableName="quota"
-                                 constraintName="fk_quota__subscription_id"
-                                 referencedColumnNames="id"
-                                 referencedTableName="subscription"
-                                 />
     </changeSet>
 </databaseChangeLog>

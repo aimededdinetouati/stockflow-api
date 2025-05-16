@@ -71,12 +71,6 @@
   "pagination": "pagination",
   "relationships": [
     {
-      "otherEntityName": "quota",
-      "relationshipName": "quota",
-      "relationshipSide": "left",
-      "relationshipType": "one-to-many"
-    },
-    {
       "otherEntityName": "planFormula",
       "relationshipName": "planFormula",
       "relationshipSide": "left",

@@ -8,8 +8,6 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.HashSet;
-import java.util.Set;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.springframework.data.domain.Persistable;
@@ -60,11 +58,6 @@ public class Subscription extends AbstractAuditingEntity<Long> implements Serial
     @org.springframework.data.annotation.Transient
     @Transient
     private boolean isPersisted;
-
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "subscription")
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonIgnoreProperties(value = { "clientAccount", "subscription" }, allowSetters = true)
-    private Set<Quota> quotas = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "planFeatures", "resourceLimits" }, allowSetters = true)
@@ -193,37 +186,6 @@ public class Subscription extends AbstractAuditingEntity<Long> implements Serial
 
     public Subscription setIsPersisted() {
         this.isPersisted = true;
-        return this;
-    }
-
-    public Set<Quota> getQuotas() {
-        return this.quotas;
-    }
-
-    public void setQuotas(Set<Quota> quotas) {
-        if (this.quotas != null) {
-            this.quotas.forEach(i -> i.setSubscription(null));
-        }
-        if (quotas != null) {
-            quotas.forEach(i -> i.setSubscription(this));
-        }
-        this.quotas = quotas;
-    }
-
-    public Subscription quotas(Set<Quota> quotas) {
-        this.setQuotas(quotas);
-        return this;
-    }
-
-    public Subscription addQuota(Quota quota) {
-        this.quotas.add(quota);
-        quota.setSubscription(this);
-        return this;
-    }
-
-    public Subscription removeQuota(Quota quota) {
-        this.quotas.remove(quota);
-        quota.setSubscription(null);
         return this;
     }
 

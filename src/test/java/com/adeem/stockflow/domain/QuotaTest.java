@@ -2,7 +2,6 @@ package com.adeem.stockflow.domain;
 
 import static com.adeem.stockflow.domain.ClientAccountTestSamples.*;
 import static com.adeem.stockflow.domain.QuotaTestSamples.*;
-import static com.adeem.stockflow.domain.SubscriptionTestSamples.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adeem.stockflow.web.rest.TestUtil;
@@ -34,17 +33,5 @@ class QuotaTest {
 
         quota.clientAccount(null);
         assertThat(quota.getClientAccount()).isNull();
-    }
-
-    @Test
-    void subscriptionTest() {
-        Quota quota = getQuotaRandomSampleGenerator();
-        Subscription subscriptionBack = getSubscriptionRandomSampleGenerator();
-
-        quota.setSubscription(subscriptionBack);
-        assertThat(quota.getSubscription()).isEqualTo(subscriptionBack);
-
-        quota.subscription(null);
-        assertThat(quota.getSubscription()).isNull();
     }
 }

@@ -555,10 +555,6 @@ relationship OneToMany {
   PlanFormula{resourceLimits} to ResourceLimit{planFormula}
 }
 
-relationship OneToMany {
-    Subscription{quota} to Quota
-}
-
 relationship ManyToOne {
   Subscription{planFormula} to PlanFormula
 }

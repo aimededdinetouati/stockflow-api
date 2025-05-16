@@ -71,7 +71,6 @@ public class QuotaAsserts {
     public static void assertQuotaUpdatableRelationshipsEquals(Quota expected, Quota actual) {
         assertThat(actual)
             .as("Verify Quota relationships")
-            .satisfies(a -> assertThat(a.getClientAccount()).as("check clientAccount").isEqualTo(expected.getClientAccount()))
-            .satisfies(a -> assertThat(a.getSubscription()).as("check subscription").isEqualTo(expected.getSubscription()));
+            .satisfies(a -> assertThat(a.getClientAccount()).as("check clientAccount").isEqualTo(expected.getClientAccount()));
     }
 }

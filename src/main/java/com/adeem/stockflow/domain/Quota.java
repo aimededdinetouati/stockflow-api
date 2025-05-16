@@ -60,10 +60,6 @@ public class Quota extends AbstractAuditingEntity<Long> implements Serializable,
     @JsonIgnoreProperties(value = { "address", "subscriptions", "quotas" }, allowSetters = true)
     private ClientAccount clientAccount;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "quotas", "planFormula", "clientAccount" }, allowSetters = true)
-    private Subscription subscription;
-
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
     public Long getId() {
@@ -196,19 +192,6 @@ public class Quota extends AbstractAuditingEntity<Long> implements Serializable,
 
     public Quota clientAccount(ClientAccount clientAccount) {
         this.setClientAccount(clientAccount);
-        return this;
-    }
-
-    public Subscription getSubscription() {
-        return this.subscription;
-    }
-
-    public void setSubscription(Subscription subscription) {
-        this.subscription = subscription;
-    }
-
-    public Quota subscription(Subscription subscription) {
-        this.setSubscription(subscription);
         return this;
     }
 

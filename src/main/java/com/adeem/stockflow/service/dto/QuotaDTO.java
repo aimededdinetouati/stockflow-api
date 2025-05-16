@@ -39,8 +39,6 @@ public class QuotaDTO implements Serializable {
 
     private Long clientAccountId;
 
-    private SubscriptionDTO subscription;
-
     public Long getId() {
         return id;
     }
@@ -129,14 +127,6 @@ public class QuotaDTO implements Serializable {
         this.clientAccountId = clientAccountId;
     }
 
-    public SubscriptionDTO getSubscription() {
-        return subscription;
-    }
-
-    public void setSubscription(SubscriptionDTO subscription) {
-        this.subscription = subscription;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -173,7 +163,6 @@ public class QuotaDTO implements Serializable {
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +
             ", lastModifiedDate='" + getLastModifiedDate() + "'" +
             ", clientAccountId=" + getClientAccountId() +
-            ", subscription=" + getSubscription() +
             "}";
     }
 }
