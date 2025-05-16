@@ -38,11 +38,11 @@ public class InventoryTransactionDTO implements Serializable {
 
     private Instant lastModifiedDate;
 
-    private ReturnOrderItemDTO returnOrderItem;
+    private Long returnItemId;
 
-    private SaleOrderDTO saleOrderItem;
+    private Long saleItemId;
 
-    private PurchaseOrderDTO purchaseOrderItem;
+    private Long purchaseItemId;
 
     public Long getId() {
         return id;
@@ -124,28 +124,28 @@ public class InventoryTransactionDTO implements Serializable {
         this.lastModifiedDate = lastModifiedDate;
     }
 
-    public ReturnOrderItemDTO getReturnOrderItem() {
-        return returnOrderItem;
+    public Long getReturnItemId() {
+        return returnItemId;
     }
 
-    public void setReturnOrderItem(ReturnOrderItemDTO returnOrderItem) {
-        this.returnOrderItem = returnOrderItem;
+    public void setReturnItemId(Long returnItemId) {
+        this.returnItemId = returnItemId;
     }
 
-    public SaleOrderDTO getSaleOrderItem() {
-        return saleOrderItem;
+    public Long getSaleItemId() {
+        return saleItemId;
     }
 
-    public void setSaleOrderItem(SaleOrderDTO saleOrderItem) {
-        this.saleOrderItem = saleOrderItem;
+    public void setSaleItemId(Long saleItemId) {
+        this.saleItemId = saleItemId;
     }
 
-    public PurchaseOrderDTO getPurchaseOrderItem() {
-        return purchaseOrderItem;
+    public Long getPurchaseItemId() {
+        return purchaseItemId;
     }
 
-    public void setPurchaseOrderItem(PurchaseOrderDTO purchaseOrderItem) {
-        this.purchaseOrderItem = purchaseOrderItem;
+    public void setPurchaseItemId(Long purchaseItemId) {
+        this.purchaseItemId = purchaseItemId;
     }
 
     @Override
@@ -183,9 +183,9 @@ public class InventoryTransactionDTO implements Serializable {
             ", createdDate='" + getCreatedDate() + "'" +
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +
             ", lastModifiedDate='" + getLastModifiedDate() + "'" +
-            ", returnOrderItem=" + getReturnOrderItem() +
-            ", saleOrderItem=" + getSaleOrderItem() +
-            ", purchaseOrderItem=" + getPurchaseOrderItem() +
+            ", returnOrderItem=" + getReturnItemId() +
+            ", saleOrderItem=" + getSaleItemId() +
+            ", purchaseOrderItem=" + getPurchaseItemId() +
             "}";
     }
 }

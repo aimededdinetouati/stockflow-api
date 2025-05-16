@@ -15,23 +15,8 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface InventoryTransactionMapper extends EntityMapper<InventoryTransactionDTO, InventoryTransaction> {
-    @Mapping(target = "returnOrderItem", source = "returnOrderItem", qualifiedByName = "returnOrderItemId")
-    @Mapping(target = "saleOrderItem", source = "saleOrderItem", qualifiedByName = "saleOrderId")
-    @Mapping(target = "purchaseOrderItem", source = "purchaseOrderItem", qualifiedByName = "purchaseOrderId")
+    @Mapping(target = "returnItemId", source = "returnOrderItem.id")
+    @Mapping(target = "saleItemId", source = "saleOrderItem.id")
+    @Mapping(target = "purchaseItemId", source = "purchaseOrderItem.id")
     InventoryTransactionDTO toDto(InventoryTransaction s);
-
-    @Named("returnOrderItemId")
-    @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "id", source = "id")
-    ReturnOrderItemDTO toDtoReturnOrderItemId(ReturnOrderItem returnOrderItem);
-
-    @Named("saleOrderId")
-    @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "id", source = "id")
-    SaleOrderDTO toDtoSaleOrderId(SaleOrder saleOrder);
-
-    @Named("purchaseOrderId")
-    @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "id", source = "id")
-    PurchaseOrderDTO toDtoPurchaseOrderId(PurchaseOrder purchaseOrder);
 }
