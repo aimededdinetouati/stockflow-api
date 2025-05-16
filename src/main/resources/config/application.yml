@@ -17,6 +17,9 @@
 ---
 # Conditionally disable springdoc on missing api-docs profile
 spring:
+  threads:
+    virtual:
+      enabled: true
   config:
     activate:
       on-profile: '!api-docs'
