@@ -57,7 +57,7 @@ class SubscriptionResourceIT {
     private static final BigDecimal DEFAULT_ACTUAL_PRICE = new BigDecimal(1);
     private static final BigDecimal UPDATED_ACTUAL_PRICE = new BigDecimal(2);
 
-    private static final String ENTITY_API_URL = "/api/subscriptiones";
+    private static final String ENTITY_API_URL = "/api/subscriptions";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
 
     private static Random random = new Random();
@@ -254,7 +254,7 @@ class SubscriptionResourceIT {
 
     @Test
     @Transactional
-    void getAllSubscriptiones() throws Exception {
+    void getAllSubscriptions() throws Exception {
         // Initialize the database
         insertedSubscription = subscriptionRepository.saveAndFlush(subscription);
 

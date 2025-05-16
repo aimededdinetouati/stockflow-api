@@ -213,18 +213,18 @@ public class ClientAccount extends AbstractAuditingEntity<Long> implements Seria
         return this.subscriptions;
     }
 
-    public void setSubscriptions(Set<Subscription> subscriptiones) {
+    public void setSubscriptions(Set<Subscription> subscriptions) {
         if (this.subscriptions != null) {
             this.subscriptions.forEach(i -> i.setClientAccount(null));
         }
-        if (subscriptiones != null) {
-            subscriptiones.forEach(i -> i.setClientAccount(this));
+        if (subscriptions != null) {
+            subscriptions.forEach(i -> i.setClientAccount(this));
         }
-        this.subscriptions = subscriptiones;
+        this.subscriptions = subscriptions;
     }
 
-    public ClientAccount subscriptions(Set<Subscription> subscriptiones) {
-        this.setSubscriptions(subscriptiones);
+    public ClientAccount subscriptions(Set<Subscription> subscriptions) {
+        this.setSubscriptions(subscriptions);
         return this;
     }
 

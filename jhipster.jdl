@@ -479,6 +479,8 @@ relationship ManyToOne {
 
 relationship ManyToOne {
   InventoryTransaction{returnOrderItem} to ReturnOrderItem,
+  InventoryTransaction{saleOrderItem} to SaleOrder,
+  InventoryTransaction{purchaseOrderItem} to PurchaseOrder,
 }
 
 relationship OneToMany {

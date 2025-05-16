@@ -40,6 +40,10 @@ public class InventoryTransactionDTO implements Serializable {
 
     private ReturnOrderItemDTO returnOrderItem;
 
+    private SaleOrderDTO saleOrderItem;
+
+    private PurchaseOrderDTO purchaseOrderItem;
+
     public Long getId() {
         return id;
     }
@@ -128,6 +132,22 @@ public class InventoryTransactionDTO implements Serializable {
         this.returnOrderItem = returnOrderItem;
     }
 
+    public SaleOrderDTO getSaleOrderItem() {
+        return saleOrderItem;
+    }
+
+    public void setSaleOrderItem(SaleOrderDTO saleOrderItem) {
+        this.saleOrderItem = saleOrderItem;
+    }
+
+    public PurchaseOrderDTO getPurchaseOrderItem() {
+        return purchaseOrderItem;
+    }
+
+    public void setPurchaseOrderItem(PurchaseOrderDTO purchaseOrderItem) {
+        this.purchaseOrderItem = purchaseOrderItem;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -164,6 +184,8 @@ public class InventoryTransactionDTO implements Serializable {
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +
             ", lastModifiedDate='" + getLastModifiedDate() + "'" +
             ", returnOrderItem=" + getReturnOrderItem() +
+            ", saleOrderItem=" + getSaleOrderItem() +
+            ", purchaseOrderItem=" + getPurchaseOrderItem() +
             "}";
     }
 }

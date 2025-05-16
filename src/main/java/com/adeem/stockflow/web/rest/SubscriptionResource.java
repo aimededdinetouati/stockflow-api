@@ -28,7 +28,7 @@ import tech.jhipster.web.util.ResponseUtil;
  * REST controller for managing {@link com.adeem.stockflow.domain.Subscription}.
  */
 @RestController
-@RequestMapping("/api/subscriptiones")
+@RequestMapping("/api/subscriptions")
 public class SubscriptionResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(SubscriptionResource.class);
@@ -48,7 +48,7 @@ public class SubscriptionResource {
     }
 
     /**
-     * {@code POST  /subscriptiones} : Create a new subscription.
+     * {@code POST  /subscriptions} : Create a new subscription.
      *
      * @param subscriptionDTO the subscriptionDTO to create.
      * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new subscriptionDTO, or with status {@code 400 (Bad Request)} if the subscription has already an ID.
@@ -62,13 +62,13 @@ public class SubscriptionResource {
             throw new BadRequestAlertException("A new subscription cannot already have an ID", ENTITY_NAME, "idexists");
         }
         subscriptionDTO = subscriptionService.save(subscriptionDTO);
-        return ResponseEntity.created(new URI("/api/subscriptiones/" + subscriptionDTO.getId()))
+        return ResponseEntity.created(new URI("/api/subscriptions/" + subscriptionDTO.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, subscriptionDTO.getId().toString()))
             .body(subscriptionDTO);
     }
 
     /**
-     * {@code PUT  /subscriptiones/:id} : Updates an existing subscription.
+     * {@code PUT  /subscriptions/:id} : Updates an existing subscription.
      *
      * @param id the id of the subscriptionDTO to save.
      * @param subscriptionDTO the subscriptionDTO to update.
@@ -101,7 +101,7 @@ public class SubscriptionResource {
     }
 
     /**
-     * {@code PATCH  /subscriptiones/:id} : Partial updates given fields of an existing subscription, field will ignore if it is null
+     * {@code PATCH  /subscriptions/:id} : Partial updates given fields of an existing subscription, field will ignore if it is null
      *
      * @param id the id of the subscriptionDTO to save.
      * @param subscriptionDTO the subscriptionDTO to update.
@@ -137,21 +137,21 @@ public class SubscriptionResource {
     }
 
     /**
-     * {@code GET  /subscriptiones} : get all the subscriptiones.
+     * {@code GET  /subscriptions} : get all the subscriptions.
      *
      * @param pageable the pagination information.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of subscriptiones in body.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of subscriptions in body.
      */
     @GetMapping("")
-    public ResponseEntity<List<SubscriptionDTO>> getAllSubscriptiones(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
-        LOG.debug("REST request to get a page of Subscriptiones");
+    public ResponseEntity<List<SubscriptionDTO>> getAllSubscriptions(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+        LOG.debug("REST request to get a page of Subscriptions");
         Page<SubscriptionDTO> page = subscriptionService.findAll(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
     /**
-     * {@code GET  /subscriptiones/:id} : get the "id" subscription.
+     * {@code GET  /subscriptions/:id} : get the "id" subscription.
      *
      * @param id the id of the subscriptionDTO to retrieve.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the subscriptionDTO, or with status {@code 404 (Not Found)}.
@@ -164,7 +164,7 @@ public class SubscriptionResource {
     }
 
     /**
-     * {@code DELETE  /subscriptiones/:id} : delete the "id" subscription.
+     * {@code DELETE  /subscriptions/:id} : delete the "id" subscription.
      *
      * @param id the id of the subscriptionDTO to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.

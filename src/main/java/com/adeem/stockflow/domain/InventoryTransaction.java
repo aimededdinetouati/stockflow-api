@@ -62,6 +62,14 @@ public class InventoryTransaction extends AbstractAuditingEntity<Long> implement
     @JsonIgnoreProperties(value = { "product", "originalSaleOrderItem", "originalPurchaseOrderItem", "returnOrder" }, allowSetters = true)
     private ReturnOrderItem returnOrderItem;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnoreProperties(value = { "payment", "orderItems", "clientAccount", "customer", "shipment" }, allowSetters = true)
+    private SaleOrder saleOrderItem;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnoreProperties(value = { "orderItems", "clientAccount", "admin", "supplier" }, allowSetters = true)
+    private PurchaseOrder purchaseOrderItem;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
     public Long getId() {
@@ -194,6 +202,32 @@ public class InventoryTransaction extends AbstractAuditingEntity<Long> implement
 
     public InventoryTransaction returnOrderItem(ReturnOrderItem returnOrderItem) {
         this.setReturnOrderItem(returnOrderItem);
+        return this;
+    }
+
+    public SaleOrder getSaleOrderItem() {
+        return this.saleOrderItem;
+    }
+
+    public void setSaleOrderItem(SaleOrder saleOrder) {
+        this.saleOrderItem = saleOrder;
+    }
+
+    public InventoryTransaction saleOrderItem(SaleOrder saleOrder) {
+        this.setSaleOrderItem(saleOrder);
+        return this;
+    }
+
+    public PurchaseOrder getPurchaseOrderItem() {
+        return this.purchaseOrderItem;
+    }
+
+    public void setPurchaseOrderItem(PurchaseOrder purchaseOrder) {
+        this.purchaseOrderItem = purchaseOrder;
+    }
+
+    public InventoryTransaction purchaseOrderItem(PurchaseOrder purchaseOrder) {
+        this.setPurchaseOrderItem(purchaseOrder);
         return this;
     }
 

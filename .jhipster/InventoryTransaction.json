@@ -74,6 +74,18 @@
       "relationshipName": "returnOrderItem",
       "relationshipSide": "left",
       "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityName": "saleOrder",
+      "relationshipName": "saleOrderItem",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityName": "purchaseOrder",
+      "relationshipName": "purchaseOrderItem",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
     }
   ],
   "searchEngine": "no",

@@ -1,7 +1,9 @@
 package com.adeem.stockflow.domain;
 
 import static com.adeem.stockflow.domain.InventoryTransactionTestSamples.*;
+import static com.adeem.stockflow.domain.PurchaseOrderTestSamples.*;
 import static com.adeem.stockflow.domain.ReturnOrderItemTestSamples.*;
+import static com.adeem.stockflow.domain.SaleOrderTestSamples.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adeem.stockflow.web.rest.TestUtil;
@@ -33,5 +35,29 @@ class InventoryTransactionTest {
 
         inventoryTransaction.returnOrderItem(null);
         assertThat(inventoryTransaction.getReturnOrderItem()).isNull();
+    }
+
+    @Test
+    void saleOrderItemTest() {
+        InventoryTransaction inventoryTransaction = getInventoryTransactionRandomSampleGenerator();
+        SaleOrder saleOrderBack = getSaleOrderRandomSampleGenerator();
+
+        inventoryTransaction.setSaleOrderItem(saleOrderBack);
+        assertThat(inventoryTransaction.getSaleOrderItem()).isEqualTo(saleOrderBack);
+
+        inventoryTransaction.saleOrderItem(null);
+        assertThat(inventoryTransaction.getSaleOrderItem()).isNull();
+    }
+
+    @Test
+    void purchaseOrderItemTest() {
+        InventoryTransaction inventoryTransaction = getInventoryTransactionRandomSampleGenerator();
+        PurchaseOrder purchaseOrderBack = getPurchaseOrderRandomSampleGenerator();
+
+        inventoryTransaction.setPurchaseOrderItem(purchaseOrderBack);
+        assertThat(inventoryTransaction.getPurchaseOrderItem()).isEqualTo(purchaseOrderBack);
+
+        inventoryTransaction.purchaseOrderItem(null);
+        assertThat(inventoryTransaction.getPurchaseOrderItem()).isNull();
     }
 }
