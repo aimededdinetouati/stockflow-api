@@ -13,14 +13,9 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface QuotaMapper extends EntityMapper<QuotaDTO, Quota> {
-    @Mapping(target = "clientAccount", source = "clientAccount", qualifiedByName = "clientAccountId")
+    @Mapping(target = "clientAccountId", source = "clientAccount.id")
     @Mapping(target = "subscription", source = "subscription", qualifiedByName = "subscriptionId")
     QuotaDTO toDto(Quota s);
-
-    @Named("clientAccountId")
-    @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "id", source = "id")
-    ClientAccountDTO toDtoClientAccountId(ClientAccount clientAccount);
 
     @Named("subscriptionId")
     @BeanMapping(ignoreByDefault = true)

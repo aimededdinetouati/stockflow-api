@@ -21,18 +21,13 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface ReturnOrderMapper extends EntityMapper<ReturnOrderDTO, ReturnOrder> {
-    @Mapping(target = "clientAccount", source = "clientAccount", qualifiedByName = "clientAccountId")
+    @Mapping(target = "clientAccountId", source = "clientAccount.id")
     @Mapping(target = "processedBy", source = "processedBy", qualifiedByName = "adminId")
     @Mapping(target = "customer", source = "customer", qualifiedByName = "customerId")
     @Mapping(target = "supplier", source = "supplier", qualifiedByName = "supplierId")
     @Mapping(target = "originalSaleOrder", source = "originalSaleOrder", qualifiedByName = "saleOrderId")
     @Mapping(target = "originalPurchaseOrder", source = "originalPurchaseOrder", qualifiedByName = "purchaseOrderId")
     ReturnOrderDTO toDto(ReturnOrder s);
-
-    @Named("clientAccountId")
-    @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "id", source = "id")
-    ClientAccountDTO toDtoClientAccountId(ClientAccount clientAccount);
 
     @Named("adminId")
     @BeanMapping(ignoreByDefault = true)

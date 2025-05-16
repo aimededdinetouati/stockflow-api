@@ -14,16 +14,11 @@ import org.mapstruct.*;
 @Mapper(componentModel = "spring")
 public interface SubscriptionMapper extends EntityMapper<SubscriptionDTO, Subscription> {
     @Mapping(target = "planFormula", source = "planFormula", qualifiedByName = "planFormulaId")
-    @Mapping(target = "clientAccount", source = "clientAccount", qualifiedByName = "clientAccountId")
+    @Mapping(target = "clientAccountId", source = "clientAccount.id")
     SubscriptionDTO toDto(Subscription s);
 
     @Named("planFormulaId")
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
     PlanFormulaDTO toDtoPlanFormulaId(PlanFormula planFormula);
-
-    @Named("clientAccountId")
-    @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "id", source = "id")
-    ClientAccountDTO toDtoClientAccountId(ClientAccount clientAccount);
 }

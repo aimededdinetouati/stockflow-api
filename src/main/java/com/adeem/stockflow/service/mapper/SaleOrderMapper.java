@@ -16,7 +16,7 @@ import org.mapstruct.*;
 @Mapper(componentModel = "spring")
 public interface SaleOrderMapper extends EntityMapper<SaleOrderDTO, SaleOrder> {
     @Mapping(target = "payment", source = "payment", qualifiedByName = "paymentId")
-    @Mapping(target = "clientAccount", source = "clientAccount", qualifiedByName = "clientAccountId")
+    @Mapping(target = "clientAccountId", source = "clientAccount.id")
     @Mapping(target = "customer", source = "customer", qualifiedByName = "customerId")
     SaleOrderDTO toDto(SaleOrder s);
 
@@ -24,11 +24,6 @@ public interface SaleOrderMapper extends EntityMapper<SaleOrderDTO, SaleOrder> {
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
     PaymentDTO toDtoPaymentId(Payment payment);
-
-    @Named("clientAccountId")
-    @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "id", source = "id")
-    ClientAccountDTO toDtoClientAccountId(ClientAccount clientAccount);
 
     @Named("customerId")
     @BeanMapping(ignoreByDefault = true)

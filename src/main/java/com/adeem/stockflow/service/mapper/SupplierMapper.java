@@ -14,16 +14,11 @@ import org.mapstruct.*;
 @Mapper(componentModel = "spring")
 public interface SupplierMapper extends EntityMapper<SupplierDTO, Supplier> {
     @Mapping(target = "address", source = "address", qualifiedByName = "addressId")
-    @Mapping(target = "clientAccount", source = "clientAccount", qualifiedByName = "clientAccountId")
+    @Mapping(target = "clientAccountId", source = "clientAccount.id")
     SupplierDTO toDto(Supplier s);
 
     @Named("addressId")
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
     AddressDTO toDtoAddressId(Address address);
-
-    @Named("clientAccountId")
-    @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "id", source = "id")
-    ClientAccountDTO toDtoClientAccountId(ClientAccount clientAccount);
 }

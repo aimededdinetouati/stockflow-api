@@ -15,15 +15,10 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface PurchaseOrderMapper extends EntityMapper<PurchaseOrderDTO, PurchaseOrder> {
-    @Mapping(target = "clientAccount", source = "clientAccount", qualifiedByName = "clientAccountId")
+    @Mapping(target = "clientAccountId", source = "clientAccount.id")
     @Mapping(target = "admin", source = "admin", qualifiedByName = "adminId")
     @Mapping(target = "supplier", source = "supplier", qualifiedByName = "supplierId")
     PurchaseOrderDTO toDto(PurchaseOrder s);
-
-    @Named("clientAccountId")
-    @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "id", source = "id")
-    ClientAccountDTO toDtoClientAccountId(ClientAccount clientAccount);
 
     @Named("adminId")
     @BeanMapping(ignoreByDefault = true)
