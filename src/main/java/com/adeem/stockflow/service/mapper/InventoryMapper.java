@@ -11,11 +11,6 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface InventoryMapper extends EntityMapper<InventoryDTO, Inventory> {
-    @Mapping(target = "product", source = "product", qualifiedByName = "productId")
+    @Mapping(target = "productId", source = "product.id")
     InventoryDTO toDto(Inventory s);
-
-    @Named("productId")
-    @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "id", source = "id")
-    ProductDTO toDtoProductId(Product product);
 }

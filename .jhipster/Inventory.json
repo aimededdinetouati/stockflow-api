@@ -71,8 +71,9 @@
   "relationships": [
     {
       "otherEntityName": "product",
+      "otherEntityRelationshipName": "inventories",
       "relationshipName": "product",
-      "relationshipSide": "left",
+      "relationshipSide": "right",
       "relationshipType": "many-to-one"
     }
   ],

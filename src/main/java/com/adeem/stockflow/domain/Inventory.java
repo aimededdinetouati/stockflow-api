@@ -58,7 +58,7 @@ public class Inventory extends AbstractAuditingEntity<Long> implements Serializa
     private boolean isPersisted;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "images", "clientAccount", "productFamily" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "images", "inventories", "clientAccount", "productFamily" }, allowSetters = true)
     private Product product;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here

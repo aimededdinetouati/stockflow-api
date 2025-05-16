@@ -49,7 +49,7 @@ public class PurchaseOrderItem extends AbstractAuditingEntity<Long> implements S
     private boolean isPersisted;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "images", "clientAccount", "productFamily" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "images", "inventories", "clientAccount", "productFamily" }, allowSetters = true)
     private Product product;
 
     @ManyToOne(fetch = FetchType.LAZY)

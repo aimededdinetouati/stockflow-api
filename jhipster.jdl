@@ -564,8 +564,11 @@ relationship ManyToOne {
 }
 
 relationship ManyToOne {
-  Inventory{product} to Product,
   Product{productFamily} to ProductFamily
+}
+
+relationship OneToMany {
+  Product{inventories} to Inventory{product}
 }
 
 // Set pagination with infinite-scroll for all entities

@@ -99,6 +99,7 @@ public class CacheConfiguration {
             createCache(cm, com.adeem.stockflow.domain.Payment.class.getName() + ".attachments");
             createCache(cm, com.adeem.stockflow.domain.PaymentReceipt.class.getName());
             createCache(cm, com.adeem.stockflow.domain.PaymentConfiguration.class.getName());
+            createCache(cm, com.adeem.stockflow.domain.Product.class.getName() + ".inventories");
             // jhipster-needle-ehcache-add-entry
         };
     }

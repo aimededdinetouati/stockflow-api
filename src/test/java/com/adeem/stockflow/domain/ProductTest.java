@@ -2,6 +2,7 @@ package com.adeem.stockflow.domain;
 
 import static com.adeem.stockflow.domain.AttachmentTestSamples.*;
 import static com.adeem.stockflow.domain.ClientAccountTestSamples.*;
+import static com.adeem.stockflow.domain.InventoryTestSamples.*;
 import static com.adeem.stockflow.domain.ProductFamilyTestSamples.*;
 import static com.adeem.stockflow.domain.ProductTestSamples.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,6 +48,28 @@ class ProductTest {
         product.setImages(new HashSet<>());
         assertThat(product.getImages()).doesNotContain(attachmentBack);
         assertThat(attachmentBack.getProduct()).isNull();
+    }
+
+    @Test
+    void inventoriesTest() {
+        Product product = getProductRandomSampleGenerator();
+        Inventory inventoryBack = getInventoryRandomSampleGenerator();
+
+        product.addInventories(inventoryBack);
+        assertThat(product.getInventories()).containsOnly(inventoryBack);
+        assertThat(inventoryBack.getProduct()).isEqualTo(product);
+
+        product.removeInventories(inventoryBack);
+        assertThat(product.getInventories()).doesNotContain(inventoryBack);
+        assertThat(inventoryBack.getProduct()).isNull();
+
+        product.inventories(new HashSet<>(Set.of(inventoryBack)));
+        assertThat(product.getInventories()).containsOnly(inventoryBack);
+        assertThat(inventoryBack.getProduct()).isEqualTo(product);
+
+        product.setInventories(new HashSet<>());
+        assertThat(product.getInventories()).doesNotContain(inventoryBack);
+        assertThat(inventoryBack.getProduct()).isNull();
     }
 
     @Test

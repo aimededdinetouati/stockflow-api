@@ -92,6 +92,11 @@ public class Product extends AbstractAuditingEntity<Long> implements Serializabl
     @JsonIgnoreProperties(value = { "clientAccount", "user", "payment", "product" }, allowSetters = true)
     private Set<Attachment> images = new HashSet<>();
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "product")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @JsonIgnoreProperties(value = { "product" }, allowSetters = true)
+    private Set<Inventory> inventories = new HashSet<>();
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "address", "subscriptions", "quotas" }, allowSetters = true)
     private ClientAccount clientAccount;
@@ -353,6 +358,37 @@ public class Product extends AbstractAuditingEntity<Long> implements Serializabl
     public Product removeImages(Attachment attachment) {
         this.images.remove(attachment);
         attachment.setProduct(null);
+        return this;
+    }
+
+    public Set<Inventory> getInventories() {
+        return this.inventories;
+    }
+
+    public void setInventories(Set<Inventory> inventories) {
+        if (this.inventories != null) {
+            this.inventories.forEach(i -> i.setProduct(null));
+        }
+        if (inventories != null) {
+            inventories.forEach(i -> i.setProduct(this));
+        }
+        this.inventories = inventories;
+    }
+
+    public Product inventories(Set<Inventory> inventories) {
+        this.setInventories(inventories);
+        return this;
+    }
+
+    public Product addInventories(Inventory inventory) {
+        this.inventories.add(inventory);
+        inventory.setProduct(this);
+        return this;
+    }
+
+    public Product removeInventories(Inventory inventory) {
+        this.inventories.remove(inventory);
+        inventory.setProduct(null);
         return this;
     }
 

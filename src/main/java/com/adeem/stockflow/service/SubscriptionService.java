@@ -78,14 +78,14 @@ public class SubscriptionService {
     }
 
     /**
-     * Get all the subscriptiones.
+     * Get all the subscriptions.
      *
      * @param pageable the pagination information.
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
     public Page<SubscriptionDTO> findAll(Pageable pageable) {
-        LOG.debug("Request to get all Subscriptiones");
+        LOG.debug("Request to get all Subscriptions");
         return subscriptionRepository.findAll(pageable).map(subscriptionMapper::toDto);
     }
 

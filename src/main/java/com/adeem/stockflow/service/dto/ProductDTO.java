@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * A DTO for the {@link com.adeem.stockflow.domain.Product} entity.
@@ -61,6 +62,8 @@ public class ProductDTO implements Serializable {
     private Long clientAccountId;
 
     private ProductFamilyDTO productFamily;
+
+    private Set<InventoryDTO> inventories;
 
     public Long getId() {
         return id;
@@ -220,6 +223,14 @@ public class ProductDTO implements Serializable {
 
     public void setProductFamily(ProductFamilyDTO productFamily) {
         this.productFamily = productFamily;
+    }
+
+    public Set<InventoryDTO> getInventories() {
+        return inventories;
+    }
+
+    public void setInventories(Set<InventoryDTO> inventories) {
+        this.inventories = inventories;
     }
 
     @Override

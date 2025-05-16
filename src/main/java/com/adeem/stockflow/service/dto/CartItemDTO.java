@@ -31,7 +31,7 @@ public class CartItemDTO implements Serializable {
 
     private Instant lastModifiedDate;
 
-    private Long productId;
+    private ProductDTO product;
 
     private Long cartId;
 
@@ -99,12 +99,12 @@ public class CartItemDTO implements Serializable {
         this.lastModifiedDate = lastModifiedDate;
     }
 
-    public Long getProductId() {
-        return productId;
+    public ProductDTO getProduct() {
+        return product;
     }
 
-    public void setProductId(Long productId) {
-        this.productId = productId;
+    public void setProduct(ProductDTO product) {
+        this.product = product;
     }
 
     public Long getCartId() {
@@ -148,7 +148,7 @@ public class CartItemDTO implements Serializable {
             ", createdDate='" + getCreatedDate() + "'" +
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +
             ", lastModifiedDate='" + getLastModifiedDate() + "'" +
-            ", product=" + getProductId() +
+            ", product=" + getProduct() +
             ", cart=" + getCartId() +
             "}";
     }

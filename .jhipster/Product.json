@@ -113,6 +113,13 @@
       "relationshipType": "one-to-many"
     },
     {
+      "otherEntityName": "inventory",
+      "otherEntityRelationshipName": "product",
+      "relationshipName": "inventories",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-many"
+    },
+    {
       "otherEntityName": "clientAccount",
       "relationshipName": "clientAccount",
       "relationshipSide": "left",

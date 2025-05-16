@@ -63,7 +63,7 @@ public class Attachment extends AbstractAuditingEntity<Long> implements Serializ
     private Payment payment;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "images", "clientAccount", "productFamily" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "images", "inventories", "clientAccount", "productFamily" }, allowSetters = true)
     private Product product;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
