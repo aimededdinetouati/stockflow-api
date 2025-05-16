@@ -20,7 +20,7 @@ public interface ReturnOrderItemMapper extends EntityMapper<ReturnOrderItemDTO, 
     @Mapping(target = "product", source = "product", qualifiedByName = "productId")
     @Mapping(target = "originalSaleOrderItem", source = "originalSaleOrderItem", qualifiedByName = "saleOrderItemId")
     @Mapping(target = "originalPurchaseOrderItem", source = "originalPurchaseOrderItem", qualifiedByName = "purchaseOrderItemId")
-    @Mapping(target = "returnOrder", source = "returnOrder", qualifiedByName = "returnOrderId")
+    @Mapping(target = "returnOrderId", source = "returnOrder.id")
     ReturnOrderItemDTO toDto(ReturnOrderItem s);
 
     @Named("productId")

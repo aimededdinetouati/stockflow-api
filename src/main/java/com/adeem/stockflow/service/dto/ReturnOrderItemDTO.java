@@ -57,7 +57,7 @@ public class ReturnOrderItemDTO implements Serializable {
 
     private PurchaseOrderItemDTO originalPurchaseOrderItem;
 
-    private ReturnOrderDTO returnOrder;
+    private Long returnOrderId;
 
     public Long getId() {
         return id;
@@ -203,12 +203,12 @@ public class ReturnOrderItemDTO implements Serializable {
         this.originalPurchaseOrderItem = originalPurchaseOrderItem;
     }
 
-    public ReturnOrderDTO getReturnOrder() {
-        return returnOrder;
+    public Long getReturnOrderId() {
+        return returnOrderId;
     }
 
-    public void setReturnOrder(ReturnOrderDTO returnOrder) {
-        this.returnOrder = returnOrder;
+    public void setReturnOrderId(Long returnOrderId) {
+        this.returnOrderId = returnOrderId;
     }
 
     @Override
@@ -254,7 +254,7 @@ public class ReturnOrderItemDTO implements Serializable {
             ", product=" + getProduct() +
             ", originalSaleOrderItem=" + getOriginalSaleOrderItem() +
             ", originalPurchaseOrderItem=" + getOriginalPurchaseOrderItem() +
-            ", returnOrder=" + getReturnOrder() +
+            ", returnOrder=" + getReturnOrderId() +
             "}";
     }
 }

@@ -33,7 +33,7 @@ public class PurchaseOrderItemDTO implements Serializable {
 
     private ProductDTO product;
 
-    private PurchaseOrderDTO purchaseOrder;
+    private Long purchaseOrderId;
 
     public Long getId() {
         return id;
@@ -107,12 +107,12 @@ public class PurchaseOrderItemDTO implements Serializable {
         this.product = product;
     }
 
-    public PurchaseOrderDTO getPurchaseOrder() {
-        return purchaseOrder;
+    public Long getPurchaseOrderId() {
+        return purchaseOrderId;
     }
 
-    public void setPurchaseOrder(PurchaseOrderDTO purchaseOrder) {
-        this.purchaseOrder = purchaseOrder;
+    public void setPurchaseOrderId(Long purchaseOrderId) {
+        this.purchaseOrderId = purchaseOrderId;
     }
 
     @Override
@@ -149,7 +149,7 @@ public class PurchaseOrderItemDTO implements Serializable {
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +
             ", lastModifiedDate='" + getLastModifiedDate() + "'" +
             ", product=" + getProduct() +
-            ", purchaseOrder=" + getPurchaseOrder() +
+            ", purchaseOrder=" + getPurchaseOrderId() +
             "}";
     }
 }
