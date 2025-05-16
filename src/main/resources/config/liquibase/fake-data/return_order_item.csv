@@ -1,0 +1,11 @@
+id;quantity;unit_price;subtotal;allocated_discount;total;return_reason;condition;notes;is_refundable;is_restockable;created_by;created_date;last_modified_by;last_modified_date
+1;20544.9;23316.77;25484.28;16096.44;17891.83;DUPLICATE_ORDER;LIKE_NEW;cone yieldingly selfishly;false;true;furthermore;2025-05-16T03:39:52;courageous rag;2025-05-16T06:53:18
+2;12897.17;10178.43;20087.17;32109.8;14769.84;INCORRECT_ITEM;DAMAGED;usually oh;true;false;politely;2025-05-15T14:27:11;conceptualize;2025-05-15T22:15:02
+3;9279.37;28026.2;12478.55;14940.65;21189.77;NOT_AS_DESCRIBED;USED;between pish;true;true;deform;2025-05-15T22:24:48;mozzarella for reconstitute;2025-05-15T12:09:27
+4;7260.06;3762.82;22351.6;8868.73;9783.77;DUPLICATE_ORDER;USED;yieldingly lowball but;true;false;croon;2025-05-15T12:21:01;rationalize beyond blissfully;2025-05-15T15:26:53
+5;25534.91;15732.28;11295.44;5781.02;28072.01;DAMAGED;USED;commonly blaring;true;false;about pish whereas;2025-05-16T09:29:14;admired;2025-05-16T05:11:17
+6;31579;19925.22;19015.24;12456.93;16141.79;UNWANTED;NEW;ouch smoothly;true;true;like ha justly;2025-05-15T14:16:20;wherever like beneath;2025-05-15T17:00:45
+7;21765.88;17071.31;3099.2;30443.18;8620.92;NO_LONGER_NEEDED;UNUSABLE;SUV capitalize;false;true;why;2025-05-16T00:28:27;duh vacation incidentally;2025-05-15T17:13:07
+8;21094.78;3619.66;14887.68;323.45;3932.05;INCORRECT_ITEM;DAMAGED;famously mostly;false;true;within during and;2025-05-15T10:28:56;although plan zowie;2025-05-16T05:23:20
+9;13849.4;17369.51;10999.97;21342.74;25764.15;DUPLICATE_ORDER;DAMAGED;verify;false;false;total vaguely considering;2025-05-15T17:30:17;adviser;2025-05-15T15:35:52
+10;8704.35;30969.64;9831.84;30305.01;6614.64;INCORRECT_ITEM;UNUSABLE;boastfully pecan;true;false;ornate;2025-05-15T17:05:50;disrespect cooperative sleepily;2025-05-15T22:08:22

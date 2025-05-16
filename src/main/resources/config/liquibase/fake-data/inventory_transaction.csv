@@ -1,0 +1,11 @@
+id;transaction_type;quantity;transaction_date;reference_number;notes;created_by;created_date;last_modified_by;last_modified_date
+1;SALE;12087.91;2025-05-15T12:29:13;extremely;optimal;purse enchanted;2025-05-15T15:07:53;border athletic;2025-05-16T06:42:05
+2;ADJUSTMENT;7601.51;2025-05-15T14:44:59;after fooey whoa;versus gadzooks;joyful retool;2025-05-16T00:56:04;save verve;2025-05-16T00:41:10
+3;EXPIRED;28676.37;2025-05-16T00:05:35;duh ski haversack;than as;faithfully regal;2025-05-15T15:50:39;once outsource ha;2025-05-15T13:28:04
+4;RETURN;2412.27;2025-05-15T13:23:29;ugh failing;circa reach;anti economise;2025-05-15T13:48:45;silky;2025-05-16T06:29:52
+5;TRANSFER_OUT;27283.37;2025-05-15T12:24:07;gnaw jazz;neatly brr duh;or polarisation;2025-05-15T13:44:35;in;2025-05-15T13:45:03
+6;DAMAGED;31085.79;2025-05-16T01:23:02;unabashedly knowingly;management pfft;once where;2025-05-16T09:17:46;daughter glum;2025-05-15T23:48:50
+7;SALE;2765.93;2025-05-15T15:37:25;limply micromanage;testimonial;meh;2025-05-16T04:42:21;over lest;2025-05-15T14:43:54
+8;ADJUSTMENT;30094.56;2025-05-15T22:05:01;wisecrack who;different pish;perfumed;2025-05-16T02:04:47;closed;2025-05-15T15:54:31
+9;DAMAGED;22020.47;2025-05-16T05:58:38;cluttered;scale;hence;2025-05-16T07:14:28;when front;2025-05-16T04:31:54
+10;ADJUSTMENT;9141.67;2025-05-15T11:09:09;decide wafer next;sympathetically regal maroon;obstruct longingly;2025-05-16T06:44:10;bootleg;2025-05-16T06:32:11

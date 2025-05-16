@@ -1,0 +1,143 @@
+{
+  "annotations": {
+    "changelogDate": "20250516093136",
+    "enableAudit": true
+  },
+  "applications": "*",
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "reference",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "date",
+      "fieldType": "ZonedDateTime",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "notes",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "status",
+      "fieldType": "OrderStatus",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "DRAFTED,CONFIRMED,PROCESSING,CANCELLED,RETURNED"
+    },
+    {
+      "fieldName": "shipping",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "missionFee",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "handling",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "costTotal",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "tvaRate",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "stampRate",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "discountRate",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "tvaAmount",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "stampAmount",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "discountAmount",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "subTotal",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "total",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "columnType": "varchar(50)",
+      "fieldName": "createdBy",
+      "fieldType": "String",
+      "nullable": false,
+      "readonly": true
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "fieldName": "createdDate",
+      "fieldType": "Instant",
+      "nullable": false,
+      "readonly": true
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "columnType": "varchar(50)",
+      "fieldName": "lastModifiedBy",
+      "fieldType": "String",
+      "nullable": false,
+      "readonly": true
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "fieldName": "lastModifiedDate",
+      "fieldType": "Instant",
+      "nullable": false,
+      "readonly": true
+    }
+  ],
+  "name": "PurchaseOrder",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityName": "purchaseOrderItem",
+      "otherEntityRelationshipName": "purchaseOrder",
+      "relationshipName": "orderItems",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-many"
+    },
+    {
+      "otherEntityName": "clientAccount",
+      "relationshipName": "clientAccount",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityName": "admin",
+      "relationshipName": "admin",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityName": "supplier",
+      "relationshipName": "supplier",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceClass"
+}

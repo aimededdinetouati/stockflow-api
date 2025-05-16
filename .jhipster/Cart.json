@@ -1,0 +1,63 @@
+{
+  "annotations": {
+    "changelogDate": "20250516093140",
+    "enableAudit": true
+  },
+  "applications": "*",
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "status",
+      "fieldType": "CartStatus",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "ACTIVE,ABANDONED,CONVERTED,EXPIRED"
+    },
+    {
+      "fieldName": "createdDate",
+      "fieldType": "Instant",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "lastModifiedDate",
+      "fieldType": "Instant"
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "columnType": "varchar(50)",
+      "fieldName": "createdBy",
+      "fieldType": "String",
+      "nullable": false,
+      "readonly": true
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "columnType": "varchar(50)",
+      "fieldName": "lastModifiedBy",
+      "fieldType": "String",
+      "nullable": false,
+      "readonly": true
+    }
+  ],
+  "name": "Cart",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityName": "cartItem",
+      "otherEntityRelationshipName": "cart",
+      "relationshipName": "cartItems",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-many"
+    },
+    {
+      "otherEntityName": "customer",
+      "otherEntityRelationshipName": "carts",
+      "relationshipName": "customer",
+      "relationshipSide": "right",
+      "relationshipType": "many-to-one"
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceClass"
+}

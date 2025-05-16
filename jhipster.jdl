@@ -1,0 +1,576 @@
+enum AccountStatus {
+  ENABLED, DISABLED, SUSPENDED
+}
+
+enum SubscriptionStatus {
+  ACTIVE, PENDING, CANCELLED, EXPIRED
+}
+
+enum BillingCycle {
+  MONTHLY, QUARTERLY, ANNUAL
+}
+
+enum InventoryStatus {
+  AVAILABLE, RESERVED, DAMAGED, EXPIRED
+}
+
+enum OrderStatus {
+    DRAFTED, CONFIRMED, PROCESSING, CANCELLED, RETURNED
+}
+
+enum SaleType {
+    RECEIPT, INVOICE
+}
+
+enum TransactionType {
+  PURCHASE, SALE, RETURN, ADJUSTMENT, TRANSFER_IN, TRANSFER_OUT, DAMAGED, EXPIRED
+}
+
+enum ReturnStatus {
+  DRAFT, PENDING, INSPECTING, APPROVED, PARTIALLY_APPROVED, REJECTED, COMPLETED, CANCELLED
+}
+
+enum ReturnType {
+  CUSTOMER_RETURN, SUPPLIER_RETURN
+}
+
+enum ReturnReason {
+  DAMAGED, DEFECTIVE, INCORRECT_ITEM, NOT_AS_DESCRIBED, UNWANTED,
+  DUPLICATE_ORDER, NO_LONGER_NEEDED, OTHER
+}
+
+enum ItemCondition {
+  NEW, LIKE_NEW, USED, DAMAGED, UNUSABLE
+}
+
+enum ReturnTransactionType {
+  REFUND, STORE_CREDIT, REPLACEMENT, RETURN_FEE
+}
+
+enum DiscountAllocationMethod {
+  PROPORTIONAL, UNIT_PRICE, CUSTOM
+}
+
+enum AttachmentType {
+  PROFILE_PICTURE, COMPANY_LOGO, PAYMENT_RECEIPT, PRODUCT_IMAGE
+}
+
+enum AddressType {
+  BILLING, SHIPPING, PRIMARY, BUSINESS, HEADQUARTERS
+}
+
+enum CartStatus {
+  ACTIVE, ABANDONED, CONVERTED, EXPIRED
+}
+
+enum ShippingStatus {
+  PENDING, PROCESSING, SHIPPED, DELIVERED, FAILED, RETURNED
+}
+
+enum PaymentMethod {
+  BANK_DEPOSIT, CASH, CHECK, CREDIT_CARD, ONLINE_TRANSFER, MOBILE_PAYMENT, OTHER
+}
+
+enum PaymentStatus {
+  PENDING, CONFIRMED, DECLINED, REFUNDED, PARTIALLY_REFUNDED
+}
+
+enum PaymentGateway {
+  MANUAL, STRIPE, PAYPAL, SQUARE, OTHER
+}
+
+enum ReceiptStatus {
+  SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED
+}
+
+@builtInEntity
+@EnableAudit
+entity User
+
+@EnableAudit
+entity Attachment {
+	type AttachmentType
+  url String
+  fileSize Long
+  isPrimary Boolean
+  altText String
+}
+
+@EnableAudit
+entity ClientAccount {
+  companyName String required
+  contactPerson String required
+  phone String required
+  email String required
+  status AccountStatus required
+}
+
+@EnableAudit
+entity Admin {
+  assignedDate Instant required
+}
+
+@EnableAudit
+entity Customer {
+  firstName String required
+  lastName String required
+  phone String required
+  fax String
+  taxId String
+  registrationArticle String
+  statisticalId String
+  rc String
+}
+
+@EnableAudit
+entity Address {
+  addressType AddressType required
+  streetAddress String required
+  city String required
+  state String required
+  postalCode String required
+  country String required
+  isDefault Boolean required
+  phoneNumber String
+}
+
+@EnableAudit
+entity Supplier {
+  firstName String required
+  lastName String required
+  phone String required
+  fax String
+  taxId String
+  registrationArticle String
+  statisticalId String
+  rc String
+}
+
+@EnableAudit
+entity Role {
+  name String required
+  description String
+  isSystemRole Boolean required
+}
+
+@EnableAudit
+entity Permission {
+  name String required
+  description String
+  resourceType String required
+  action String required
+}
+
+@EnableAudit
+entity RolePermission {
+
+}
+
+@EnableAudit
+entity UserRole {
+
+}
+
+@EnableAudit
+entity PlanFormula {
+  name String required
+  description String
+  basePrice BigDecimal required
+  billingCycle BillingCycle required
+  isActive Boolean required
+}
+
+@EnableAudit
+entity PlanFeature {
+  featureName String required
+  description String
+  isIncluded Boolean required
+}
+
+@EnableAudit
+entity ResourceLimit {
+  resourceType String required
+  maxAmount Integer required
+  isUnlimited Boolean required
+}
+
+@EnableAudit
+entity Subscription {
+  startDate ZonedDateTime required
+  endDate ZonedDateTime required
+  status SubscriptionStatus required
+  paymentMethod String required
+  actualPrice BigDecimal required
+}
+
+@EnableAudit
+entity Quota {
+  resourceType String required
+  usedAmount Integer required
+  maxAmount Integer required
+  resetDate ZonedDateTime required
+  lastUpdated Instant required
+}
+
+@EnableAudit
+entity Product {
+  name String required
+  description String
+  code String required
+  manufacturerCode String
+  upc String
+  sellingPrice BigDecimal required
+  costPrice BigDecimal required
+  profitMargin BigDecimal required
+  minimumStockLevel BigDecimal required
+  category String required
+  applyTva Boolean required
+  isVisibleToCustomers Boolean required
+  expirationDate ZonedDateTime
+}
+
+@EnableAudit
+entity ProductFamily {
+  name String required
+}
+
+@EnableAudit
+entity Inventory {
+  quantity BigDecimal required
+  availableQuantity BigDecimal required
+  location String
+  lastUpdated Instant required
+  status InventoryStatus required
+}
+
+@EnableAudit
+entity InventoryTransaction {
+  transactionType TransactionType required
+  quantity BigDecimal required
+  transactionDate ZonedDateTime required
+  referenceNumber String required
+  notes String
+}
+
+@EnableAudit
+entity SaleOrder {
+  reference String required
+  date ZonedDateTime required
+  dueDate ZonedDateTime
+  notes String
+  status OrderStatus required
+  tvaRate BigDecimal
+  stampRate BigDecimal
+  discountRate BigDecimal
+  tvaAmount BigDecimal
+  stampAmount BigDecimal
+  discountAmount BigDecimal
+  subTotal BigDecimal
+  total BigDecimal
+  saleType SaleType
+}
+
+@EnableAudit
+entity SaleOrderItem {
+  quantity BigDecimal required
+  unitPrice BigDecimal required
+  total BigDecimal required
+}
+
+@EnableAudit
+entity PurchaseOrder {
+  reference String required
+  date ZonedDateTime required
+  notes String
+  status OrderStatus required
+  shipping BigDecimal
+  missionFee BigDecimal
+  handling BigDecimal
+  costTotal BigDecimal
+  tvaRate BigDecimal
+  stampRate BigDecimal
+  discountRate BigDecimal
+  tvaAmount BigDecimal
+  stampAmount BigDecimal
+  discountAmount BigDecimal
+  subTotal BigDecimal
+  total BigDecimal
+}
+
+@EnableAudit
+entity PurchaseOrderItem {
+  quantity BigDecimal required
+  unitPrice BigDecimal required
+  total BigDecimal required
+}
+
+@EnableAudit
+entity ReturnOrder {
+  reference String required unique
+  returnDate ZonedDateTime required
+  processedDate ZonedDateTime
+  status ReturnStatus required
+  returnType ReturnType required
+  notes String
+
+  // Financial tracking
+  refundAmount BigDecimal
+
+  // Reference information
+  originalOrderReference String required
+  isPartialReturn Boolean required
+  discountAllocationMethod DiscountAllocationMethod
+
+  // Audit fields
+}
+
+@EnableAudit
+entity ReturnOrderItem {
+  quantity BigDecimal required
+  unitPrice BigDecimal required
+  subtotal BigDecimal required
+  allocatedDiscount BigDecimal
+  total BigDecimal
+  returnReason ReturnReason required
+  condition ItemCondition required
+  notes String
+  isRefundable Boolean required
+  isRestockable Boolean required
+}
+
+@EnableAudit
+entity Cart {
+    status CartStatus required
+    createdDate Instant required
+    lastModifiedDate Instant
+}
+
+@EnableAudit
+entity CartItem {
+    quantity BigDecimal required
+    price BigDecimal required
+    addedDate Instant required
+}
+
+@EnableAudit
+entity Shipment {
+  reference String unique
+  trackingNumber String unique
+  carrier String required
+  shippingDate Instant
+  estimatedDeliveryDate Instant
+  actualDeliveryDate Instant
+  status ShippingStatus required
+  shippingCost BigDecimal required
+  weight Double
+  notes String
+}
+
+@EnableAudit
+entity Payment {
+  reference String required unique
+  amount BigDecimal required
+  date ZonedDateTime required
+  method PaymentMethod required
+  status PaymentStatus required
+  gateway PaymentGateway required
+
+  // For Chargily-specific fields
+  chargilyCheckoutUrl String
+  chargilyTransactionId String
+
+  // For bank transfer fields
+  bankName String
+  accountNumber String
+  transferReferenceNumber String
+
+  // For reconciliation
+  reconciled Boolean required
+  reconciledDate ZonedDateTime
+  reconciledBy String
+  notes String
+
+  // Audit fields
+}
+
+@EnableAudit
+entity PaymentReceipt {
+  receiptNumber String required unique
+  submissionDate ZonedDateTime required
+  status ReceiptStatus required
+  reviewDate ZonedDateTime
+  reviewNotes String
+
+  // Audit fields
+}
+
+@EnableAudit
+entity PaymentConfiguration {
+
+  onlinePaymentEnabled Boolean
+  ccp String
+  rip String
+  rib String
+  iban String
+
+  // Audit fields
+}
+
+relationship ManyToOne {
+  Payment{clientAccount} to ClientAccount
+  Payment{customer} to Customer
+  PaymentReceipt{payment} to Payment
+  PaymentConfiguration{clientAccount} to ClientAccount
+}
+
+relationship OneToOne {
+  SaleOrder{payment} to Payment{saleOrder}
+}
+
+relationship OneToMany {
+  Payment{attachments} to Attachment{payment}
+}
+
+relationship OneToOne {
+	Shipment{saleOrder} to SaleOrder
+}
+
+relationship ManyToOne {
+	Shipment{address} to Address
+}
+
+relationship OneToMany {
+	Customer{addressList} to Address{customer}
+}
+
+relationship OneToOne {
+	Supplier{address} to Address,
+  ClientAccount{address} to Address
+}
+
+relationship OneToMany {
+    Customer{carts} to Cart{customer}
+}
+
+relationship OneToMany {
+    Cart{cartItems} to CartItem{cart}
+}
+
+relationship ManyToOne {
+    CartItem{product} to Product
+}
+
+relationship ManyToOne {
+  Attachment{clientAccount} to ClientAccount,
+  Attachment{user} to User
+}
+
+relationship OneToMany {
+	Product{images} to Attachment{product}
+}
+
+relationship ManyToOne {
+  ReturnOrder{clientAccount} to ClientAccount,
+  ReturnOrder{processedBy} to Admin,
+  ReturnOrder{customer} to Customer,
+  ReturnOrder{supplier} to Supplier,
+  ReturnOrderItem{product} to Product
+}
+
+relationship ManyToOne {
+  InventoryTransaction{returnOrderItem} to ReturnOrderItem,
+}
+
+relationship OneToMany {
+  ReturnOrder{items} to ReturnOrderItem{returnOrder},
+}
+
+relationship ManyToOne {
+  ReturnOrderItem{originalSaleOrderItem} to SaleOrderItem,
+  ReturnOrderItem{originalPurchaseOrderItem} to PurchaseOrderItem
+}
+
+relationship ManyToOne {
+  ReturnOrder{originalSaleOrder} to SaleOrder,
+  ReturnOrder{originalPurchaseOrder} to PurchaseOrder
+}
+
+relationship ManyToOne {
+  SaleOrderItem{product} to Product
+}
+
+relationship ManyToOne {
+  PurchaseOrderItem{product} to Product
+}
+
+relationship ManyToOne {
+  SaleOrder{clientAccount} to ClientAccount,
+  SaleOrder{customer} to Customer
+}
+
+relationship ManyToOne {
+  PurchaseOrder{clientAccount} to ClientAccount,
+  PurchaseOrder{admin} to Admin,
+  PurchaseOrder{supplier} to Supplier
+}
+
+relationship OneToMany {
+  PurchaseOrder{orderItems} to PurchaseOrderItem{purchaseOrder},
+  SaleOrder{orderItems} to SaleOrderItem{saleOrder}
+}
+
+// User relationships
+relationship OneToOne {
+  Customer{user} to User,
+  Admin{user} to User
+}
+
+// Client Account relationships
+relationship OneToMany {
+  ClientAccount{subscriptions} to Subscription{clientAccount},
+  ClientAccount{quotas} to Quota{clientAccount}
+}
+
+relationship ManyToOne {
+  Role{clientAccount} to ClientAccount,
+  Product{clientAccount} to ClientAccount,
+  Supplier{clientAccount} to ClientAccount,
+  Customer{clientAccount} to ClientAccount,
+  Admin{clientAccount} to ClientAccount
+}
+
+// Role-Based Security relationships
+relationship OneToMany {
+  Admin{userRoles} to UserRole{admin},
+  Role{userRoles} to UserRole{role},
+  Role{rolePermissions} to RolePermission{role},
+  Permission{rolePermissions} to RolePermission{permission}
+}
+
+// Subscription relationships
+relationship OneToMany {
+  PlanFormula{planFeatures} to PlanFeature{planFormula},
+  PlanFormula{resourceLimits} to ResourceLimit{planFormula}
+}
+
+relationship OneToMany {
+    Subscription{quota} to Quota
+}
+
+relationship ManyToOne {
+  Subscription{planFormula} to PlanFormula
+}
+
+relationship ManyToOne {
+  Inventory{product} to Product,
+  Product{productFamily} to ProductFamily
+}
+
+// Set pagination with infinite-scroll for all entities
+paginate * with pagination
+
+// Use service with serviceClass for all entities
+service * with serviceClass
+
+// Add DTOs
+dto * with mapstruct

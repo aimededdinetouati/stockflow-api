@@ -1,0 +1,97 @@
+{
+  "annotations": {
+    "changelogDate": "20250516093115",
+    "enableAudit": true
+  },
+  "applications": "*",
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "type",
+      "fieldType": "AttachmentType",
+      "fieldValues": "PROFILE_PICTURE,COMPANY_LOGO,PAYMENT_RECEIPT,PRODUCT_IMAGE"
+    },
+    {
+      "fieldName": "url",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "fileSize",
+      "fieldType": "Long"
+    },
+    {
+      "fieldName": "isPrimary",
+      "fieldType": "Boolean"
+    },
+    {
+      "fieldName": "altText",
+      "fieldType": "String"
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "columnType": "varchar(50)",
+      "fieldName": "createdBy",
+      "fieldType": "String",
+      "nullable": false,
+      "readonly": true
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "fieldName": "createdDate",
+      "fieldType": "Instant",
+      "nullable": false,
+      "readonly": true
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "columnType": "varchar(50)",
+      "fieldName": "lastModifiedBy",
+      "fieldType": "String",
+      "nullable": false,
+      "readonly": true
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "fieldName": "lastModifiedDate",
+      "fieldType": "Instant",
+      "nullable": false,
+      "readonly": true
+    }
+  ],
+  "name": "Attachment",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityName": "clientAccount",
+      "relationshipName": "clientAccount",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityName": "user",
+      "relationshipName": "user",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityName": "payment",
+      "otherEntityRelationshipName": "attachments",
+      "relationshipName": "payment",
+      "relationshipSide": "right",
+      "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityName": "product",
+      "otherEntityRelationshipName": "images",
+      "relationshipName": "product",
+      "relationshipSide": "right",
+      "relationshipType": "many-to-one"
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceClass"
+}

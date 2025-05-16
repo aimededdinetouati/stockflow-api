@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+    <!--
+        Added the constraints for entity ReturnOrder.
+    -->
+    <changeSet id="20250516093138-2" author="jhipster">
+
+        <addForeignKeyConstraint baseColumnNames="client_account_id"
+                                 baseTableName="return_order"
+                                 constraintName="fk_return_order__client_account_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="client_account"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="processed_by_id"
+                                 baseTableName="return_order"
+                                 constraintName="fk_return_order__processed_by_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="admin"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="customer_id"
+                                 baseTableName="return_order"
+                                 constraintName="fk_return_order__customer_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="customer"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="supplier_id"
+                                 baseTableName="return_order"
+                                 constraintName="fk_return_order__supplier_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="supplier"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="original_sale_order_id"
+                                 baseTableName="return_order"
+                                 constraintName="fk_return_order__original_sale_order_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="sale_order"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="original_purchase_order_id"
+                                 baseTableName="return_order"
+                                 constraintName="fk_return_order__original_purchase_order_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="purchase_order"
+                                 />
+    </changeSet>
+</databaseChangeLog>

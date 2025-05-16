@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <!--
+        Added the entity ReturnOrder.
+    -->
+    <changeSet id="20250516093138-1" author="jhipster">
+        <createTable tableName="return_order">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="reference" type="varchar(255)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="ux_return_order__reference" />
+            </column>
+            <column name="return_date" type="${datetimeType}">
+                <constraints nullable="false" />
+            </column>
+            <column name="processed_date" type="${datetimeType}">
+                <constraints nullable="true" />
+            </column>
+            <column name="status" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="return_type" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="notes" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="refund_amount" type="decimal(21,2)">
+                <constraints nullable="true" />
+            </column>
+            <column name="original_order_reference" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="is_partial_return" type="boolean">
+                <constraints nullable="false" />
+            </column>
+            <column name="discount_allocation_method" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="created_by" type="varchar(50)">
+                <constraints nullable="false" />
+            </column>
+            <column name="created_date" type="${datetimeType}">
+                <constraints nullable="false" />
+            </column>
+            <column name="last_modified_by" type="varchar(50)">
+                <constraints nullable="false" />
+            </column>
+            <column name="last_modified_date" type="${datetimeType}">
+                <constraints nullable="false" />
+            </column>
+            <column name="client_account_id" type="bigint">
+                <constraints nullable="true" />
+            </column>
+            <column name="processed_by_id" type="bigint">
+                <constraints nullable="true" />
+            </column>
+            <column name="customer_id" type="bigint">
+                <constraints nullable="true" />
+            </column>
+            <column name="supplier_id" type="bigint">
+                <constraints nullable="true" />
+            </column>
+            <column name="original_sale_order_id" type="bigint">
+                <constraints nullable="true" />
+            </column>
+            <column name="original_purchase_order_id" type="bigint">
+                <constraints nullable="true" />
+            </column>
+            <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
+        </createTable>
+        <dropDefaultValue tableName="return_order" columnName="return_date" columnDataType="${datetimeType}"/>
+        <dropDefaultValue tableName="return_order" columnName="processed_date" columnDataType="${datetimeType}"/>
+        <dropDefaultValue tableName="return_order" columnName="created_date" columnDataType="${datetimeType}"/>
+        <dropDefaultValue tableName="return_order" columnName="last_modified_date" columnDataType="${datetimeType}"/>
+    </changeSet>
+
+    <!-- jhipster-needle-liquibase-add-changeset - JHipster will add changesets here -->
+
+    <!--
+        Load sample data generated with Faker.js
+        - This data can be easily edited using a CSV editor (or even MS Excel) and
+          is located in the 'src/main/resources/config/liquibase/fake-data' directory
+        - By default this data is applied when running with the JHipster 'dev' profile.
+          This can be customized by adding or removing 'faker' in the 'spring.liquibase.contexts'
+          Spring Boot configuration key.
+    -->
+    <changeSet id="20250516093138-1-data" author="jhipster" context="faker">
+        <loadData
+                  file="config/liquibase/fake-data/return_order.csv"
+                  separator=";"
+                  tableName="return_order"
+                  usePreparedStatements="true">
+            <column name="id" type="numeric"/>
+            <column name="reference" type="string"/>
+            <column name="return_date" type="date"/>
+            <column name="processed_date" type="date"/>
+            <column name="status" type="string"/>
+            <column name="return_type" type="string"/>
+            <column name="notes" type="string"/>
+            <column name="refund_amount" type="numeric"/>
+            <column name="original_order_reference" type="string"/>
+            <column name="is_partial_return" type="boolean"/>
+            <column name="discount_allocation_method" type="string"/>
+            <column name="created_by" type="string"/>
+            <column name="created_date" type="date"/>
+            <column name="last_modified_by" type="string"/>
+            <column name="last_modified_date" type="date"/>
+            <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here -->
+        </loadData>
+    </changeSet>
+</databaseChangeLog>

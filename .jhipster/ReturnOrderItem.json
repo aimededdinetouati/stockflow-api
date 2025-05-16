@@ -1,0 +1,124 @@
+{
+  "annotations": {
+    "changelogDate": "20250516093139",
+    "enableAudit": true
+  },
+  "applications": "*",
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "quantity",
+      "fieldType": "BigDecimal",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "unitPrice",
+      "fieldType": "BigDecimal",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "subtotal",
+      "fieldType": "BigDecimal",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "allocatedDiscount",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "total",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "returnReason",
+      "fieldType": "ReturnReason",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "DAMAGED,DEFECTIVE,INCORRECT_ITEM,NOT_AS_DESCRIBED,UNWANTED,DUPLICATE_ORDER,NO_LONGER_NEEDED,OTHER"
+    },
+    {
+      "fieldName": "condition",
+      "fieldType": "ItemCondition",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "NEW,LIKE_NEW,USED,DAMAGED,UNUSABLE"
+    },
+    {
+      "fieldName": "notes",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "isRefundable",
+      "fieldType": "Boolean",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "isRestockable",
+      "fieldType": "Boolean",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "columnType": "varchar(50)",
+      "fieldName": "createdBy",
+      "fieldType": "String",
+      "nullable": false,
+      "readonly": true
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "fieldName": "createdDate",
+      "fieldType": "Instant",
+      "nullable": false,
+      "readonly": true
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "columnType": "varchar(50)",
+      "fieldName": "lastModifiedBy",
+      "fieldType": "String",
+      "nullable": false,
+      "readonly": true
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "fieldName": "lastModifiedDate",
+      "fieldType": "Instant",
+      "nullable": false,
+      "readonly": true
+    }
+  ],
+  "name": "ReturnOrderItem",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityName": "product",
+      "relationshipName": "product",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityName": "saleOrderItem",
+      "relationshipName": "originalSaleOrderItem",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityName": "purchaseOrderItem",
+      "relationshipName": "originalPurchaseOrderItem",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityName": "returnOrder",
+      "otherEntityRelationshipName": "items",
+      "relationshipName": "returnOrder",
+      "relationshipSide": "right",
+      "relationshipType": "many-to-one"
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceClass"
+}

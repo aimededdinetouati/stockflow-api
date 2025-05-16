@@ -1,0 +1,11 @@
+id;reference;return_date;processed_date;status;return_type;notes;refund_amount;original_order_reference;is_partial_return;discount_allocation_method;created_by;created_date;last_modified_by;last_modified_date
+1;of;2025-05-16T07:14:05;2025-05-16T05:00:23;REJECTED;SUPPLIER_RETURN;lest;14533.02;bump replicate;true;CUSTOM;unused during;2025-05-16T04:36:46;aw;2025-05-15T17:59:00
+2;stealthily;2025-05-15T21:52:44;2025-05-15T09:41:25;PENDING;SUPPLIER_RETURN;hunger;6572.62;orient limping rectangular;true;PROPORTIONAL;firm;2025-05-15T15:25:27;patiently yahoo woot;2025-05-15T20:28:46
+3;successfully baptise;2025-05-16T05:04:37;2025-05-15T10:47:23;DRAFT;SUPPLIER_RETURN;yowza solidly mainstream;7423.09;resort;true;CUSTOM;whoa;2025-05-15T17:13:20;since;2025-05-16T06:56:45
+4;twine defiantly silt;2025-05-15T14:43:57;2025-05-16T03:55:54;APPROVED;CUSTOMER_RETURN;essential upsell;7612;design solemnly;false;CUSTOM;brr cellar fireplace;2025-05-15T11:00:19;gosh pish;2025-05-16T00:23:43
+5;gee wide-eyed mozzarella;2025-05-16T02:57:02;2025-05-15T09:43:42;PARTIALLY_APPROVED;CUSTOMER_RETURN;upon truthfully scale;3778.5;comb hm where;true;PROPORTIONAL;persecute courageously;2025-05-15T22:22:27;cap without whenever;2025-05-15T18:09:55
+6;er;2025-05-16T08:11:20;2025-05-16T06:55:42;PARTIALLY_APPROVED;CUSTOMER_RETURN;oh bore partially;31500.64;dense noisily;false;CUSTOM;pessimistic lecture;2025-05-15T21:43:16;fake;2025-05-15T23:10:54
+7;hateful knowledgeable;2025-05-16T00:32:43;2025-05-16T02:24:48;PARTIALLY_APPROVED;CUSTOMER_RETURN;ad thoroughly about;32104.55;toward;false;CUSTOM;lovable impressionable;2025-05-16T06:39:16;unaccountably;2025-05-15T10:17:15
+8;obnoxiously successfully to;2025-05-16T04:31:14;2025-05-15T13:57:54;APPROVED;CUSTOMER_RETURN;blah;15353.23;uncomfortable ick forgather;false;PROPORTIONAL;mid about;2025-05-16T06:35:44;huzzah yieldingly;2025-05-15T21:59:55
+9;miscalculate via so;2025-05-16T05:16:26;2025-05-16T07:43:14;INSPECTING;SUPPLIER_RETURN;wherever indeed;28324.83;likewise loudly;true;UNIT_PRICE;whether midst;2025-05-16T06:21:33;bah aw fax;2025-05-16T01:49:14
+10;around whereas butter;2025-05-15T12:09:57;2025-05-15T19:25:05;DRAFT;SUPPLIER_RETURN;calmly properly;4671.9;embalm for;false;UNIT_PRICE;or rigidly thump;2025-05-15T18:46:06;quirkily yippee;2025-05-15T14:25:41

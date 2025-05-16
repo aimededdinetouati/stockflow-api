@@ -1,0 +1,142 @@
+{
+  "annotations": {
+    "changelogDate": "20250516093138",
+    "enableAudit": true
+  },
+  "applications": "*",
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "reference",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "unique"]
+    },
+    {
+      "fieldName": "returnDate",
+      "fieldType": "ZonedDateTime",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "processedDate",
+      "fieldType": "ZonedDateTime"
+    },
+    {
+      "fieldName": "status",
+      "fieldType": "ReturnStatus",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "DRAFT,PENDING,INSPECTING,APPROVED,PARTIALLY_APPROVED,REJECTED,COMPLETED,CANCELLED"
+    },
+    {
+      "fieldName": "returnType",
+      "fieldType": "ReturnType",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "CUSTOMER_RETURN,SUPPLIER_RETURN"
+    },
+    {
+      "fieldName": "notes",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "refundAmount",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "originalOrderReference",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "isPartialReturn",
+      "fieldType": "Boolean",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "discountAllocationMethod",
+      "fieldType": "DiscountAllocationMethod",
+      "fieldValues": "PROPORTIONAL,UNIT_PRICE,CUSTOM"
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "columnType": "varchar(50)",
+      "fieldName": "createdBy",
+      "fieldType": "String",
+      "nullable": false,
+      "readonly": true
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "fieldName": "createdDate",
+      "fieldType": "Instant",
+      "nullable": false,
+      "readonly": true
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "columnType": "varchar(50)",
+      "fieldName": "lastModifiedBy",
+      "fieldType": "String",
+      "nullable": false,
+      "readonly": true
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "fieldName": "lastModifiedDate",
+      "fieldType": "Instant",
+      "nullable": false,
+      "readonly": true
+    }
+  ],
+  "name": "ReturnOrder",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityName": "returnOrderItem",
+      "otherEntityRelationshipName": "returnOrder",
+      "relationshipName": "items",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-many"
+    },
+    {
+      "otherEntityName": "clientAccount",
+      "relationshipName": "clientAccount",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityName": "admin",
+      "relationshipName": "processedBy",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityName": "customer",
+      "relationshipName": "customer",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityName": "supplier",
+      "relationshipName": "supplier",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityName": "saleOrder",
+      "relationshipName": "originalSaleOrder",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityName": "purchaseOrder",
+      "relationshipName": "originalPurchaseOrder",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceClass"
+}

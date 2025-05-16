@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+    <!--
+        Added the constraints for entity ReturnOrderItem.
+    -->
+    <changeSet id="20250516093139-2" author="jhipster">
+
+        <addForeignKeyConstraint baseColumnNames="product_id"
+                                 baseTableName="return_order_item"
+                                 constraintName="fk_return_order_item__product_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="product"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="original_sale_order_item_id"
+                                 baseTableName="return_order_item"
+                                 constraintName="fk_return_order_item__original_sale_order_item_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="sale_order_item"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="original_purchase_order_item_id"
+                                 baseTableName="return_order_item"
+                                 constraintName="fk_return_order_item__original_purchase_order_item_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="purchase_order_item"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="return_order_id"
+                                 baseTableName="return_order_item"
+                                 constraintName="fk_return_order_item__return_order_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="return_order"
+                                 />
+    </changeSet>
+</databaseChangeLog>

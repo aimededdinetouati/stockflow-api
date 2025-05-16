@@ -1,0 +1,146 @@
+{
+  "annotations": {
+    "changelogDate": "20250516093143",
+    "enableAudit": true
+  },
+  "applications": "*",
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "reference",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "unique"]
+    },
+    {
+      "fieldName": "amount",
+      "fieldType": "BigDecimal",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "date",
+      "fieldType": "ZonedDateTime",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "method",
+      "fieldType": "PaymentMethod",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "BANK_DEPOSIT,CASH,CHECK,CREDIT_CARD,ONLINE_TRANSFER,MOBILE_PAYMENT,OTHER"
+    },
+    {
+      "fieldName": "status",
+      "fieldType": "PaymentStatus",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "PENDING,CONFIRMED,DECLINED,REFUNDED,PARTIALLY_REFUNDED"
+    },
+    {
+      "fieldName": "gateway",
+      "fieldType": "PaymentGateway",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "MANUAL,STRIPE,PAYPAL,SQUARE,OTHER"
+    },
+    {
+      "fieldName": "chargilyCheckoutUrl",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "chargilyTransactionId",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "bankName",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "accountNumber",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "transferReferenceNumber",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "reconciled",
+      "fieldType": "Boolean",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "reconciledDate",
+      "fieldType": "ZonedDateTime"
+    },
+    {
+      "fieldName": "reconciledBy",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "notes",
+      "fieldType": "String"
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "columnType": "varchar(50)",
+      "fieldName": "createdBy",
+      "fieldType": "String",
+      "nullable": false,
+      "readonly": true
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "fieldName": "createdDate",
+      "fieldType": "Instant",
+      "nullable": false,
+      "readonly": true
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "columnType": "varchar(50)",
+      "fieldName": "lastModifiedBy",
+      "fieldType": "String",
+      "nullable": false,
+      "readonly": true
+    },
+    {
+      "auditField": true,
+      "autoGenerate": true,
+      "fieldName": "lastModifiedDate",
+      "fieldType": "Instant",
+      "nullable": false,
+      "readonly": true
+    }
+  ],
+  "name": "Payment",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityName": "attachment",
+      "otherEntityRelationshipName": "payment",
+      "relationshipName": "attachments",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-many"
+    },
+    {
+      "otherEntityName": "clientAccount",
+      "relationshipName": "clientAccount",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityName": "customer",
+      "relationshipName": "customer",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityName": "saleOrder",
+      "otherEntityRelationshipName": "payment",
+      "relationshipName": "saleOrder",
+      "relationshipSide": "right",
+      "relationshipType": "one-to-one"
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceClass"
+}
