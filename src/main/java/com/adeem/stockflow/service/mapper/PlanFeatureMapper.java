@@ -11,11 +11,6 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface PlanFeatureMapper extends EntityMapper<PlanFeatureDTO, PlanFeature> {
-    @Mapping(target = "planFormula", source = "planFormula", qualifiedByName = "planFormulaId")
+    @Mapping(target = "planFormulaId", source = "planFormula.id")
     PlanFeatureDTO toDto(PlanFeature s);
-
-    @Named("planFormulaId")
-    @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "id", source = "id")
-    PlanFormulaDTO toDtoPlanFormulaId(PlanFormula planFormula);
 }

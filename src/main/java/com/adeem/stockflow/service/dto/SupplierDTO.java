@@ -42,7 +42,7 @@ public class SupplierDTO implements Serializable {
 
     private AddressDTO address;
 
-    private ClientAccountDTO clientAccount;
+    private Long clientAccountId;
 
     public Long getId() {
         return id;
@@ -156,12 +156,12 @@ public class SupplierDTO implements Serializable {
         this.address = address;
     }
 
-    public ClientAccountDTO getClientAccount() {
-        return clientAccount;
+    public Long getClientAccountId() {
+        return clientAccountId;
     }
 
-    public void setClientAccount(ClientAccountDTO clientAccount) {
-        this.clientAccount = clientAccount;
+    public void setClientAccountId(Long clientAccountId) {
+        this.clientAccountId = clientAccountId;
     }
 
     @Override
@@ -203,7 +203,7 @@ public class SupplierDTO implements Serializable {
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +
             ", lastModifiedDate='" + getLastModifiedDate() + "'" +
             ", address=" + getAddress() +
-            ", clientAccount=" + getClientAccount() +
+            ", clientAccount=" + getClientAccountId() +
             "}";
     }
 }

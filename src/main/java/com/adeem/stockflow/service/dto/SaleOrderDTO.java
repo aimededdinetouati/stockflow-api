@@ -58,7 +58,7 @@ public class SaleOrderDTO implements Serializable {
 
     private PaymentDTO payment;
 
-    private ClientAccountDTO clientAccount;
+    private Long clientAccountId;
 
     private CustomerDTO customer;
 
@@ -222,12 +222,12 @@ public class SaleOrderDTO implements Serializable {
         this.payment = payment;
     }
 
-    public ClientAccountDTO getClientAccount() {
-        return clientAccount;
+    public Long getClientAccountId() {
+        return clientAccountId;
     }
 
-    public void setClientAccount(ClientAccountDTO clientAccount) {
-        this.clientAccount = clientAccount;
+    public void setClientAccountId(Long clientAccountId) {
+        this.clientAccountId = clientAccountId;
     }
 
     public CustomerDTO getCustomer() {
@@ -283,7 +283,7 @@ public class SaleOrderDTO implements Serializable {
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +
             ", lastModifiedDate='" + getLastModifiedDate() + "'" +
             ", payment=" + getPayment() +
-            ", clientAccount=" + getClientAccount() +
+            ", clientAccountId=" + getClientAccountId() +
             ", customer=" + getCustomer() +
             "}";
     }

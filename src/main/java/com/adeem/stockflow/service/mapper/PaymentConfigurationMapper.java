@@ -11,11 +11,6 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface PaymentConfigurationMapper extends EntityMapper<PaymentConfigurationDTO, PaymentConfiguration> {
-    @Mapping(target = "clientAccount", source = "clientAccount", qualifiedByName = "clientAccountId")
+    @Mapping(target = "clientAccountId", source = "clientAccount.id")
     PaymentConfigurationDTO toDto(PaymentConfiguration s);
-
-    @Named("clientAccountId")
-    @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "id", source = "id")
-    ClientAccountDTO toDtoClientAccountId(ClientAccount clientAccount);
 }

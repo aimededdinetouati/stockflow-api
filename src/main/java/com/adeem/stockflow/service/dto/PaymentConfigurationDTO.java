@@ -30,7 +30,7 @@ public class PaymentConfigurationDTO implements Serializable {
 
     private Instant lastModifiedDate;
 
-    private ClientAccountDTO clientAccount;
+    private Long clientAccountId;
 
     public Long getId() {
         return id;
@@ -112,12 +112,12 @@ public class PaymentConfigurationDTO implements Serializable {
         this.lastModifiedDate = lastModifiedDate;
     }
 
-    public ClientAccountDTO getClientAccount() {
-        return clientAccount;
+    public Long getClientAccountId() {
+        return clientAccountId;
     }
 
-    public void setClientAccount(ClientAccountDTO clientAccount) {
-        this.clientAccount = clientAccount;
+    public void setClientAccountId(Long clientAccountId) {
+        this.clientAccountId = clientAccountId;
     }
 
     @Override
@@ -155,7 +155,7 @@ public class PaymentConfigurationDTO implements Serializable {
             ", createdDate='" + getCreatedDate() + "'" +
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +
             ", lastModifiedDate='" + getLastModifiedDate() + "'" +
-            ", clientAccount=" + getClientAccount() +
+            ", clientAccountId=" + getClientAccountId() +
             "}";
     }
 }

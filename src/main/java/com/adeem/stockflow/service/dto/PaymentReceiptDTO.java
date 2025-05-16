@@ -36,7 +36,7 @@ public class PaymentReceiptDTO implements Serializable {
 
     private Instant lastModifiedDate;
 
-    private PaymentDTO payment;
+    private Long paymentId;
 
     public Long getId() {
         return id;
@@ -118,12 +118,12 @@ public class PaymentReceiptDTO implements Serializable {
         this.lastModifiedDate = lastModifiedDate;
     }
 
-    public PaymentDTO getPayment() {
-        return payment;
+    public Long getPaymentId() {
+        return paymentId;
     }
 
-    public void setPayment(PaymentDTO payment) {
-        this.payment = payment;
+    public void setPaymentId(Long paymentId) {
+        this.paymentId = paymentId;
     }
 
     @Override
@@ -161,7 +161,7 @@ public class PaymentReceiptDTO implements Serializable {
             ", createdDate='" + getCreatedDate() + "'" +
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +
             ", lastModifiedDate='" + getLastModifiedDate() + "'" +
-            ", payment=" + getPayment() +
+            ", paymentId=" + getPaymentId() +
             "}";
     }
 }

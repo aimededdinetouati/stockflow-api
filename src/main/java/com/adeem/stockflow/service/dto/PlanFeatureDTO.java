@@ -29,7 +29,7 @@ public class PlanFeatureDTO implements Serializable {
 
     private Instant lastModifiedDate;
 
-    private PlanFormulaDTO planFormula;
+    private Long planFormulaId;
 
     public Long getId() {
         return id;
@@ -95,12 +95,12 @@ public class PlanFeatureDTO implements Serializable {
         this.lastModifiedDate = lastModifiedDate;
     }
 
-    public PlanFormulaDTO getPlanFormula() {
-        return planFormula;
+    public Long getPlanFormulaId() {
+        return planFormulaId;
     }
 
-    public void setPlanFormula(PlanFormulaDTO planFormula) {
-        this.planFormula = planFormula;
+    public void setPlanFormulaId(Long planFormulaId) {
+        this.planFormulaId = planFormulaId;
     }
 
     @Override
@@ -136,7 +136,7 @@ public class PlanFeatureDTO implements Serializable {
             ", createdDate='" + getCreatedDate() + "'" +
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +
             ", lastModifiedDate='" + getLastModifiedDate() + "'" +
-            ", planFormula=" + getPlanFormula() +
+            ", planFormula=" + getPlanFormulaId() +
             "}";
     }
 }
