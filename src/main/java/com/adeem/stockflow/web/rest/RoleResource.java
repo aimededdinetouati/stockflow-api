@@ -143,7 +143,7 @@ public class RoleResource {
      */
     @GetMapping("")
     public ResponseEntity<List<RoleDTO>> getAllRoles(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
-        LOG.debug("REST request to get a page of Roles");
+        LOG.debug("REST request to get a page of RolesConstants");
         Page<RoleDTO> page = roleService.findAll(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());

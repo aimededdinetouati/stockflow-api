@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+  <property name="now" value="current_timestamp" dbms="postgresql"/>
+  <property name="floatType" value="float4" dbms="postgresql"/>
+  <property name="clobType" value="clob" dbms="postgresql"/>
+  <property name="blobType" value="blob" dbms="postgresql"/>
+  <property name="uuidType" value="uuid" dbms="postgresql"/>
+  <property name="datetimeType" value="datetime" dbms="postgresql"/>
+
+  <!-- Create Permissions -->
+  <changeSet id="20250517000001" author="system">
+    <createTable tableName="permission">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="name" type="varchar(255)">
+        <constraints nullable="false" unique="true"/>
+      </column>
+      <column name="description" type="varchar(255)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="created_date" type="${datetimeType}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="last_modified_date" type="${datetimeType}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <!-- User Management Permissions -->
+    <insert tableName="permission">
+      <column name="id" valueNumeric="1"/>
+      <column name="name" value="users:view"/>
+      <column name="description" value="View user information"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="2"/>
+      <column name="name" value="users:create"/>
+      <column name="description" value="Create new users"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="3"/>
+      <column name="name" value="users:edit"/>
+      <column name="description" value="Edit user information"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="4"/>
+      <column name="name" value="users:delete"/>
+      <column name="description" value="Delete users"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+
+    <!-- Role Management Permissions -->
+    <insert tableName="permission">
+      <column name="id" valueNumeric="5"/>
+      <column name="name" value="roles:view"/>
+      <column name="description" value="View roles"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="6"/>
+      <column name="name" value="roles:create"/>
+      <column name="description" value="Create new roles"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="7"/>
+      <column name="name" value="roles:edit"/>
+      <column name="description" value="Edit roles"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="8"/>
+      <column name="name" value="roles:delete"/>
+      <column name="description" value="Delete roles"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+
+    <!-- Inventory Management Permissions -->
+    <insert tableName="permission">
+      <column name="id" valueNumeric="9"/>
+      <column name="name" value="inventory:view"/>
+      <column name="description" value="View inventory"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="10"/>
+      <column name="name" value="inventory:create"/>
+      <column name="description" value="Create inventory items"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="11"/>
+      <column name="name" value="inventory:edit"/>
+      <column name="description" value="Edit inventory items"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="12"/>
+      <column name="name" value="inventory:delete"/>
+      <column name="description" value="Delete inventory items"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+
+    <!-- Product Management Permissions -->
+    <insert tableName="permission">
+      <column name="id" valueNumeric="13"/>
+      <column name="name" value="products:view"/>
+      <column name="description" value="View products"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="14"/>
+      <column name="name" value="products:create"/>
+      <column name="description" value="Create products"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="15"/>
+      <column name="name" value="products:edit"/>
+      <column name="description" value="Edit products"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="16"/>
+      <column name="name" value="products:delete"/>
+      <column name="description" value="Delete products"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+
+    <!-- Order Management Permissions -->
+    <insert tableName="permission">
+      <column name="id" valueNumeric="17"/>
+      <column name="name" value="orders:view"/>
+      <column name="description" value="View orders"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="18"/>
+      <column name="name" value="orders:create"/>
+      <column name="description" value="Create orders"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="19"/>
+      <column name="name" value="orders:edit"/>
+      <column name="description" value="Edit orders"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="20"/>
+      <column name="name" value="orders:delete"/>
+      <column name="description" value="Delete orders"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+
+    <!-- Customer Management Permissions -->
+    <insert tableName="permission">
+      <column name="id" valueNumeric="21"/>
+      <column name="name" value="customers:view"/>
+      <column name="description" value="View customers"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="22"/>
+      <column name="name" value="customers:create"/>
+      <column name="description" value="Create customers"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="23"/>
+      <column name="name" value="customers:edit"/>
+      <column name="description" value="Edit customers"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="24"/>
+      <column name="name" value="customers:delete"/>
+      <column name="description" value="Delete customers"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+
+    <!-- Supplier Management Permissions -->
+    <insert tableName="permission">
+      <column name="id" valueNumeric="25"/>
+      <column name="name" value="suppliers:view"/>
+      <column name="description" value="View suppliers"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="26"/>
+      <column name="name" value="suppliers:create"/>
+      <column name="description" value="Create suppliers"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="27"/>
+      <column name="name" value="suppliers:edit"/>
+      <column name="description" value="Edit suppliers"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="28"/>
+      <column name="name" value="suppliers:delete"/>
+      <column name="description" value="Delete suppliers"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+
+    <!-- Report Management Permissions -->
+    <insert tableName="permission">
+      <column name="id" valueNumeric="29"/>
+      <column name="name" value="reports:view"/>
+      <column name="description" value="View reports"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="30"/>
+      <column name="name" value="reports:create"/>
+      <column name="description" value="Create reports"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="31"/>
+      <column name="name" value="reports:export"/>
+      <column name="description" value="Export reports"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+
+    <!-- Settings Management Permissions -->
+    <insert tableName="permission">
+      <column name="id" valueNumeric="32"/>
+      <column name="name" value="settings:view"/>
+      <column name="description" value="View system settings"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="33"/>
+      <column name="name" value="settings:edit"/>
+      <column name="description" value="Edit system settings"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+
+    <!-- Payment Management Permissions -->
+    <insert tableName="permission">
+      <column name="id" valueNumeric="34"/>
+      <column name="name" value="payments:view"/>
+      <column name="description" value="View payments"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="35"/>
+      <column name="name" value="payments:process"/>
+      <column name="description" value="Process payments"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="36"/>
+      <column name="name" value="payments:refund"/>
+      <column name="description" value="Issue refunds"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+
+    <!-- Special Admin Permissions -->
+    <insert tableName="permission">
+      <column name="id" valueNumeric="41"/>
+      <column name="name" value="admin:full_access"/>
+      <column name="description" value="Full system access (super admin)"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="42"/>
+      <column name="name" value="admin:audit_logs"/>
+      <column name="description" value="View system audit logs"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+    <insert tableName="permission">
+      <column name="id" valueNumeric="43"/>
+      <column name="name" value="admin:impersonate"/>
+      <column name="description" value="Impersonate other users"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+  </changeSet>
+
+  <!-- Create Default System RolesConstants -->
+  <changeSet id="20250517000002" author="system">
+    <!-- Create System-wide RolesConstants (not associated with a specific client account) -->
+    <insert tableName="role">
+      <column name="id" valueNumeric="1"/>
+      <column name="name" value="SUPER_ADMIN"/>
+      <column name="description" value="Super Administrator with full system access"/>
+      <column name="client_account_id" valueNumeric="null"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+
+    <!-- Default Client Account RolesConstants -->
+    <insert tableName="role">
+      <column name="id" valueNumeric="2"/>
+      <column name="name" value="ACCOUNT_OWNER"/>
+      <column name="description" value="Account Owner with full access to client account"/>
+      <column name="client_account_id" valueNumeric="null"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+
+    <insert tableName="role">
+      <column name="id" valueNumeric="3"/>
+      <column name="name" value="ACCOUNT_ADMIN"/>
+      <column name="description" value="Account Administrator with elevated privileges"/>
+      <column name="client_account_id" valueNumeric="null"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+
+    <insert tableName="role">
+      <column name="id" valueNumeric="4"/>
+      <column name="name" value="ACCOUNT_MANAGER"/>
+      <column name="description" value="Account Manager with limited administrative capabilities"/>
+      <column name="client_account_id" valueNumeric="null"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+
+    <insert tableName="role">
+      <column name="id" valueNumeric="5"/>
+      <column name="name" value="ACCOUNT_USER"/>
+      <column name="description" value="Regular account user with basic permissions"/>
+      <column name="client_account_id" valueNumeric="null"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+
+    <insert tableName="role">
+      <column name="id" valueNumeric="6"/>
+      <column name="name" value="INVENTORY_MANAGER"/>
+      <column name="description" value="User with specific inventory management capabilities"/>
+      <column name="client_account_id" valueNumeric="null"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+
+    <insert tableName="role">
+      <column name="id" valueNumeric="7"/>
+      <column name="name" value="SALES_MANAGER"/>
+      <column name="description" value="User focused on sales operations"/>
+      <column name="client_account_id" valueNumeric="null"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+
+    <insert tableName="role">
+      <column name="id" valueNumeric="8"/>
+      <column name="name" value="FINANCE_MANAGER"/>
+      <column name="description" value="User focused on financial operations"/>
+      <column name="client_account_id" valueNumeric="null"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+
+    <insert tableName="role">
+      <column name="id" valueNumeric="9"/>
+      <column name="name" value="REPORT_VIEWER"/>
+      <column name="description" value="User with access to view reports only"/>
+      <column name="client_account_id" valueNumeric="null"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+    </insert>
+  </changeSet>
+
+  <!-- Assign Permissions to RolesConstants -->
+  <changeSet id="20250517000003" author="system">
+    <!-- Assign all permissions to SUPER_ADMIN -->
+    <sql>
+      INSERT INTO role_permission (role_id, permission_id, created_date, last_modified_date)
+      SELECT 1, id, now(), now() FROM permission;
+    </sql>
+
+    <!-- Assign permissions to ACCOUNT_OWNER (all permissions except admin specific ones) -->
+    <sql>
+      INSERT INTO role_permission (role_id, permission_id, created_date, last_modified_date)
+      SELECT 2, id, now(), now() FROM permission
+      WHERE name NOT LIKE 'admin:%';
+    </sql>
+
+    <!-- Assign permissions to ACCOUNT_ADMIN (most permissions except full_access and impersonate) -->
+    <sql>
+      INSERT INTO role_permission (role_id, permission_id, created_date, last_modified_date)
+      SELECT 3, id, now(), now() FROM permission
+      WHERE name NOT IN ('admin:full_access', 'admin:impersonate');
+    </sql>
+
+    <!-- Assign permissions to ACCOUNT_MANAGER (view + basic management, no delete, no admin) -->
+    <sql>
+      INSERT INTO role_permission (role_id, permission_id, created_date, last_modified_date)
+      SELECT 4, id, now(), now() FROM permission
+      WHERE (name LIKE '%:view' OR name LIKE '%:edit' OR name LIKE '%:create')
+        AND name NOT LIKE 'admin:%'
+        AND name NOT LIKE '%:delete';
+    </sql>
+
+    <!-- Assign permissions to ACCOUNT_USER (only view permissions) -->
+    <sql>
+      INSERT INTO role_permission (role_id, permission_id, created_date, last_modified_date)
+      SELECT 5, id, now(), now() FROM permission
+      WHERE name LIKE '%:view';
+    </sql>
+
+    <!-- Assign permissions to INVENTORY_MANAGER -->
+    <sql>
+      INSERT INTO role_permission (role_id, permission_id, created_date, last_modified_date)
+      SELECT 6, id, now(), now() FROM permission
+      WHERE name LIKE 'inventory:%' OR name LIKE 'products:%';
+    </sql>
+
+    <!-- Assign permissions to SALES_MANAGER -->
+    <sql>
+      INSERT INTO role_permission (role_id, permission_id, created_date, last_modified_date)
+      SELECT 7, id, now(), now() FROM permission
+      WHERE name LIKE 'orders:%' OR name LIKE 'customers:%' OR name LIKE 'reports:view';
+    </sql>
+
+    <!-- Assign permissions to FINANCE_MANAGER -->
+    <sql>
+      INSERT INTO role_permission (role_id, permission_id, created_date, last_modified_date)
+      SELECT 8, id, now(), now() FROM permission
+      WHERE name LIKE 'payments:%' OR name LIKE 'reports:%';
+    </sql>
+
+    <!-- Assign permissions to REPORT_VIEWER -->
+    <sql>
+      INSERT INTO role_permission (role_id, permission_id, created_date, last_modified_date)
+      SELECT 9, id, now(), now() FROM permission
+      WHERE name = 'reports:view';
+    </sql>
+  </changeSet>
+
+</databaseChangeLog>

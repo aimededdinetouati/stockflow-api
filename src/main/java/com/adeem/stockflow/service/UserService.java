@@ -1,19 +1,15 @@
 package com.adeem.stockflow.service;
 
 import com.adeem.stockflow.config.Constants;
-import com.adeem.stockflow.domain.Authority;
-import com.adeem.stockflow.domain.ClientAccount;
-import com.adeem.stockflow.domain.User;
+import com.adeem.stockflow.domain.*;
 import com.adeem.stockflow.domain.enumeration.AccountStatus;
-import com.adeem.stockflow.repository.AuthorityRepository;
-import com.adeem.stockflow.repository.ClientAccountRepository;
-import com.adeem.stockflow.repository.QuotaRepository;
-import com.adeem.stockflow.repository.UserRepository;
-import com.adeem.stockflow.security.AuthoritiesConstants;
+import com.adeem.stockflow.repository.*;
+import com.adeem.stockflow.security.RolesConstants;
 import com.adeem.stockflow.security.SecurityUtils;
 import com.adeem.stockflow.service.dto.AdminUserDTO;
 import com.adeem.stockflow.service.dto.ClientAccountDTO;
 import com.adeem.stockflow.service.dto.UserDTO;
+import com.adeem.stockflow.service.mapper.AddressMapper;
 import com.adeem.stockflow.web.rest.vm.ManagedUserVM;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -43,6 +39,10 @@ public class UserService {
     private final UserRepository userRepository;
     private final ClientAccountRepository clientAccountRepository;
     private final QuotaRepository quotaRepository;
+    private final AdminRepository adminRepository;
+    private final RoleRepository roleRepository;
+    private final UserRoleRepository userRoleRepository;
+    private AddressMapper addressMapper;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -54,6 +54,9 @@ public class UserService {
         UserRepository userRepository,
         ClientAccountRepository clientAccountRepository,
         QuotaRepository quotaRepository,
+        AdminRepository adminRepository,
+        RoleRepository roleRepository,
+        UserRoleRepository userRoleRepository,
         PasswordEncoder passwordEncoder,
         AuthorityRepository authorityRepository,
         CacheManager cacheManager
@@ -61,12 +64,15 @@ public class UserService {
         this.userRepository = userRepository;
         this.clientAccountRepository = clientAccountRepository;
         this.quotaRepository = quotaRepository;
+        this.adminRepository = adminRepository;
+        this.roleRepository = roleRepository;
+        this.userRoleRepository = userRoleRepository;
         this.passwordEncoder = passwordEncoder;
         this.authorityRepository = authorityRepository;
         this.cacheManager = cacheManager;
     }
 
-    public User activateRegistration(ClientAccountDTO clientAccountDTO, String key) {
+    public void activateRegistration(ClientAccountDTO clientAccountDTO, String key) {
         LOG.debug("Activating user for activation key {}", key);
         User user = activateUser(key);
         createDisabledAccount(user, clientAccountDTO);
@@ -75,15 +81,29 @@ public class UserService {
     private void createDisabledAccount(User user, ClientAccountDTO clientAccountDTO) {
         ClientAccount clientAccount = new ClientAccount();
         clientAccount.setCompanyName(clientAccountDTO.getCompanyName());
-        clientAccount.setEmail(clientAccount.getEmail());
-        clientAccount.setPhone(clientAccount.getPhone());
-        clientAccount.setAddress(clientAccount.getAddress());
+        clientAccount.setEmail(clientAccountDTO.getEmail());
+        clientAccount.setPhone(clientAccountDTO.getPhone());
         clientAccount.setStatus(AccountStatus.DISABLED);
+        clientAccount.setAddress(addressMapper.toEntity(clientAccountDTO.getAddress()));
         clientAccountRepository.save(clientAccount);
+
+        Admin admin = new Admin();
+        admin.setUser(user);
+        admin.setClientAccount(clientAccount);
+        admin.setAssignedDate(Instant.now());
+        adminRepository.save(admin);
+
+        Role role = roleRepository.findByName(RolesConstants.SUPER_ADMIN);
+        UserRole userRole = new UserRole();
+        userRole.setRole(role);
+        userRole.setAdmin(admin);
+        userRoleRepository.save(userRole);
+
+        Quota quota = new Quota();
     }
 
     private User activateUser(String key) {
-        userRepository
+        return userRepository
             .findOneByActivationKey(key)
             .map(user -> {
                 // activate given user for the registration key.
