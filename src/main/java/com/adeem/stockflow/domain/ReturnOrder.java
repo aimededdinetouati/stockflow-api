@@ -87,7 +87,7 @@ public class ReturnOrder extends AbstractAuditingEntity<Long> implements Seriali
     private Set<ReturnOrderItem> items = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "address", "subscriptions", "quotas" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "address", "quota", "subscriptions" }, allowSetters = true)
     private ClientAccount clientAccount;
 
     @ManyToOne(fetch = FetchType.LAZY)

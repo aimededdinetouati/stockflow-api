@@ -30,8 +30,10 @@ class QuotaTest {
 
         quota.setClientAccount(clientAccountBack);
         assertThat(quota.getClientAccount()).isEqualTo(clientAccountBack);
+        assertThat(clientAccountBack.getQuota()).isEqualTo(quota);
 
         quota.clientAccount(null);
         assertThat(quota.getClientAccount()).isNull();
+        assertThat(clientAccountBack.getQuota()).isNull();
     }
 }

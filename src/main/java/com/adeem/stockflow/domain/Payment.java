@@ -103,7 +103,7 @@ public class Payment extends AbstractAuditingEntity<Long> implements Serializabl
     private Set<Attachment> attachments = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "address", "subscriptions", "quotas" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "address", "quota", "subscriptions" }, allowSetters = true)
     private ClientAccount clientAccount;
 
     @ManyToOne(fetch = FetchType.LAZY)

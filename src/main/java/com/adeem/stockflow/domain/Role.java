@@ -59,7 +59,7 @@ public class Role extends AbstractAuditingEntity<Long> implements Serializable, 
     private Set<RolePermission> rolePermissions = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "address", "subscriptions", "quotas" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "address", "quota", "subscriptions" }, allowSetters = true)
     private ClientAccount clientAccount;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here

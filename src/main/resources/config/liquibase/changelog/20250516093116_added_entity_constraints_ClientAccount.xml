@@ -16,5 +16,12 @@
                                  referencedColumnNames="id"
                                  referencedTableName="address"
                                  />
+
+        <addForeignKeyConstraint baseColumnNames="quota_id"
+                                 baseTableName="client_account"
+                                 constraintName="fk_client_account__quota_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="quota"
+                                 />
     </changeSet>
 </databaseChangeLog>

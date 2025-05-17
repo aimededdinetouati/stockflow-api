@@ -77,16 +77,16 @@
       "relationshipType": "one-to-one"
     },
     {
+      "otherEntityName": "quota",
+      "otherEntityRelationshipName": "clientAccount",
+      "relationshipName": "quota",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-one"
+    },
+    {
       "otherEntityName": "subscription",
       "otherEntityRelationshipName": "clientAccount",
       "relationshipName": "subscriptions",
-      "relationshipSide": "left",
-      "relationshipType": "one-to-many"
-    },
-    {
-      "otherEntityName": "quota",
-      "otherEntityRelationshipName": "clientAccount",
-      "relationshipName": "quotas",
       "relationshipSide": "left",
       "relationshipType": "one-to-many"
     }

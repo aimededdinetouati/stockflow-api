@@ -40,6 +40,18 @@ class ClientAccountTest {
     }
 
     @Test
+    void quotaTest() {
+        ClientAccount clientAccount = getClientAccountRandomSampleGenerator();
+        Quota quotaBack = getQuotaRandomSampleGenerator();
+
+        clientAccount.setQuota(quotaBack);
+        assertThat(clientAccount.getQuota()).isEqualTo(quotaBack);
+
+        clientAccount.quota(null);
+        assertThat(clientAccount.getQuota()).isNull();
+    }
+
+    @Test
     void subscriptionsTest() {
         ClientAccount clientAccount = getClientAccountRandomSampleGenerator();
         Subscription subscriptionBack = getSubscriptionRandomSampleGenerator();
@@ -59,27 +71,5 @@ class ClientAccountTest {
         clientAccount.setSubscriptions(new HashSet<>());
         assertThat(clientAccount.getSubscriptions()).doesNotContain(subscriptionBack);
         assertThat(subscriptionBack.getClientAccount()).isNull();
-    }
-
-    @Test
-    void quotasTest() {
-        ClientAccount clientAccount = getClientAccountRandomSampleGenerator();
-        Quota quotaBack = getQuotaRandomSampleGenerator();
-
-        clientAccount.addQuotas(quotaBack);
-        assertThat(clientAccount.getQuotas()).containsOnly(quotaBack);
-        assertThat(quotaBack.getClientAccount()).isEqualTo(clientAccount);
-
-        clientAccount.removeQuotas(quotaBack);
-        assertThat(clientAccount.getQuotas()).doesNotContain(quotaBack);
-        assertThat(quotaBack.getClientAccount()).isNull();
-
-        clientAccount.quotas(new HashSet<>(Set.of(quotaBack)));
-        assertThat(clientAccount.getQuotas()).containsOnly(quotaBack);
-        assertThat(quotaBack.getClientAccount()).isEqualTo(clientAccount);
-
-        clientAccount.setQuotas(new HashSet<>());
-        assertThat(clientAccount.getQuotas()).doesNotContain(quotaBack);
-        assertThat(quotaBack.getClientAccount()).isNull();
     }
 }

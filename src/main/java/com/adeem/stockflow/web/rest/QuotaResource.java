@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -139,10 +140,18 @@ public class QuotaResource {
      * {@code GET  /quotas} : get all the quotas.
      *
      * @param pageable the pagination information.
+     * @param filter the filter of the request.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of quotas in body.
      */
     @GetMapping("")
-    public ResponseEntity<List<QuotaDTO>> getAllQuotas(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+    public ResponseEntity<List<QuotaDTO>> getAllQuotas(
+        @org.springdoc.core.annotations.ParameterObject Pageable pageable,
+        @RequestParam(name = "filter", required = false) String filter
+    ) {
+        if ("clientaccount-is-null".equals(filter)) {
+            LOG.debug("REST request to get all Quotas where clientAccount is null");
+            return new ResponseEntity<>(quotaService.findAllWhereClientAccountIsNull(), HttpStatus.OK);
+        }
         LOG.debug("REST request to get a page of Quotas");
         Page<QuotaDTO> page = quotaService.findAll(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);

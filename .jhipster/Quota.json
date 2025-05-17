@@ -71,10 +71,10 @@
   "relationships": [
     {
       "otherEntityName": "clientAccount",
-      "otherEntityRelationshipName": "quotas",
+      "otherEntityRelationshipName": "quota",
       "relationshipName": "clientAccount",
       "relationshipSide": "right",
-      "relationshipType": "many-to-one"
+      "relationshipType": "one-to-one"
     }
   ],
   "searchEngine": "no",
