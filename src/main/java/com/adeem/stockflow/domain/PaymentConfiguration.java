@@ -50,7 +50,7 @@ public class PaymentConfiguration extends AbstractAuditingEntity<Long> implement
     private boolean isPersisted;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "address", "subscriptions", "quotas" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "address", "quota", "subscriptions" }, allowSetters = true)
     private ClientAccount clientAccount;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here

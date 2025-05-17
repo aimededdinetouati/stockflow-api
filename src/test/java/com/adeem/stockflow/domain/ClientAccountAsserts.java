@@ -65,6 +65,7 @@ public class ClientAccountAsserts {
     public static void assertClientAccountUpdatableRelationshipsEquals(ClientAccount expected, ClientAccount actual) {
         assertThat(actual)
             .as("Verify ClientAccount relationships")
-            .satisfies(a -> assertThat(a.getAddress()).as("check address").isEqualTo(expected.getAddress()));
+            .satisfies(a -> assertThat(a.getAddress()).as("check address").isEqualTo(expected.getAddress()))
+            .satisfies(a -> assertThat(a.getQuota()).as("check quota").isEqualTo(expected.getQuota()));
     }
 }

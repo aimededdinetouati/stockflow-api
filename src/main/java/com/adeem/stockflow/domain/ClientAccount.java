@@ -64,15 +64,15 @@ public class ClientAccount extends AbstractAuditingEntity<Long> implements Seria
     @JoinColumn(unique = true)
     private Address address;
 
+    @JsonIgnoreProperties(value = { "clientAccount" }, allowSetters = true)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(unique = true)
+    private Quota quota;
+
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "clientAccount")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(value = { "planFormula", "clientAccount" }, allowSetters = true)
     private Set<Subscription> subscriptions = new HashSet<>();
-
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "clientAccount")
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonIgnoreProperties(value = { "clientAccount" }, allowSetters = true)
-    private Set<Quota> quotas = new HashSet<>();
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -209,6 +209,19 @@ public class ClientAccount extends AbstractAuditingEntity<Long> implements Seria
         return this;
     }
 
+    public Quota getQuota() {
+        return this.quota;
+    }
+
+    public void setQuota(Quota quota) {
+        this.quota = quota;
+    }
+
+    public ClientAccount quota(Quota quota) {
+        this.setQuota(quota);
+        return this;
+    }
+
     public Set<Subscription> getSubscriptions() {
         return this.subscriptions;
     }
@@ -237,37 +250,6 @@ public class ClientAccount extends AbstractAuditingEntity<Long> implements Seria
     public ClientAccount removeSubscriptions(Subscription subscription) {
         this.subscriptions.remove(subscription);
         subscription.setClientAccount(null);
-        return this;
-    }
-
-    public Set<Quota> getQuotas() {
-        return this.quotas;
-    }
-
-    public void setQuotas(Set<Quota> quotas) {
-        if (this.quotas != null) {
-            this.quotas.forEach(i -> i.setClientAccount(null));
-        }
-        if (quotas != null) {
-            quotas.forEach(i -> i.setClientAccount(this));
-        }
-        this.quotas = quotas;
-    }
-
-    public ClientAccount quotas(Set<Quota> quotas) {
-        this.setQuotas(quotas);
-        return this;
-    }
-
-    public ClientAccount addQuotas(Quota quota) {
-        this.quotas.add(quota);
-        quota.setClientAccount(this);
-        return this;
-    }
-
-    public ClientAccount removeQuotas(Quota quota) {
-        this.quotas.remove(quota);
-        quota.setClientAccount(null);
         return this;
     }
 

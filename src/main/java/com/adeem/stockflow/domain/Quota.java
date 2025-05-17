@@ -56,8 +56,8 @@ public class Quota extends AbstractAuditingEntity<Long> implements Serializable,
     @Transient
     private boolean isPersisted;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "address", "subscriptions", "quotas" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "address", "quota", "subscriptions" }, allowSetters = true)
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "quota")
     private ClientAccount clientAccount;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
@@ -187,6 +187,12 @@ public class Quota extends AbstractAuditingEntity<Long> implements Serializable,
     }
 
     public void setClientAccount(ClientAccount clientAccount) {
+        if (this.clientAccount != null) {
+            this.clientAccount.setQuota(null);
+        }
+        if (clientAccount != null) {
+            clientAccount.setQuota(this);
+        }
         this.clientAccount = clientAccount;
     }
 

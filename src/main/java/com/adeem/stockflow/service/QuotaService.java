@@ -4,7 +4,11 @@ import com.adeem.stockflow.domain.Quota;
 import com.adeem.stockflow.repository.QuotaRepository;
 import com.adeem.stockflow.service.dto.QuotaDTO;
 import com.adeem.stockflow.service.mapper.QuotaMapper;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -87,6 +91,19 @@ public class QuotaService {
     public Page<QuotaDTO> findAll(Pageable pageable) {
         LOG.debug("Request to get all Quotas");
         return quotaRepository.findAll(pageable).map(quotaMapper::toDto);
+    }
+
+    /**
+     *  Get all the quotas where ClientAccount is {@code null}.
+     *  @return the list of entities.
+     */
+    @Transactional(readOnly = true)
+    public List<QuotaDTO> findAllWhereClientAccountIsNull() {
+        LOG.debug("Request to get all quotas where ClientAccount is null");
+        return StreamSupport.stream(quotaRepository.findAll().spliterator(), false)
+            .filter(quota -> quota.getClientAccount() == null)
+            .map(quotaMapper::toDto)
+            .collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**

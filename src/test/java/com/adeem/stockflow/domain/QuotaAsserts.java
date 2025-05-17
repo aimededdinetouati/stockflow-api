@@ -69,8 +69,6 @@ public class QuotaAsserts {
      * @param actual the actual entity
      */
     public static void assertQuotaUpdatableRelationshipsEquals(Quota expected, Quota actual) {
-        assertThat(actual)
-            .as("Verify Quota relationships")
-            .satisfies(a -> assertThat(a.getClientAccount()).as("check clientAccount").isEqualTo(expected.getClientAccount()));
+        // empty method
     }
 }

@@ -529,8 +529,11 @@ relationship OneToOne {
 
 // Client Account relationships
 relationship OneToMany {
-  ClientAccount{subscriptions} to Subscription{clientAccount},
-  ClientAccount{quotas} to Quota{clientAccount}
+  ClientAccount{subscriptions} to Subscription{clientAccount}
+}
+
+relationship OneToOne {
+  ClientAccount{quota} to Quota{clientAccount}
 }
 
 relationship ManyToOne {

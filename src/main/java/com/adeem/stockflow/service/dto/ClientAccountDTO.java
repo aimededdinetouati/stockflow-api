@@ -39,6 +39,8 @@ public class ClientAccountDTO implements Serializable {
 
     private AddressDTO address;
 
+    private QuotaDTO quota;
+
     public Long getId() {
         return id;
     }
@@ -127,6 +129,14 @@ public class ClientAccountDTO implements Serializable {
         this.address = address;
     }
 
+    public QuotaDTO getQuota() {
+        return quota;
+    }
+
+    public void setQuota(QuotaDTO quota) {
+        this.quota = quota;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -163,6 +173,7 @@ public class ClientAccountDTO implements Serializable {
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +
             ", lastModifiedDate='" + getLastModifiedDate() + "'" +
             ", address=" + getAddress() +
+            ", quota=" + getQuota() +
             "}";
     }
 }

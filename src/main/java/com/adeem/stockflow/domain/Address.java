@@ -72,7 +72,7 @@ public class Address extends AbstractAuditingEntity<Long> implements Serializabl
     @JsonIgnoreProperties(value = { "user", "addressLists", "carts", "clientAccount" }, allowSetters = true)
     private Customer customer;
 
-    @JsonIgnoreProperties(value = { "address", "subscriptions", "quotas" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "address", "quota", "subscriptions" }, allowSetters = true)
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "address")
     private ClientAccount clientAccount;
 
