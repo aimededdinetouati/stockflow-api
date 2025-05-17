@@ -19,7 +19,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
@@ -40,20 +39,35 @@ import org.springframework.transaction.annotation.Transactional;
 @WithMockUser
 class QuotaResourceIT {
 
-    private static final String DEFAULT_RESOURCE_TYPE = "AAAAAAAAAA";
-    private static final String UPDATED_RESOURCE_TYPE = "BBBBBBBBBB";
+    private static final Integer DEFAULT_USERS = 1;
+    private static final Integer UPDATED_USERS = 2;
 
-    private static final Integer DEFAULT_USED_AMOUNT = 1;
-    private static final Integer UPDATED_USED_AMOUNT = 2;
+    private static final Integer DEFAULT_PRODUCTS = 1;
+    private static final Integer UPDATED_PRODUCTS = 2;
 
-    private static final Integer DEFAULT_MAX_AMOUNT = 1;
-    private static final Integer UPDATED_MAX_AMOUNT = 2;
+    private static final Integer DEFAULT_PRODUCT_FAMILIES = 1;
+    private static final Integer UPDATED_PRODUCT_FAMILIES = 2;
+
+    private static final Integer DEFAULT_SHOWCASED_PRODUCTS = 1;
+    private static final Integer UPDATED_SHOWCASED_PRODUCTS = 2;
+
+    private static final Integer DEFAULT_SALE_ORDERS = 1;
+    private static final Integer UPDATED_SALE_ORDERS = 2;
+
+    private static final Integer DEFAULT_PURCHASE_ORDERS = 1;
+    private static final Integer UPDATED_PURCHASE_ORDERS = 2;
+
+    private static final Integer DEFAULT_CUSTOMERS = 1;
+    private static final Integer UPDATED_CUSTOMERS = 2;
+
+    private static final Integer DEFAULT_SUPPLIERS = 1;
+    private static final Integer UPDATED_SUPPLIERS = 2;
+
+    private static final Integer DEFAULT_SHIPMENTS = 1;
+    private static final Integer UPDATED_SHIPMENTS = 2;
 
     private static final ZonedDateTime DEFAULT_RESET_DATE = ZonedDateTime.ofInstant(Instant.ofEpochMilli(0L), ZoneOffset.UTC);
     private static final ZonedDateTime UPDATED_RESET_DATE = ZonedDateTime.now(ZoneId.systemDefault()).withNano(0);
-
-    private static final Instant DEFAULT_LAST_UPDATED = Instant.ofEpochMilli(0L);
-    private static final Instant UPDATED_LAST_UPDATED = Instant.now().truncatedTo(ChronoUnit.MILLIS);
 
     private static final String ENTITY_API_URL = "/api/quotas";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
@@ -88,11 +102,16 @@ class QuotaResourceIT {
      */
     public static Quota createEntity() {
         return new Quota()
-            .resourceType(DEFAULT_RESOURCE_TYPE)
-            .usedAmount(DEFAULT_USED_AMOUNT)
-            .maxAmount(DEFAULT_MAX_AMOUNT)
-            .resetDate(DEFAULT_RESET_DATE)
-            .lastUpdated(DEFAULT_LAST_UPDATED);
+            .users(DEFAULT_USERS)
+            .products(DEFAULT_PRODUCTS)
+            .productFamilies(DEFAULT_PRODUCT_FAMILIES)
+            .showcasedProducts(DEFAULT_SHOWCASED_PRODUCTS)
+            .saleOrders(DEFAULT_SALE_ORDERS)
+            .purchaseOrders(DEFAULT_PURCHASE_ORDERS)
+            .customers(DEFAULT_CUSTOMERS)
+            .suppliers(DEFAULT_SUPPLIERS)
+            .shipments(DEFAULT_SHIPMENTS)
+            .resetDate(DEFAULT_RESET_DATE);
     }
 
     /**
@@ -103,11 +122,16 @@ class QuotaResourceIT {
      */
     public static Quota createUpdatedEntity() {
         return new Quota()
-            .resourceType(UPDATED_RESOURCE_TYPE)
-            .usedAmount(UPDATED_USED_AMOUNT)
-            .maxAmount(UPDATED_MAX_AMOUNT)
-            .resetDate(UPDATED_RESET_DATE)
-            .lastUpdated(UPDATED_LAST_UPDATED);
+            .users(UPDATED_USERS)
+            .products(UPDATED_PRODUCTS)
+            .productFamilies(UPDATED_PRODUCT_FAMILIES)
+            .showcasedProducts(UPDATED_SHOWCASED_PRODUCTS)
+            .saleOrders(UPDATED_SALE_ORDERS)
+            .purchaseOrders(UPDATED_PURCHASE_ORDERS)
+            .customers(UPDATED_CUSTOMERS)
+            .suppliers(UPDATED_SUPPLIERS)
+            .shipments(UPDATED_SHIPMENTS)
+            .resetDate(UPDATED_RESET_DATE);
     }
 
     @BeforeEach
@@ -167,78 +191,10 @@ class QuotaResourceIT {
 
     @Test
     @Transactional
-    void checkResourceTypeIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        quota.setResourceType(null);
-
-        // Create the Quota, which fails.
-        QuotaDTO quotaDTO = quotaMapper.toDto(quota);
-
-        restQuotaMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(quotaDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
-    void checkUsedAmountIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        quota.setUsedAmount(null);
-
-        // Create the Quota, which fails.
-        QuotaDTO quotaDTO = quotaMapper.toDto(quota);
-
-        restQuotaMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(quotaDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
-    void checkMaxAmountIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        quota.setMaxAmount(null);
-
-        // Create the Quota, which fails.
-        QuotaDTO quotaDTO = quotaMapper.toDto(quota);
-
-        restQuotaMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(quotaDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
     void checkResetDateIsRequired() throws Exception {
         long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
         quota.setResetDate(null);
-
-        // Create the Quota, which fails.
-        QuotaDTO quotaDTO = quotaMapper.toDto(quota);
-
-        restQuotaMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(quotaDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
-    void checkLastUpdatedIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        quota.setLastUpdated(null);
 
         // Create the Quota, which fails.
         QuotaDTO quotaDTO = quotaMapper.toDto(quota);
@@ -262,11 +218,16 @@ class QuotaResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(quota.getId().intValue())))
-            .andExpect(jsonPath("$.[*].resourceType").value(hasItem(DEFAULT_RESOURCE_TYPE)))
-            .andExpect(jsonPath("$.[*].usedAmount").value(hasItem(DEFAULT_USED_AMOUNT)))
-            .andExpect(jsonPath("$.[*].maxAmount").value(hasItem(DEFAULT_MAX_AMOUNT)))
-            .andExpect(jsonPath("$.[*].resetDate").value(hasItem(sameInstant(DEFAULT_RESET_DATE))))
-            .andExpect(jsonPath("$.[*].lastUpdated").value(hasItem(DEFAULT_LAST_UPDATED.toString())));
+            .andExpect(jsonPath("$.[*].users").value(hasItem(DEFAULT_USERS)))
+            .andExpect(jsonPath("$.[*].products").value(hasItem(DEFAULT_PRODUCTS)))
+            .andExpect(jsonPath("$.[*].productFamilies").value(hasItem(DEFAULT_PRODUCT_FAMILIES)))
+            .andExpect(jsonPath("$.[*].showcasedProducts").value(hasItem(DEFAULT_SHOWCASED_PRODUCTS)))
+            .andExpect(jsonPath("$.[*].saleOrders").value(hasItem(DEFAULT_SALE_ORDERS)))
+            .andExpect(jsonPath("$.[*].purchaseOrders").value(hasItem(DEFAULT_PURCHASE_ORDERS)))
+            .andExpect(jsonPath("$.[*].customers").value(hasItem(DEFAULT_CUSTOMERS)))
+            .andExpect(jsonPath("$.[*].suppliers").value(hasItem(DEFAULT_SUPPLIERS)))
+            .andExpect(jsonPath("$.[*].shipments").value(hasItem(DEFAULT_SHIPMENTS)))
+            .andExpect(jsonPath("$.[*].resetDate").value(hasItem(sameInstant(DEFAULT_RESET_DATE))));
     }
 
     @Test
@@ -281,11 +242,16 @@ class QuotaResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(quota.getId().intValue()))
-            .andExpect(jsonPath("$.resourceType").value(DEFAULT_RESOURCE_TYPE))
-            .andExpect(jsonPath("$.usedAmount").value(DEFAULT_USED_AMOUNT))
-            .andExpect(jsonPath("$.maxAmount").value(DEFAULT_MAX_AMOUNT))
-            .andExpect(jsonPath("$.resetDate").value(sameInstant(DEFAULT_RESET_DATE)))
-            .andExpect(jsonPath("$.lastUpdated").value(DEFAULT_LAST_UPDATED.toString()));
+            .andExpect(jsonPath("$.users").value(DEFAULT_USERS))
+            .andExpect(jsonPath("$.products").value(DEFAULT_PRODUCTS))
+            .andExpect(jsonPath("$.productFamilies").value(DEFAULT_PRODUCT_FAMILIES))
+            .andExpect(jsonPath("$.showcasedProducts").value(DEFAULT_SHOWCASED_PRODUCTS))
+            .andExpect(jsonPath("$.saleOrders").value(DEFAULT_SALE_ORDERS))
+            .andExpect(jsonPath("$.purchaseOrders").value(DEFAULT_PURCHASE_ORDERS))
+            .andExpect(jsonPath("$.customers").value(DEFAULT_CUSTOMERS))
+            .andExpect(jsonPath("$.suppliers").value(DEFAULT_SUPPLIERS))
+            .andExpect(jsonPath("$.shipments").value(DEFAULT_SHIPMENTS))
+            .andExpect(jsonPath("$.resetDate").value(sameInstant(DEFAULT_RESET_DATE)));
     }
 
     @Test
@@ -308,11 +274,16 @@ class QuotaResourceIT {
         // Disconnect from session so that the updates on updatedQuota are not directly saved in db
         em.detach(updatedQuota);
         updatedQuota
-            .resourceType(UPDATED_RESOURCE_TYPE)
-            .usedAmount(UPDATED_USED_AMOUNT)
-            .maxAmount(UPDATED_MAX_AMOUNT)
-            .resetDate(UPDATED_RESET_DATE)
-            .lastUpdated(UPDATED_LAST_UPDATED);
+            .users(UPDATED_USERS)
+            .products(UPDATED_PRODUCTS)
+            .productFamilies(UPDATED_PRODUCT_FAMILIES)
+            .showcasedProducts(UPDATED_SHOWCASED_PRODUCTS)
+            .saleOrders(UPDATED_SALE_ORDERS)
+            .purchaseOrders(UPDATED_PURCHASE_ORDERS)
+            .customers(UPDATED_CUSTOMERS)
+            .suppliers(UPDATED_SUPPLIERS)
+            .shipments(UPDATED_SHIPMENTS)
+            .resetDate(UPDATED_RESET_DATE);
         QuotaDTO quotaDTO = quotaMapper.toDto(updatedQuota);
 
         restQuotaMockMvc
@@ -398,7 +369,12 @@ class QuotaResourceIT {
         Quota partialUpdatedQuota = new Quota();
         partialUpdatedQuota.setId(quota.getId());
 
-        partialUpdatedQuota.usedAmount(UPDATED_USED_AMOUNT).maxAmount(UPDATED_MAX_AMOUNT);
+        partialUpdatedQuota
+            .products(UPDATED_PRODUCTS)
+            .productFamilies(UPDATED_PRODUCT_FAMILIES)
+            .purchaseOrders(UPDATED_PURCHASE_ORDERS)
+            .customers(UPDATED_CUSTOMERS)
+            .suppliers(UPDATED_SUPPLIERS);
 
         restQuotaMockMvc
             .perform(
@@ -427,11 +403,16 @@ class QuotaResourceIT {
         partialUpdatedQuota.setId(quota.getId());
 
         partialUpdatedQuota
-            .resourceType(UPDATED_RESOURCE_TYPE)
-            .usedAmount(UPDATED_USED_AMOUNT)
-            .maxAmount(UPDATED_MAX_AMOUNT)
-            .resetDate(UPDATED_RESET_DATE)
-            .lastUpdated(UPDATED_LAST_UPDATED);
+            .users(UPDATED_USERS)
+            .products(UPDATED_PRODUCTS)
+            .productFamilies(UPDATED_PRODUCT_FAMILIES)
+            .showcasedProducts(UPDATED_SHOWCASED_PRODUCTS)
+            .saleOrders(UPDATED_SALE_ORDERS)
+            .purchaseOrders(UPDATED_PURCHASE_ORDERS)
+            .customers(UPDATED_CUSTOMERS)
+            .suppliers(UPDATED_SUPPLIERS)
+            .shipments(UPDATED_SHIPMENTS)
+            .resetDate(UPDATED_RESET_DATE);
 
         restQuotaMockMvc
             .perform(

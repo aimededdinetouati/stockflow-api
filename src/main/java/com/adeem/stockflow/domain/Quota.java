@@ -28,25 +28,36 @@ public class Quota extends AbstractAuditingEntity<Long> implements Serializable,
     @Column(name = "id")
     private Long id;
 
-    @NotNull
-    @Column(name = "resource_type", nullable = false)
-    private String resourceType;
+    @Column(name = "users")
+    private Integer users;
 
-    @NotNull
-    @Column(name = "used_amount", nullable = false)
-    private Integer usedAmount;
+    @Column(name = "products")
+    private Integer products;
 
-    @NotNull
-    @Column(name = "max_amount", nullable = false)
-    private Integer maxAmount;
+    @Column(name = "product_families")
+    private Integer productFamilies;
+
+    @Column(name = "showcased_products")
+    private Integer showcasedProducts;
+
+    @Column(name = "sale_orders")
+    private Integer saleOrders;
+
+    @Column(name = "purchase_orders")
+    private Integer purchaseOrders;
+
+    @Column(name = "customers")
+    private Integer customers;
+
+    @Column(name = "suppliers")
+    private Integer suppliers;
+
+    @Column(name = "shipments")
+    private Integer shipments;
 
     @NotNull
     @Column(name = "reset_date", nullable = false)
     private ZonedDateTime resetDate;
-
-    @NotNull
-    @Column(name = "last_updated", nullable = false)
-    private Instant lastUpdated;
 
     // Inherited createdBy definition
     // Inherited createdDate definition
@@ -75,43 +86,121 @@ public class Quota extends AbstractAuditingEntity<Long> implements Serializable,
         this.id = id;
     }
 
-    public String getResourceType() {
-        return this.resourceType;
+    public Integer getUsers() {
+        return this.users;
     }
 
-    public Quota resourceType(String resourceType) {
-        this.setResourceType(resourceType);
+    public Quota users(Integer users) {
+        this.setUsers(users);
         return this;
     }
 
-    public void setResourceType(String resourceType) {
-        this.resourceType = resourceType;
+    public void setUsers(Integer users) {
+        this.users = users;
     }
 
-    public Integer getUsedAmount() {
-        return this.usedAmount;
+    public Integer getProducts() {
+        return this.products;
     }
 
-    public Quota usedAmount(Integer usedAmount) {
-        this.setUsedAmount(usedAmount);
+    public Quota products(Integer products) {
+        this.setProducts(products);
         return this;
     }
 
-    public void setUsedAmount(Integer usedAmount) {
-        this.usedAmount = usedAmount;
+    public void setProducts(Integer products) {
+        this.products = products;
     }
 
-    public Integer getMaxAmount() {
-        return this.maxAmount;
+    public Integer getProductFamilies() {
+        return this.productFamilies;
     }
 
-    public Quota maxAmount(Integer maxAmount) {
-        this.setMaxAmount(maxAmount);
+    public Quota productFamilies(Integer productFamilies) {
+        this.setProductFamilies(productFamilies);
         return this;
     }
 
-    public void setMaxAmount(Integer maxAmount) {
-        this.maxAmount = maxAmount;
+    public void setProductFamilies(Integer productFamilies) {
+        this.productFamilies = productFamilies;
+    }
+
+    public Integer getShowcasedProducts() {
+        return this.showcasedProducts;
+    }
+
+    public Quota showcasedProducts(Integer showcasedProducts) {
+        this.setShowcasedProducts(showcasedProducts);
+        return this;
+    }
+
+    public void setShowcasedProducts(Integer showcasedProducts) {
+        this.showcasedProducts = showcasedProducts;
+    }
+
+    public Integer getSaleOrders() {
+        return this.saleOrders;
+    }
+
+    public Quota saleOrders(Integer saleOrders) {
+        this.setSaleOrders(saleOrders);
+        return this;
+    }
+
+    public void setSaleOrders(Integer saleOrders) {
+        this.saleOrders = saleOrders;
+    }
+
+    public Integer getPurchaseOrders() {
+        return this.purchaseOrders;
+    }
+
+    public Quota purchaseOrders(Integer purchaseOrders) {
+        this.setPurchaseOrders(purchaseOrders);
+        return this;
+    }
+
+    public void setPurchaseOrders(Integer purchaseOrders) {
+        this.purchaseOrders = purchaseOrders;
+    }
+
+    public Integer getCustomers() {
+        return this.customers;
+    }
+
+    public Quota customers(Integer customers) {
+        this.setCustomers(customers);
+        return this;
+    }
+
+    public void setCustomers(Integer customers) {
+        this.customers = customers;
+    }
+
+    public Integer getSuppliers() {
+        return this.suppliers;
+    }
+
+    public Quota suppliers(Integer suppliers) {
+        this.setSuppliers(suppliers);
+        return this;
+    }
+
+    public void setSuppliers(Integer suppliers) {
+        this.suppliers = suppliers;
+    }
+
+    public Integer getShipments() {
+        return this.shipments;
+    }
+
+    public Quota shipments(Integer shipments) {
+        this.setShipments(shipments);
+        return this;
+    }
+
+    public void setShipments(Integer shipments) {
+        this.shipments = shipments;
     }
 
     public ZonedDateTime getResetDate() {
@@ -125,19 +214,6 @@ public class Quota extends AbstractAuditingEntity<Long> implements Serializable,
 
     public void setResetDate(ZonedDateTime resetDate) {
         this.resetDate = resetDate;
-    }
-
-    public Instant getLastUpdated() {
-        return this.lastUpdated;
-    }
-
-    public Quota lastUpdated(Instant lastUpdated) {
-        this.setLastUpdated(lastUpdated);
-        return this;
-    }
-
-    public void setLastUpdated(Instant lastUpdated) {
-        this.lastUpdated = lastUpdated;
     }
 
     // Inherited createdBy methods
@@ -225,11 +301,16 @@ public class Quota extends AbstractAuditingEntity<Long> implements Serializable,
     public String toString() {
         return "Quota{" +
             "id=" + getId() +
-            ", resourceType='" + getResourceType() + "'" +
-            ", usedAmount=" + getUsedAmount() +
-            ", maxAmount=" + getMaxAmount() +
+            ", users=" + getUsers() +
+            ", products=" + getProducts() +
+            ", productFamilies=" + getProductFamilies() +
+            ", showcasedProducts=" + getShowcasedProducts() +
+            ", saleOrders=" + getSaleOrders() +
+            ", purchaseOrders=" + getPurchaseOrders() +
+            ", customers=" + getCustomers() +
+            ", suppliers=" + getSuppliers() +
+            ", shipments=" + getShipments() +
             ", resetDate='" + getResetDate() + "'" +
-            ", lastUpdated='" + getLastUpdated() + "'" +
             ", createdBy='" + getCreatedBy() + "'" +
             ", createdDate='" + getCreatedDate() + "'" +
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +

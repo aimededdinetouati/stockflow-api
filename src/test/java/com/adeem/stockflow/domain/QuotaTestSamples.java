@@ -14,9 +14,15 @@ public class QuotaTestSamples {
     public static Quota getQuotaSample1() {
         return new Quota()
             .id(1L)
-            .resourceType("resourceType1")
-            .usedAmount(1)
-            .maxAmount(1)
+            .users(1)
+            .products(1)
+            .productFamilies(1)
+            .showcasedProducts(1)
+            .saleOrders(1)
+            .purchaseOrders(1)
+            .customers(1)
+            .suppliers(1)
+            .shipments(1)
             .createdBy("createdBy1")
             .lastModifiedBy("lastModifiedBy1");
     }
@@ -24,9 +30,15 @@ public class QuotaTestSamples {
     public static Quota getQuotaSample2() {
         return new Quota()
             .id(2L)
-            .resourceType("resourceType2")
-            .usedAmount(2)
-            .maxAmount(2)
+            .users(2)
+            .products(2)
+            .productFamilies(2)
+            .showcasedProducts(2)
+            .saleOrders(2)
+            .purchaseOrders(2)
+            .customers(2)
+            .suppliers(2)
+            .shipments(2)
             .createdBy("createdBy2")
             .lastModifiedBy("lastModifiedBy2");
     }
@@ -34,9 +46,15 @@ public class QuotaTestSamples {
     public static Quota getQuotaRandomSampleGenerator() {
         return new Quota()
             .id(longCount.incrementAndGet())
-            .resourceType(UUID.randomUUID().toString())
-            .usedAmount(intCount.incrementAndGet())
-            .maxAmount(intCount.incrementAndGet())
+            .users(intCount.incrementAndGet())
+            .products(intCount.incrementAndGet())
+            .productFamilies(intCount.incrementAndGet())
+            .showcasedProducts(intCount.incrementAndGet())
+            .saleOrders(intCount.incrementAndGet())
+            .purchaseOrders(intCount.incrementAndGet())
+            .customers(intCount.incrementAndGet())
+            .suppliers(intCount.incrementAndGet())
+            .shipments(intCount.incrementAndGet())
             .createdBy(UUID.randomUUID().toString())
             .lastModifiedBy(UUID.randomUUID().toString());
     }
