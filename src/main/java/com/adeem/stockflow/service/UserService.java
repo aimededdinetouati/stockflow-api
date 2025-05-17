@@ -4,6 +4,7 @@ import com.adeem.stockflow.config.Constants;
 import com.adeem.stockflow.domain.*;
 import com.adeem.stockflow.domain.enumeration.AccountStatus;
 import com.adeem.stockflow.repository.*;
+import com.adeem.stockflow.security.AuthoritiesConstants;
 import com.adeem.stockflow.security.RolesConstants;
 import com.adeem.stockflow.security.SecurityUtils;
 import com.adeem.stockflow.service.dto.AdminUserDTO;
@@ -75,7 +76,9 @@ public class UserService {
     public void activateRegistration(ClientAccountDTO clientAccountDTO, String key) {
         LOG.debug("Activating user for activation key {}", key);
         User user = activateUser(key);
-        createDisabledAccount(user, clientAccountDTO);
+        if (user.hasAuthority(AuthoritiesConstants.USER_ADMIN)) {
+            createDisabledAccount(user, clientAccountDTO);
+        }
     }
 
     private void createDisabledAccount(User user, ClientAccountDTO clientAccountDTO) {
@@ -100,6 +103,8 @@ public class UserService {
         userRoleRepository.save(userRole);
 
         Quota quota = new Quota();
+        quota.setClientAccount(clientAccount);
+        quotaRepository.save(quota);
     }
 
     private User activateUser(String key) {
