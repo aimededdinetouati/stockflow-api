@@ -7,28 +7,44 @@
   "dto": "mapstruct",
   "fields": [
     {
-      "fieldName": "resourceType",
-      "fieldType": "String",
-      "fieldValidateRules": ["required"]
+      "fieldName": "users",
+      "fieldType": "Integer"
     },
     {
-      "fieldName": "usedAmount",
-      "fieldType": "Integer",
-      "fieldValidateRules": ["required"]
+      "fieldName": "products",
+      "fieldType": "Integer"
     },
     {
-      "fieldName": "maxAmount",
-      "fieldType": "Integer",
-      "fieldValidateRules": ["required"]
+      "fieldName": "productFamilies",
+      "fieldType": "Integer"
+    },
+    {
+      "fieldName": "showcasedProducts",
+      "fieldType": "Integer"
+    },
+    {
+      "fieldName": "saleOrders",
+      "fieldType": "Integer"
+    },
+    {
+      "fieldName": "purchaseOrders",
+      "fieldType": "Integer"
+    },
+    {
+      "fieldName": "customers",
+      "fieldType": "Integer"
+    },
+    {
+      "fieldName": "suppliers",
+      "fieldType": "Integer"
+    },
+    {
+      "fieldName": "shipments",
+      "fieldType": "Integer"
     },
     {
       "fieldName": "resetDate",
       "fieldType": "ZonedDateTime",
-      "fieldValidateRules": ["required"]
-    },
-    {
-      "fieldName": "lastUpdated",
-      "fieldType": "Instant",
       "fieldValidateRules": ["required"]
     },
     {

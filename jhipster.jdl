@@ -205,11 +205,16 @@ entity Subscription {
 
 @EnableAudit
 entity Quota {
-  resourceType String required
-  usedAmount Integer required
-  maxAmount Integer required
+  users Integer,
+  products Integer
+  productFamilies Integer,
+  showcasedProducts Integer
+  saleOrders Integer
+  purchaseOrders Integer
+  customers Integer
+  suppliers Integer
+  shipments Integer
   resetDate ZonedDateTime required
-  lastUpdated Instant required
 }
 
 @EnableAudit

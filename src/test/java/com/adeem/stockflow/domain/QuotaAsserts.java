@@ -50,16 +50,21 @@ public class QuotaAsserts {
     public static void assertQuotaUpdatableFieldsEquals(Quota expected, Quota actual) {
         assertThat(actual)
             .as("Verify Quota relevant properties")
-            .satisfies(a -> assertThat(a.getResourceType()).as("check resourceType").isEqualTo(expected.getResourceType()))
-            .satisfies(a -> assertThat(a.getUsedAmount()).as("check usedAmount").isEqualTo(expected.getUsedAmount()))
-            .satisfies(a -> assertThat(a.getMaxAmount()).as("check maxAmount").isEqualTo(expected.getMaxAmount()))
+            .satisfies(a -> assertThat(a.getUsers()).as("check users").isEqualTo(expected.getUsers()))
+            .satisfies(a -> assertThat(a.getProducts()).as("check products").isEqualTo(expected.getProducts()))
+            .satisfies(a -> assertThat(a.getProductFamilies()).as("check productFamilies").isEqualTo(expected.getProductFamilies()))
+            .satisfies(a -> assertThat(a.getShowcasedProducts()).as("check showcasedProducts").isEqualTo(expected.getShowcasedProducts()))
+            .satisfies(a -> assertThat(a.getSaleOrders()).as("check saleOrders").isEqualTo(expected.getSaleOrders()))
+            .satisfies(a -> assertThat(a.getPurchaseOrders()).as("check purchaseOrders").isEqualTo(expected.getPurchaseOrders()))
+            .satisfies(a -> assertThat(a.getCustomers()).as("check customers").isEqualTo(expected.getCustomers()))
+            .satisfies(a -> assertThat(a.getSuppliers()).as("check suppliers").isEqualTo(expected.getSuppliers()))
+            .satisfies(a -> assertThat(a.getShipments()).as("check shipments").isEqualTo(expected.getShipments()))
             .satisfies(a ->
                 assertThat(a.getResetDate())
                     .as("check resetDate")
                     .usingComparator(zonedDataTimeSameInstant)
                     .isEqualTo(expected.getResetDate())
-            )
-            .satisfies(a -> assertThat(a.getLastUpdated()).as("check lastUpdated").isEqualTo(expected.getLastUpdated()));
+            );
     }
 
     /**

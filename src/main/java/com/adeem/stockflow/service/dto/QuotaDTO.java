@@ -14,20 +14,26 @@ public class QuotaDTO implements Serializable {
 
     private Long id;
 
-    @NotNull
-    private String resourceType;
+    private Integer users;
 
-    @NotNull
-    private Integer usedAmount;
+    private Integer products;
 
-    @NotNull
-    private Integer maxAmount;
+    private Integer productFamilies;
+
+    private Integer showcasedProducts;
+
+    private Integer saleOrders;
+
+    private Integer purchaseOrders;
+
+    private Integer customers;
+
+    private Integer suppliers;
+
+    private Integer shipments;
 
     @NotNull
     private ZonedDateTime resetDate;
-
-    @NotNull
-    private Instant lastUpdated;
 
     private String createdBy;
 
@@ -47,28 +53,76 @@ public class QuotaDTO implements Serializable {
         this.id = id;
     }
 
-    public String getResourceType() {
-        return resourceType;
+    public Integer getUsers() {
+        return users;
     }
 
-    public void setResourceType(String resourceType) {
-        this.resourceType = resourceType;
+    public void setUsers(Integer users) {
+        this.users = users;
     }
 
-    public Integer getUsedAmount() {
-        return usedAmount;
+    public Integer getProducts() {
+        return products;
     }
 
-    public void setUsedAmount(Integer usedAmount) {
-        this.usedAmount = usedAmount;
+    public void setProducts(Integer products) {
+        this.products = products;
     }
 
-    public Integer getMaxAmount() {
-        return maxAmount;
+    public Integer getProductFamilies() {
+        return productFamilies;
     }
 
-    public void setMaxAmount(Integer maxAmount) {
-        this.maxAmount = maxAmount;
+    public void setProductFamilies(Integer productFamilies) {
+        this.productFamilies = productFamilies;
+    }
+
+    public Integer getShowcasedProducts() {
+        return showcasedProducts;
+    }
+
+    public void setShowcasedProducts(Integer showcasedProducts) {
+        this.showcasedProducts = showcasedProducts;
+    }
+
+    public Integer getSaleOrders() {
+        return saleOrders;
+    }
+
+    public void setSaleOrders(Integer saleOrders) {
+        this.saleOrders = saleOrders;
+    }
+
+    public Integer getPurchaseOrders() {
+        return purchaseOrders;
+    }
+
+    public void setPurchaseOrders(Integer purchaseOrders) {
+        this.purchaseOrders = purchaseOrders;
+    }
+
+    public Integer getCustomers() {
+        return customers;
+    }
+
+    public void setCustomers(Integer customers) {
+        this.customers = customers;
+    }
+
+    public Integer getSuppliers() {
+        return suppliers;
+    }
+
+    public void setSuppliers(Integer suppliers) {
+        this.suppliers = suppliers;
+    }
+
+    public Integer getShipments() {
+        return shipments;
+    }
+
+    public void setShipments(Integer shipments) {
+        this.shipments = shipments;
     }
 
     public ZonedDateTime getResetDate() {
@@ -77,14 +131,6 @@ public class QuotaDTO implements Serializable {
 
     public void setResetDate(ZonedDateTime resetDate) {
         this.resetDate = resetDate;
-    }
-
-    public Instant getLastUpdated() {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated(Instant lastUpdated) {
-        this.lastUpdated = lastUpdated;
     }
 
     public String getCreatedBy() {
@@ -153,16 +199,20 @@ public class QuotaDTO implements Serializable {
     public String toString() {
         return "QuotaDTO{" +
             "id=" + getId() +
-            ", resourceType='" + getResourceType() + "'" +
-            ", usedAmount=" + getUsedAmount() +
-            ", maxAmount=" + getMaxAmount() +
+            ", users=" + getUsers() +
+            ", products=" + getProducts() +
+            ", productFamilies=" + getProductFamilies() +
+            ", showcasedProducts=" + getShowcasedProducts() +
+            ", saleOrders=" + getSaleOrders() +
+            ", purchaseOrders=" + getPurchaseOrders() +
+            ", customers=" + getCustomers() +
+            ", suppliers=" + getSuppliers() +
+            ", shipments=" + getShipments() +
             ", resetDate='" + getResetDate() + "'" +
-            ", lastUpdated='" + getLastUpdated() + "'" +
             ", createdBy='" + getCreatedBy() + "'" +
             ", createdDate='" + getCreatedDate() + "'" +
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +
             ", lastModifiedDate='" + getLastModifiedDate() + "'" +
-            ", clientAccountId=" + getClientAccountId() +
             "}";
     }
 }

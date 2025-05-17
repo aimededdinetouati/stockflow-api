@@ -14,19 +14,34 @@
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="resource_type" type="varchar(255)">
-                <constraints nullable="false" />
+            <column name="users" type="integer">
+                <constraints nullable="true" />
             </column>
-            <column name="used_amount" type="integer">
-                <constraints nullable="false" />
+            <column name="products" type="integer">
+                <constraints nullable="true" />
             </column>
-            <column name="max_amount" type="integer">
-                <constraints nullable="false" />
+            <column name="product_families" type="integer">
+                <constraints nullable="true" />
+            </column>
+            <column name="showcased_products" type="integer">
+                <constraints nullable="true" />
+            </column>
+            <column name="sale_orders" type="integer">
+                <constraints nullable="true" />
+            </column>
+            <column name="purchase_orders" type="integer">
+                <constraints nullable="true" />
+            </column>
+            <column name="customers" type="integer">
+                <constraints nullable="true" />
+            </column>
+            <column name="suppliers" type="integer">
+                <constraints nullable="true" />
+            </column>
+            <column name="shipments" type="integer">
+                <constraints nullable="true" />
             </column>
             <column name="reset_date" type="${datetimeType}">
-                <constraints nullable="false" />
-            </column>
-            <column name="last_updated" type="${datetimeType}">
                 <constraints nullable="false" />
             </column>
             <column name="created_by" type="varchar(50)">
@@ -41,13 +56,9 @@
             <column name="last_modified_date" type="${datetimeType}">
                 <constraints nullable="false" />
             </column>
-            <column name="client_account_id" type="bigint">
-                <constraints nullable="true" />
-            </column>
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
         </createTable>
         <dropDefaultValue tableName="quota" columnName="reset_date" columnDataType="${datetimeType}"/>
-        <dropDefaultValue tableName="quota" columnName="last_updated" columnDataType="${datetimeType}"/>
         <dropDefaultValue tableName="quota" columnName="created_date" columnDataType="${datetimeType}"/>
         <dropDefaultValue tableName="quota" columnName="last_modified_date" columnDataType="${datetimeType}"/>
     </changeSet>
@@ -69,11 +80,16 @@
                   tableName="quota"
                   usePreparedStatements="true">
             <column name="id" type="numeric"/>
-            <column name="resource_type" type="string"/>
-            <column name="used_amount" type="numeric"/>
-            <column name="max_amount" type="numeric"/>
+            <column name="users" type="numeric"/>
+            <column name="products" type="numeric"/>
+            <column name="product_families" type="numeric"/>
+            <column name="showcased_products" type="numeric"/>
+            <column name="sale_orders" type="numeric"/>
+            <column name="purchase_orders" type="numeric"/>
+            <column name="customers" type="numeric"/>
+            <column name="suppliers" type="numeric"/>
+            <column name="shipments" type="numeric"/>
             <column name="reset_date" type="date"/>
-            <column name="last_updated" type="date"/>
             <column name="created_by" type="string"/>
             <column name="created_date" type="date"/>
             <column name="last_modified_by" type="string"/>
