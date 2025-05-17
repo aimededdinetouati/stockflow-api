@@ -6,6 +6,7 @@ import com.adeem.stockflow.security.SecurityUtils;
 import com.adeem.stockflow.service.MailService;
 import com.adeem.stockflow.service.UserService;
 import com.adeem.stockflow.service.dto.AdminUserDTO;
+import com.adeem.stockflow.service.dto.ClientAccountDTO;
 import com.adeem.stockflow.service.dto.PasswordChangeDTO;
 import com.adeem.stockflow.web.rest.errors.*;
 import com.adeem.stockflow.web.rest.vm.KeyAndPasswordVM;
@@ -60,7 +61,8 @@ public class AccountResource {
         if (isPasswordLengthInvalid(managedUserVM.getPassword())) {
             throw new InvalidPasswordException();
         }
-        User user = userService.registerUser(managedUserVM, managedUserVM.getPassword());
+        User user = userService.registerUser(managedUserVM);
+
         mailService.sendActivationEmail(user);
     }
 
@@ -71,11 +73,8 @@ public class AccountResource {
      * @throws RuntimeException {@code 500 (Internal Server Error)} if the user couldn't be activated.
      */
     @GetMapping("/activate")
-    public void activateAccount(@RequestParam(value = "key") String key) {
-        Optional<User> user = userService.activateRegistration(key);
-        if (!user.isPresent()) {
-            throw new AccountResourceException("No user was found for this activation key");
-        }
+    public void activateAccount(@RequestParam(value = "key") String key, @RequestBody ClientAccountDTO clientAccountDTO) {
+        userService.activateRegistration(clientAccountDTO, key);
     }
 
     /**

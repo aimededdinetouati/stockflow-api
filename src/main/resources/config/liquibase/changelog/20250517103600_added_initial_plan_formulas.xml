@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+  <changeSet id="20250517000001-1" author="system">
+    <comment>Adding initial plan formula with unlimited resources</comment>
+
+    <!-- Insert Plan Formula -->
+    <insert tableName="plan_formula">
+      <column name="id" valueNumeric="1"/>
+      <column name="name" value="Unlimited Enterprise Plan"/>
+      <column name="description" value="All features with unlimited resources"/>
+      <column name="price" valueNumeric="99.99"/>
+      <column name="billing_cycle" value="MONTHLY"/>
+      <column name="active" valueBoolean="true"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="created_by" value="system"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+      <column name="last_modified_by" value="system"/>
+    </insert>
+
+    <!-- Insert Plan Feature for E-commerce -->
+    <insert tableName="plan_feature">
+      <column name="id" valueNumeric="1"/>
+      <column name="name" value="E-commerce"/>
+      <column name="description" value="Full e-commerce capabilities including product management, inventory, orders, and payments"/>
+      <column name="feature_key" value="ECOMMERCE"/>
+      <column name="plan_formula_id" valueNumeric="1"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="created_by" value="system"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+      <column name="last_modified_by" value="system"/>
+    </insert>
+
+    <!-- Insert Resource Limits (set to -1 for unlimited) -->
+    <insert tableName="resource_limit">
+      <column name="id" valueNumeric="1"/>
+      <column name="resource_name" value="PRODUCTS"/>
+      <column name="max_limit" valueNumeric="-1"/>
+      <column name="plan_formula_id" valueNumeric="1"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="created_by" value="system"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+      <column name="last_modified_by" value="system"/>
+    </insert>
+
+    <insert tableName="resource_limit">
+      <column name="id" valueNumeric="2"/>
+      <column name="resource_name" value="ORDERS"/>
+      <column name="max_limit" valueNumeric="-1"/>
+      <column name="plan_formula_id" valueNumeric="1"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="created_by" value="system"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+      <column name="last_modified_by" value="system"/>
+    </insert>
+
+    <insert tableName="resource_limit">
+      <column name="id" valueNumeric="3"/>
+      <column name="resource_name" value="STORAGE"/>
+      <column name="max_limit" valueNumeric="-1"/>
+      <column name="plan_formula_id" valueNumeric="1"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="created_by" value="system"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+      <column name="last_modified_by" value="system"/>
+    </insert>
+
+    <insert tableName="resource_limit">
+      <column name="id" valueNumeric="4"/>
+      <column name="resource_name" value="USERS"/>
+      <column name="max_limit" valueNumeric="-1"/>
+      <column name="plan_formula_id" valueNumeric="1"/>
+      <column name="created_date" valueDate="${now}"/>
+      <column name="created_by" value="system"/>
+      <column name="last_modified_date" valueDate="${now}"/>
+      <column name="last_modified_by" value="system"/>
+    </insert>
+  </changeSet>
+
+  <!-- Add a sequence reset to ensure new records don't conflict with our initial data -->
+  <changeSet id="20250517000001-2" author="system" dbms="postgresql">
+    <sql>
+      SELECT setval('plan_formula_id_seq', 2, false);
+      SELECT setval('plan_feature_id_seq', 2, false);
+      SELECT setval('resource_limit_id_seq', 5, false);
+    </sql>
+  </changeSet>
+</databaseChangeLog>

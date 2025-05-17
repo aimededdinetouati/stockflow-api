@@ -2,13 +2,19 @@ package com.adeem.stockflow.service;
 
 import com.adeem.stockflow.config.Constants;
 import com.adeem.stockflow.domain.Authority;
+import com.adeem.stockflow.domain.ClientAccount;
 import com.adeem.stockflow.domain.User;
+import com.adeem.stockflow.domain.enumeration.AccountStatus;
 import com.adeem.stockflow.repository.AuthorityRepository;
+import com.adeem.stockflow.repository.ClientAccountRepository;
+import com.adeem.stockflow.repository.QuotaRepository;
 import com.adeem.stockflow.repository.UserRepository;
 import com.adeem.stockflow.security.AuthoritiesConstants;
 import com.adeem.stockflow.security.SecurityUtils;
 import com.adeem.stockflow.service.dto.AdminUserDTO;
+import com.adeem.stockflow.service.dto.ClientAccountDTO;
 import com.adeem.stockflow.service.dto.UserDTO;
+import com.adeem.stockflow.web.rest.vm.ManagedUserVM;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -19,6 +25,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +41,8 @@ public class UserService {
     private static final Logger LOG = LoggerFactory.getLogger(UserService.class);
 
     private final UserRepository userRepository;
+    private final ClientAccountRepository clientAccountRepository;
+    private final QuotaRepository quotaRepository;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -43,19 +52,38 @@ public class UserService {
 
     public UserService(
         UserRepository userRepository,
+        ClientAccountRepository clientAccountRepository,
+        QuotaRepository quotaRepository,
         PasswordEncoder passwordEncoder,
         AuthorityRepository authorityRepository,
         CacheManager cacheManager
     ) {
         this.userRepository = userRepository;
+        this.clientAccountRepository = clientAccountRepository;
+        this.quotaRepository = quotaRepository;
         this.passwordEncoder = passwordEncoder;
         this.authorityRepository = authorityRepository;
         this.cacheManager = cacheManager;
     }
 
-    public Optional<User> activateRegistration(String key) {
+    public User activateRegistration(ClientAccountDTO clientAccountDTO, String key) {
         LOG.debug("Activating user for activation key {}", key);
-        return userRepository
+        User user = activateUser(key);
+        createDisabledAccount(user, clientAccountDTO);
+    }
+
+    private void createDisabledAccount(User user, ClientAccountDTO clientAccountDTO) {
+        ClientAccount clientAccount = new ClientAccount();
+        clientAccount.setCompanyName(clientAccountDTO.getCompanyName());
+        clientAccount.setEmail(clientAccount.getEmail());
+        clientAccount.setPhone(clientAccount.getPhone());
+        clientAccount.setAddress(clientAccount.getAddress());
+        clientAccount.setStatus(AccountStatus.DISABLED);
+        clientAccountRepository.save(clientAccount);
+    }
+
+    private User activateUser(String key) {
+        userRepository
             .findOneByActivationKey(key)
             .map(user -> {
                 // activate given user for the registration key.
@@ -64,7 +92,8 @@ public class UserService {
                 this.clearUserCaches(user);
                 LOG.debug("Activated user: {}", user);
                 return user;
-            });
+            })
+            .orElseThrow(() -> new AccessDeniedException(Constants.NOT_ALLOWED));
     }
 
     public Optional<User> completePasswordReset(String newPassword, String key) {
@@ -93,7 +122,9 @@ public class UserService {
             });
     }
 
-    public User registerUser(AdminUserDTO userDTO, String password) {
+    public User registerUser(ManagedUserVM userDTO) {
+        String password = userDTO.getPassword();
+        String authority = userDTO.getAuthority();
         userRepository
             .findOneByLogin(userDTO.getLogin().toLowerCase())
             .ifPresent(existingUser -> {
@@ -127,7 +158,7 @@ public class UserService {
         // new user gets registration key
         newUser.setActivationKey(RandomUtil.generateActivationKey());
         Set<Authority> authorities = new HashSet<>();
-        authorityRepository.findById(AuthoritiesConstants.USER).ifPresent(authorities::add);
+        authorityRepository.findByName(authority).ifPresent(authorities::add);
         newUser.setAuthorities(authorities);
         userRepository.save(newUser);
         this.clearUserCaches(newUser);

@@ -118,4 +118,16 @@
             <column name="local_date" type="date"/>
         </createTable>
     </changeSet>
+
+  <changeSet id="20250517102400" author="aimed">
+    <insert tableName="jhi_authority">
+      <column name="name" value="ROLE_ADMIN"/>
+    </insert>
+    <insert tableName="jhi_authority">
+      <column name="name" value="ROLE_USER_ADMIN"/>
+    </insert>
+    <insert tableName="jhi_authority">
+      <column name="name" value="ROLE_USER_CUSTOMER"/>
+    </insert>
+  </changeSet>
 </databaseChangeLog>
