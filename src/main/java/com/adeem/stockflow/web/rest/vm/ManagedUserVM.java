@@ -16,9 +16,6 @@ public class ManagedUserVM extends AdminUserDTO {
     @Size(min = PASSWORD_MIN_LENGTH, max = PASSWORD_MAX_LENGTH)
     private String password;
 
-    @Pattern(regexp = "^(ROLE_USER_ADMIN|ROLE_USER_CUSTOMER)$")
-    private String authority;
-
     public ManagedUserVM() {
         // Empty constructor needed for Jackson.
     }
@@ -29,14 +26,6 @@ public class ManagedUserVM extends AdminUserDTO {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getAuthority() {
-        return authority;
-    }
-
-    public void setAuthority(String authority) {
-        this.authority = authority;
     }
 
     // prettier-ignore

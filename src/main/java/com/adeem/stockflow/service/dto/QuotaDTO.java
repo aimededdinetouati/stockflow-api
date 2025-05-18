@@ -32,7 +32,6 @@ public class QuotaDTO implements Serializable {
 
     private Integer shipments;
 
-    @NotNull
     private ZonedDateTime resetDate;
 
     private String createdBy;

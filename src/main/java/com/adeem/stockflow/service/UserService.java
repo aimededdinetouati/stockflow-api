@@ -11,6 +11,8 @@ import com.adeem.stockflow.service.dto.AdminUserDTO;
 import com.adeem.stockflow.service.dto.ClientAccountDTO;
 import com.adeem.stockflow.service.dto.UserDTO;
 import com.adeem.stockflow.service.mapper.AddressMapper;
+import com.adeem.stockflow.web.rest.errors.BadRequestAlertException;
+import com.adeem.stockflow.web.rest.errors.ErrorConstants;
 import com.adeem.stockflow.web.rest.vm.ManagedUserVM;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -43,7 +45,8 @@ public class UserService {
     private final AdminRepository adminRepository;
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
-    private AddressMapper addressMapper;
+    private final AddressMapper addressMapper;
+    private final AddressRepository addressRepository;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -58,6 +61,8 @@ public class UserService {
         AdminRepository adminRepository,
         RoleRepository roleRepository,
         UserRoleRepository userRoleRepository,
+        AddressMapper addressMapper,
+        AddressRepository addressRepository,
         PasswordEncoder passwordEncoder,
         AuthorityRepository authorityRepository,
         CacheManager cacheManager
@@ -68,6 +73,8 @@ public class UserService {
         this.adminRepository = adminRepository;
         this.roleRepository = roleRepository;
         this.userRoleRepository = userRoleRepository;
+        this.addressMapper = addressMapper;
+        this.addressRepository = addressRepository;
         this.passwordEncoder = passwordEncoder;
         this.authorityRepository = authorityRepository;
         this.cacheManager = cacheManager;
@@ -82,12 +89,20 @@ public class UserService {
     }
 
     private void createDisabledAccount(User user, ClientAccountDTO clientAccountDTO) {
+        if (!clientAccountRepository.findByCompanyName(clientAccountDTO.getCompanyName()).isEmpty()) {
+            throw new BadRequestAlertException("Company name exists", "", ErrorConstants.COMPANY_NAME_EXISTS);
+        }
+
         ClientAccount clientAccount = new ClientAccount();
         clientAccount.setCompanyName(clientAccountDTO.getCompanyName());
         clientAccount.setEmail(clientAccountDTO.getEmail());
         clientAccount.setPhone(clientAccountDTO.getPhone());
         clientAccount.setStatus(AccountStatus.DISABLED);
-        clientAccount.setAddress(addressMapper.toEntity(clientAccountDTO.getAddress()));
+        Address address = addressMapper.toEntity(clientAccountDTO.getAddress());
+        address = addressRepository.save(address);
+        clientAccount.setAddress(address);
+        clientAccount.setContactPerson(clientAccountDTO.getContactPerson());
+
         clientAccountRepository.save(clientAccount);
 
         Admin admin = new Admin();
@@ -147,9 +162,8 @@ public class UserService {
             });
     }
 
-    public User registerUser(ManagedUserVM userDTO) {
-        String password = userDTO.getPassword();
-        String authority = userDTO.getAuthority();
+    public User registerUser(AdminUserDTO userDTO, String password) {
+        String authority = userDTO.getAuthorities().iterator().next();
         userRepository
             .findOneByLogin(userDTO.getLogin().toLowerCase())
             .ifPresent(existingUser -> {

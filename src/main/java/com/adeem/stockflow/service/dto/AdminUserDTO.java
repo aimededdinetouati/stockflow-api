@@ -49,6 +49,7 @@ public class AdminUserDTO implements Serializable {
 
     private Instant lastModifiedDate;
 
+    @Size(min = 1, max = 1)
     private Set<String> authorities;
 
     public AdminUserDTO() {

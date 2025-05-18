@@ -55,8 +55,7 @@ public class Quota extends AbstractAuditingEntity<Long> implements Serializable,
     @Column(name = "shipments")
     private Integer shipments = 0;
 
-    @NotNull
-    @Column(name = "reset_date", nullable = false)
+    @Column(name = "reset_date")
     private ZonedDateTime resetDate;
 
     // Inherited createdBy definition

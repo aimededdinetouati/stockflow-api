@@ -26,7 +26,6 @@ public class AddressDTO implements Serializable {
     @NotNull
     private String state;
 
-    @NotNull
     private String postalCode;
 
     @NotNull

@@ -61,18 +61,18 @@ public class AccountResource {
         if (isPasswordLengthInvalid(managedUserVM.getPassword())) {
             throw new InvalidPasswordException();
         }
-        User user = userService.registerUser(managedUserVM);
+        User user = userService.registerUser(managedUserVM, managedUserVM.getPassword());
 
         mailService.sendActivationEmail(user);
     }
 
     /**
-     * {@code GET  /activate} : activate the registered user.
+     * {@code Post  /activate} : activate the registered user.
      *
      * @param key the activation key.
      * @throws RuntimeException {@code 500 (Internal Server Error)} if the user couldn't be activated.
      */
-    @GetMapping("/activate")
+    @PostMapping("/activate")
     public void activateAccount(@RequestParam(value = "key") String key, @RequestBody ClientAccountDTO clientAccountDTO) {
         userService.activateRegistration(clientAccountDTO, key);
     }

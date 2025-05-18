@@ -119,13 +119,28 @@
         </createTable>
     </changeSet>
 
-  <changeSet id="20250517102400" author="aimed">
+  <changeSet id="20250517102400-1" author="aimed">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT COUNT(*) FROM jhi_authority WHERE name='ROLE_ADMIN'</sqlCheck>
+    </preConditions>
     <insert tableName="jhi_authority">
       <column name="name" value="ROLE_ADMIN"/>
     </insert>
+  </changeSet>
+
+  <changeSet id="20250517102400-2" author="aimed">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT COUNT(*) FROM jhi_authority WHERE name='ROLE_USER_ADMIN'</sqlCheck>
+    </preConditions>
     <insert tableName="jhi_authority">
       <column name="name" value="ROLE_USER_ADMIN"/>
     </insert>
+  </changeSet>
+
+  <changeSet id="20250517102400-3" author="aimed">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">SELECT COUNT(*) FROM jhi_authority WHERE name='ROLE_USER_CUSTOMER'</sqlCheck>
+    </preConditions>
     <insert tableName="jhi_authority">
       <column name="name" value="ROLE_USER_CUSTOMER"/>
     </insert>
