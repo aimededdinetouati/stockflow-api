@@ -6,12 +6,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.adeem.stockflow.IntegrationTest;
 import com.adeem.stockflow.config.Constants;
+import com.adeem.stockflow.domain.Authority;
 import com.adeem.stockflow.domain.User;
-import com.adeem.stockflow.repository.AuthorityRepository;
-import com.adeem.stockflow.repository.UserRepository;
+import com.adeem.stockflow.domain.enumeration.AccountStatus;
+import com.adeem.stockflow.domain.enumeration.AddressType;
+import com.adeem.stockflow.repository.*;
 import com.adeem.stockflow.security.AuthoritiesConstants;
 import com.adeem.stockflow.service.UserService;
+import com.adeem.stockflow.service.dto.AddressDTO;
 import com.adeem.stockflow.service.dto.AdminUserDTO;
+import com.adeem.stockflow.service.dto.ClientAccountDTO;
 import com.adeem.stockflow.service.dto.PasswordChangeDTO;
 import com.adeem.stockflow.web.rest.vm.KeyAndPasswordVM;
 import com.adeem.stockflow.web.rest.vm.ManagedUserVM;
@@ -25,11 +29,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +54,15 @@ class AccountResourceIT {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private AdminRepository adminRepository;
+
+    @Autowired
+    private QuotaRepository quotaRepository;
+
+    @Autowired
+    private ClientAccountRepository clientAccountRepository;
 
     @Autowired
     private AuthorityRepository authorityRepository;
@@ -132,14 +148,43 @@ class AccountResourceIT {
         validUser.setEmail("test-register-valid@example.com");
         validUser.setImageUrl("http://placehold.it/50x50");
         validUser.setLangKey(Constants.DEFAULT_LANGUAGE);
-        validUser.setAuthorities(Collections.singleton(AuthoritiesConstants.USER));
+        validUser.setAuthorities(Collections.singleton(AuthoritiesConstants.USER_ADMIN));
         assertThat(userRepository.findOneByLogin("test-register-valid")).isEmpty();
 
         restAccountMockMvc
             .perform(post("/api/register").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(validUser)))
             .andExpect(status().isCreated());
 
-        assertThat(userRepository.findOneByLogin("test-register-valid")).isPresent();
+        var user = userRepository.findOneByLogin("test-register-valid");
+        assertThat(user).isPresent();
+        assertThat(user.get().getAuthorities()).hasSize(1);
+        assertThat(user.get().getAuthorities().iterator().next().getName()).isEqualTo(AuthoritiesConstants.USER_ADMIN);
+
+        userService.deleteUser("test-register-valid");
+    }
+
+    @Test
+    @Transactional
+    void testRegisterCustomerValid() throws Exception {
+        ManagedUserVM validUser = new ManagedUserVM();
+        validUser.setLogin("test-register-valid");
+        validUser.setPassword("password");
+        validUser.setFirstName("Alice");
+        validUser.setLastName("Test");
+        validUser.setEmail("test-register-valid@example.com");
+        validUser.setImageUrl("http://placehold.it/50x50");
+        validUser.setLangKey(Constants.DEFAULT_LANGUAGE);
+        validUser.setAuthorities(Collections.singleton(AuthoritiesConstants.USER_CUSTOMER));
+        assertThat(userRepository.findOneByLogin("test-register-valid")).isEmpty();
+
+        restAccountMockMvc
+            .perform(post("/api/register").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(validUser)))
+            .andExpect(status().isCreated());
+
+        var user = userRepository.findOneByLogin("test-register-valid");
+        assertThat(user).isPresent();
+        assertThat(user.get().getAuthorities()).hasSize(1);
+        assertThat(user.get().getAuthorities().iterator().next().getName()).isEqualTo(AuthoritiesConstants.USER_CUSTOMER);
 
         userService.deleteUser("test-register-valid");
     }
@@ -156,7 +201,7 @@ class AccountResourceIT {
         invalidUser.setActivated(true);
         invalidUser.setImageUrl("http://placehold.it/50x50");
         invalidUser.setLangKey(Constants.DEFAULT_LANGUAGE);
-        invalidUser.setAuthorities(Collections.singleton(AuthoritiesConstants.USER));
+        invalidUser.setAuthorities(Collections.singleton(AuthoritiesConstants.USER_ADMIN));
 
         restAccountMockMvc
             .perform(post("/api/register").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(invalidUser)))
@@ -203,7 +248,7 @@ class AccountResourceIT {
         invalidUser.setActivated(activated);
         invalidUser.setImageUrl("http://placehold.it/50x50");
         invalidUser.setLangKey(Constants.DEFAULT_LANGUAGE);
-        invalidUser.setAuthorities(Collections.singleton(AuthoritiesConstants.USER));
+        invalidUser.setAuthorities(Collections.singleton(AuthoritiesConstants.USER_ADMIN));
         return invalidUser;
     }
 
@@ -219,7 +264,7 @@ class AccountResourceIT {
         firstUser.setEmail("alice@example.com");
         firstUser.setImageUrl("http://placehold.it/50x50");
         firstUser.setLangKey(Constants.DEFAULT_LANGUAGE);
-        firstUser.setAuthorities(Collections.singleton(AuthoritiesConstants.USER));
+        firstUser.setAuthorities(Collections.singleton(AuthoritiesConstants.USER_ADMIN));
 
         // Duplicate login, different email
         ManagedUserVM secondUser = new ManagedUserVM();
@@ -271,7 +316,7 @@ class AccountResourceIT {
         firstUser.setEmail("test-register-duplicate-email@example.com");
         firstUser.setImageUrl("http://placehold.it/50x50");
         firstUser.setLangKey(Constants.DEFAULT_LANGUAGE);
-        firstUser.setAuthorities(Collections.singleton(AuthoritiesConstants.USER));
+        firstUser.setAuthorities(Collections.singleton(AuthoritiesConstants.USER_ADMIN));
 
         // Register first user
         restAccountMockMvc
@@ -357,7 +402,7 @@ class AccountResourceIT {
         assertThat(userDup).isPresent();
         assertThat(userDup.orElseThrow().getAuthorities())
             .hasSize(1)
-            .containsExactly(authorityRepository.findById(AuthoritiesConstants.USER).orElseThrow());
+            .containsExactly(authorityRepository.findById(AuthoritiesConstants.ADMIN).orElseThrow());
 
         userService.deleteUser("badguy");
     }
@@ -372,13 +417,50 @@ class AccountResourceIT {
         user.setPassword(RandomStringUtils.insecure().nextAlphanumeric(60));
         user.setActivated(false);
         user.setActivationKey(activationKey);
-
+        Set<Authority> authorities = new HashSet<>();
+        authorities.add(authorityRepository.findByName(AuthoritiesConstants.USER_ADMIN).get());
+        user.setAuthorities(authorities);
         userRepository.saveAndFlush(user);
 
-        restAccountMockMvc.perform(get("/api/activate?key={activationKey}", activationKey)).andExpect(status().isOk());
+        AddressDTO addressDTO = new AddressDTO();
+        addressDTO.setCountry("US");
+        addressDTO.setCity("New York");
+        addressDTO.setState("NY");
+        addressDTO.setStreetAddress("New York");
+        addressDTO.setPostalCode("12345");
+        addressDTO.setAddressType(AddressType.PRIMARY);
+        addressDTO.setIsDefault(true);
+
+        ClientAccountDTO clientAccountDTO = new ClientAccountDTO();
+        clientAccountDTO.setCompanyName("ADEEM");
+        clientAccountDTO.setEmail("adeem@pm.me");
+        clientAccountDTO.setPhone("0782243462");
+        clientAccountDTO.setStatus(AccountStatus.ENABLED);
+        clientAccountDTO.setAddress(addressDTO);
+        clientAccountDTO.setContactPerson("John Smith");
+
+        restAccountMockMvc
+            .perform(
+                post("/api/activate?key={activationKey}", activationKey)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(om.writeValueAsBytes(clientAccountDTO))
+            )
+            .andExpect(status().isOk());
 
         user = userRepository.findOneByLogin(user.getLogin()).orElse(null);
         assertThat(user.isActivated()).isTrue();
+
+        var admin = adminRepository.findByUserId(user.getId());
+        assertThat(admin).isPresent();
+
+        var clientAccount = admin.get().getClientAccount();
+        assertThat(clientAccount).isNotNull();
+        assertThat(clientAccount.getCompanyName()).isEqualTo("ADEEM");
+
+        var quota = quotaRepository.findByClientAccountId(clientAccount.getId());
+        assertThat(quota).isPresent();
+        assertThat(quota.get().getUsers()).isEqualTo(1);
+        assertThat(quota.get().getCustomers()).isZero();
 
         userService.deleteUser("activate-account");
     }
@@ -386,7 +468,29 @@ class AccountResourceIT {
     @Test
     @Transactional
     void testActivateAccountWithWrongKey() throws Exception {
-        restAccountMockMvc.perform(get("/api/activate?key=wrongActivationKey")).andExpect(status().isInternalServerError());
+        AddressDTO addressDTO = new AddressDTO();
+        addressDTO.setCountry("US");
+        addressDTO.setCity("New York");
+        addressDTO.setState("NY");
+        addressDTO.setStreetAddress("New York");
+        addressDTO.setPostalCode("12345");
+        addressDTO.setAddressType(AddressType.PRIMARY);
+        addressDTO.setIsDefault(true);
+
+        ClientAccountDTO clientAccountDTO = new ClientAccountDTO();
+        clientAccountDTO.setCompanyName("ADEEM");
+        clientAccountDTO.setEmail("adeem@pm.me");
+        clientAccountDTO.setPhone("0782243462");
+        clientAccountDTO.setStatus(AccountStatus.ENABLED);
+        clientAccountDTO.setAddress(addressDTO);
+        clientAccountDTO.setContactPerson("John Smith");
+        restAccountMockMvc
+            .perform(
+                post("/api/activate?key=wrongActivationKey")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(om.writeValueAsBytes(clientAccountDTO))
+            )
+            .andExpect(status().isForbidden());
     }
 
     @Test

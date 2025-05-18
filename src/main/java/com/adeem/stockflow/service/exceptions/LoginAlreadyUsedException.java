@@ -1,4 +1,4 @@
-package com.adeem.stockflow.web.rest.errors;
+package com.adeem.stockflow.service.exceptions;
 
 @SuppressWarnings("java:S110") // Inheritance tree of classes should not be too deep
 public class LoginAlreadyUsedException extends BadRequestAlertException {

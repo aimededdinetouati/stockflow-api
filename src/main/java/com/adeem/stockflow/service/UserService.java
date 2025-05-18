@@ -1,14 +1,18 @@
 package com.adeem.stockflow.service;
 
 import com.adeem.stockflow.config.Constants;
-import com.adeem.stockflow.domain.Authority;
-import com.adeem.stockflow.domain.User;
-import com.adeem.stockflow.repository.AuthorityRepository;
-import com.adeem.stockflow.repository.UserRepository;
+import com.adeem.stockflow.domain.*;
+import com.adeem.stockflow.domain.enumeration.AccountStatus;
+import com.adeem.stockflow.repository.*;
 import com.adeem.stockflow.security.AuthoritiesConstants;
+import com.adeem.stockflow.security.RolesConstants;
 import com.adeem.stockflow.security.SecurityUtils;
 import com.adeem.stockflow.service.dto.AdminUserDTO;
+import com.adeem.stockflow.service.dto.ClientAccountDTO;
 import com.adeem.stockflow.service.dto.UserDTO;
+import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
+import com.adeem.stockflow.service.exceptions.ErrorConstants;
+import com.adeem.stockflow.service.mapper.AddressMapper;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -19,6 +23,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +39,13 @@ public class UserService {
     private static final Logger LOG = LoggerFactory.getLogger(UserService.class);
 
     private final UserRepository userRepository;
+    private final ClientAccountRepository clientAccountRepository;
+    private final QuotaRepository quotaRepository;
+    private final AdminRepository adminRepository;
+    private final RoleRepository roleRepository;
+    private final UserRoleRepository userRoleRepository;
+    private final AddressMapper addressMapper;
+    private final AddressRepository addressRepository;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -43,18 +55,72 @@ public class UserService {
 
     public UserService(
         UserRepository userRepository,
+        ClientAccountRepository clientAccountRepository,
+        QuotaRepository quotaRepository,
+        AdminRepository adminRepository,
+        RoleRepository roleRepository,
+        UserRoleRepository userRoleRepository,
+        AddressMapper addressMapper,
+        AddressRepository addressRepository,
         PasswordEncoder passwordEncoder,
         AuthorityRepository authorityRepository,
         CacheManager cacheManager
     ) {
         this.userRepository = userRepository;
+        this.clientAccountRepository = clientAccountRepository;
+        this.quotaRepository = quotaRepository;
+        this.adminRepository = adminRepository;
+        this.roleRepository = roleRepository;
+        this.userRoleRepository = userRoleRepository;
+        this.addressMapper = addressMapper;
+        this.addressRepository = addressRepository;
         this.passwordEncoder = passwordEncoder;
         this.authorityRepository = authorityRepository;
         this.cacheManager = cacheManager;
     }
 
-    public Optional<User> activateRegistration(String key) {
+    public void activateRegistration(ClientAccountDTO clientAccountDTO, String key) {
         LOG.debug("Activating user for activation key {}", key);
+        User user = activateUser(key);
+        if (user.hasAuthority(AuthoritiesConstants.USER_ADMIN)) {
+            createDisabledAccount(user, clientAccountDTO);
+        }
+    }
+
+    private void createDisabledAccount(User user, ClientAccountDTO clientAccountDTO) {
+        if (!clientAccountRepository.findByCompanyName(clientAccountDTO.getCompanyName()).isEmpty()) {
+            throw new BadRequestAlertException("Company name exists", "", ErrorConstants.COMPANY_NAME_EXISTS);
+        }
+
+        Quota quota = new Quota();
+        quotaRepository.save(quota);
+
+        ClientAccount clientAccount = new ClientAccount();
+        clientAccount.setCompanyName(clientAccountDTO.getCompanyName());
+        clientAccount.setEmail(clientAccountDTO.getEmail());
+        clientAccount.setPhone(clientAccountDTO.getPhone());
+        clientAccount.setStatus(AccountStatus.DISABLED);
+        Address address = addressMapper.toEntity(clientAccountDTO.getAddress());
+        address = addressRepository.save(address);
+        clientAccount.setAddress(address);
+        clientAccount.setContactPerson(clientAccountDTO.getContactPerson());
+        clientAccount.setQuota(quota);
+        clientAccountRepository.save(clientAccount);
+
+        Admin admin = new Admin();
+        admin.setUser(user);
+        admin.setClientAccount(clientAccount);
+        admin.setAssignedDate(Instant.now());
+        adminRepository.save(admin);
+
+        Role role = roleRepository.findByName(RolesConstants.SUPER_ADMIN);
+        UserRole userRole = new UserRole();
+        userRole.setRole(role);
+        userRole.setAdmin(admin);
+        userRoleRepository.save(userRole);
+    }
+
+    private User activateUser(String key) {
         return userRepository
             .findOneByActivationKey(key)
             .map(user -> {
@@ -64,7 +130,8 @@ public class UserService {
                 this.clearUserCaches(user);
                 LOG.debug("Activated user: {}", user);
                 return user;
-            });
+            })
+            .orElseThrow(() -> new AccessDeniedException(Constants.NOT_ALLOWED));
     }
 
     public Optional<User> completePasswordReset(String newPassword, String key) {
@@ -94,6 +161,7 @@ public class UserService {
     }
 
     public User registerUser(AdminUserDTO userDTO, String password) {
+        String authority = userDTO.getAuthorities().iterator().next();
         userRepository
             .findOneByLogin(userDTO.getLogin().toLowerCase())
             .ifPresent(existingUser -> {
@@ -127,7 +195,7 @@ public class UserService {
         // new user gets registration key
         newUser.setActivationKey(RandomUtil.generateActivationKey());
         Set<Authority> authorities = new HashSet<>();
-        authorityRepository.findById(AuthoritiesConstants.USER).ifPresent(authorities::add);
+        authorityRepository.findByName(authority).ifPresent(authorities::add);
         newUser.setAuthorities(authorities);
         userRepository.save(newUser);
         this.clearUserCaches(newUser);

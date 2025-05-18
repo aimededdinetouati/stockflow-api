@@ -1,4 +1,4 @@
-package com.adeem.stockflow.web.rest.errors;
+package com.adeem.stockflow.service.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.ErrorResponseException;

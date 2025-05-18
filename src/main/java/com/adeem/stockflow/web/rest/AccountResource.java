@@ -6,8 +6,11 @@ import com.adeem.stockflow.security.SecurityUtils;
 import com.adeem.stockflow.service.MailService;
 import com.adeem.stockflow.service.UserService;
 import com.adeem.stockflow.service.dto.AdminUserDTO;
+import com.adeem.stockflow.service.dto.ClientAccountDTO;
 import com.adeem.stockflow.service.dto.PasswordChangeDTO;
-import com.adeem.stockflow.web.rest.errors.*;
+import com.adeem.stockflow.service.exceptions.EmailAlreadyUsedException;
+import com.adeem.stockflow.service.exceptions.InvalidPasswordException;
+import com.adeem.stockflow.service.exceptions.LoginAlreadyUsedException;
 import com.adeem.stockflow.web.rest.vm.KeyAndPasswordVM;
 import com.adeem.stockflow.web.rest.vm.ManagedUserVM;
 import jakarta.validation.Valid;
@@ -61,21 +64,19 @@ public class AccountResource {
             throw new InvalidPasswordException();
         }
         User user = userService.registerUser(managedUserVM, managedUserVM.getPassword());
+
         mailService.sendActivationEmail(user);
     }
 
     /**
-     * {@code GET  /activate} : activate the registered user.
+     * {@code Post  /activate} : activate the registered user.
      *
      * @param key the activation key.
      * @throws RuntimeException {@code 500 (Internal Server Error)} if the user couldn't be activated.
      */
-    @GetMapping("/activate")
-    public void activateAccount(@RequestParam(value = "key") String key) {
-        Optional<User> user = userService.activateRegistration(key);
-        if (!user.isPresent()) {
-            throw new AccountResourceException("No user was found for this activation key");
-        }
+    @PostMapping("/activate")
+    public void activateAccount(@RequestParam(value = "key") String key, @RequestBody ClientAccountDTO clientAccountDTO) {
+        userService.activateRegistration(clientAccountDTO, key);
     }
 
     /**

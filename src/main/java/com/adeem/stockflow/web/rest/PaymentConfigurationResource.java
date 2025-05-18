@@ -3,7 +3,7 @@ package com.adeem.stockflow.web.rest;
 import com.adeem.stockflow.repository.PaymentConfigurationRepository;
 import com.adeem.stockflow.service.PaymentConfigurationService;
 import com.adeem.stockflow.service.dto.PaymentConfigurationDTO;
-import com.adeem.stockflow.web.rest.errors.BadRequestAlertException;
+import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;

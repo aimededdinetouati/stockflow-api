@@ -2,6 +2,7 @@ package com.adeem.stockflow.web.rest.errors;
 
 import static org.springframework.core.annotation.AnnotatedElementUtils.findMergedAnnotation;
 
+import com.adeem.stockflow.service.exceptions.*;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.Arrays;

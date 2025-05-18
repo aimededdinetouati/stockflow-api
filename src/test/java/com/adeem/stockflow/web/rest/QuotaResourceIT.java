@@ -191,23 +191,6 @@ class QuotaResourceIT {
 
     @Test
     @Transactional
-    void checkResetDateIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        quota.setResetDate(null);
-
-        // Create the Quota, which fails.
-        QuotaDTO quotaDTO = quotaMapper.toDto(quota);
-
-        restQuotaMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(quotaDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
     void getAllQuotas() throws Exception {
         // Initialize the database
         insertedQuota = quotaRepository.saveAndFlush(quota);

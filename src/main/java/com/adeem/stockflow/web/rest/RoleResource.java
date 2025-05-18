@@ -3,7 +3,7 @@ package com.adeem.stockflow.web.rest;
 import com.adeem.stockflow.repository.RoleRepository;
 import com.adeem.stockflow.service.RoleService;
 import com.adeem.stockflow.service.dto.RoleDTO;
-import com.adeem.stockflow.web.rest.errors.BadRequestAlertException;
+import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.net.URI;
@@ -143,7 +143,7 @@ public class RoleResource {
      */
     @GetMapping("")
     public ResponseEntity<List<RoleDTO>> getAllRoles(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
-        LOG.debug("REST request to get a page of Roles");
+        LOG.debug("REST request to get a page of RolesConstants");
         Page<RoleDTO> page = roleService.findAll(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());

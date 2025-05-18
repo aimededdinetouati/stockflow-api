@@ -22,6 +22,7 @@ public final class SecurityUtils {
     public static final String AUTHORITIES_CLAIM = "auth";
 
     public static final String USER_ID_CLAIM = "userId";
+    public static final String CLIENT_ACCOUNT_ID_CLAIM = "clientAccountId";
 
     private SecurityUtils() {}
 
@@ -71,6 +72,14 @@ public final class SecurityUtils {
             .filter(authentication -> authentication.getPrincipal() instanceof ClaimAccessor)
             .map(authentication -> (ClaimAccessor) authentication.getPrincipal())
             .map(principal -> principal.getClaim(USER_ID_CLAIM));
+    }
+
+    public static Optional<Long> getCurrentClientAccountId() {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        return Optional.ofNullable(securityContext.getAuthentication())
+            .filter(authentication -> authentication.getPrincipal() instanceof ClaimAccessor)
+            .map(authentication -> (ClaimAccessor) authentication.getPrincipal())
+            .map(principal -> principal.getClaim(CLIENT_ACCOUNT_ID_CLAIM));
     }
 
     /**

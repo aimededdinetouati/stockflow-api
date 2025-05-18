@@ -8,13 +8,5 @@
     <!--
         Added the constraints for entity Quota.
     -->
-    <changeSet id="20250516093129-2" author="jhipster">
 
-        <addForeignKeyConstraint baseColumnNames="client_account_id"
-                                 baseTableName="quota"
-                                 constraintName="fk_quota__client_account_id"
-                                 referencedColumnNames="id"
-                                 referencedTableName="client_account"
-                                 />
-    </changeSet>
 </databaseChangeLog>

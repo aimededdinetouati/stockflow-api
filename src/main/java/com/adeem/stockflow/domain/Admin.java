@@ -41,7 +41,7 @@ public class Admin extends AbstractAuditingEntity<Long> implements Serializable,
     @Transient
     private boolean isPersisted;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(unique = true)
     private User user;
 

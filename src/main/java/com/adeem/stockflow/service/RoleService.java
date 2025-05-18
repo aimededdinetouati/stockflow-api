@@ -85,7 +85,7 @@ public class RoleService {
      */
     @Transactional(readOnly = true)
     public Page<RoleDTO> findAll(Pageable pageable) {
-        LOG.debug("Request to get all Roles");
+        LOG.debug("Request to get all RolesConstants");
         return roleRepository.findAll(pageable).map(roleMapper::toDto);
     }
 

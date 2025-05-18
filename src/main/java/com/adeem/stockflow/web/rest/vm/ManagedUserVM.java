@@ -1,6 +1,7 @@
 package com.adeem.stockflow.web.rest.vm;
 
 import com.adeem.stockflow.service.dto.AdminUserDTO;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /**

@@ -29,34 +29,33 @@ public class Quota extends AbstractAuditingEntity<Long> implements Serializable,
     private Long id;
 
     @Column(name = "users")
-    private Integer users;
+    private Integer users = 1;
 
     @Column(name = "products")
-    private Integer products;
+    private Integer products = 0;
 
     @Column(name = "product_families")
-    private Integer productFamilies;
+    private Integer productFamilies = 0;
 
     @Column(name = "showcased_products")
-    private Integer showcasedProducts;
+    private Integer showcasedProducts = 0;
 
     @Column(name = "sale_orders")
-    private Integer saleOrders;
+    private Integer saleOrders = 0;
 
     @Column(name = "purchase_orders")
-    private Integer purchaseOrders;
+    private Integer purchaseOrders = 0;
 
     @Column(name = "customers")
-    private Integer customers;
+    private Integer customers = 0;
 
     @Column(name = "suppliers")
-    private Integer suppliers;
+    private Integer suppliers = 0;
 
     @Column(name = "shipments")
-    private Integer shipments;
+    private Integer shipments = 0;
 
-    @NotNull
-    @Column(name = "reset_date", nullable = false)
+    @Column(name = "reset_date")
     private ZonedDateTime resetDate;
 
     // Inherited createdBy definition

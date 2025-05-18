@@ -35,7 +35,7 @@ public class ClientAccount extends AbstractAuditingEntity<Long> implements Seria
     private String companyName;
 
     @NotNull
-    @Column(name = "contact_person", nullable = false)
+    @Column(name = "contact_person")
     private String contactPerson;
 
     @NotNull

@@ -17,7 +17,6 @@ public class ClientAccountDTO implements Serializable {
     @NotNull
     private String companyName;
 
-    @NotNull
     private String contactPerson;
 
     @NotNull
