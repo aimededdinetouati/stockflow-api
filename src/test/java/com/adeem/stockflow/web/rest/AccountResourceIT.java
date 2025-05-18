@@ -29,11 +29,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -465,7 +468,29 @@ class AccountResourceIT {
     @Test
     @Transactional
     void testActivateAccountWithWrongKey() throws Exception {
-        restAccountMockMvc.perform(get("/api/activate?key=wrongActivationKey")).andExpect(status().isInternalServerError());
+        AddressDTO addressDTO = new AddressDTO();
+        addressDTO.setCountry("US");
+        addressDTO.setCity("New York");
+        addressDTO.setState("NY");
+        addressDTO.setStreetAddress("New York");
+        addressDTO.setPostalCode("12345");
+        addressDTO.setAddressType(AddressType.PRIMARY);
+        addressDTO.setIsDefault(true);
+
+        ClientAccountDTO clientAccountDTO = new ClientAccountDTO();
+        clientAccountDTO.setCompanyName("ADEEM");
+        clientAccountDTO.setEmail("adeem@pm.me");
+        clientAccountDTO.setPhone("0782243462");
+        clientAccountDTO.setStatus(AccountStatus.ENABLED);
+        clientAccountDTO.setAddress(addressDTO);
+        clientAccountDTO.setContactPerson("John Smith");
+        restAccountMockMvc
+            .perform(
+                post("/api/activate?key=wrongActivationKey")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(om.writeValueAsBytes(clientAccountDTO))
+            )
+            .andExpect(status().isForbidden());
     }
 
     @Test

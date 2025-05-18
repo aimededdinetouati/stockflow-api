@@ -93,6 +93,9 @@ public class UserService {
             throw new BadRequestAlertException("Company name exists", "", ErrorConstants.COMPANY_NAME_EXISTS);
         }
 
+        Quota quota = new Quota();
+        quotaRepository.save(quota);
+
         ClientAccount clientAccount = new ClientAccount();
         clientAccount.setCompanyName(clientAccountDTO.getCompanyName());
         clientAccount.setEmail(clientAccountDTO.getEmail());
@@ -102,7 +105,7 @@ public class UserService {
         address = addressRepository.save(address);
         clientAccount.setAddress(address);
         clientAccount.setContactPerson(clientAccountDTO.getContactPerson());
-
+        clientAccount.setQuota(quota);
         clientAccountRepository.save(clientAccount);
 
         Admin admin = new Admin();
@@ -116,10 +119,6 @@ public class UserService {
         userRole.setRole(role);
         userRole.setAdmin(admin);
         userRoleRepository.save(userRole);
-
-        Quota quota = new Quota();
-        quota.setClientAccount(clientAccount);
-        quotaRepository.save(quota);
     }
 
     private User activateUser(String key) {
