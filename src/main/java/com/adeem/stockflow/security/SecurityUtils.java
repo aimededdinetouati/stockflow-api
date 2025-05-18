@@ -22,6 +22,7 @@ public final class SecurityUtils {
     public static final String AUTHORITIES_CLAIM = "auth";
 
     public static final String USER_ID_CLAIM = "userId";
+    public static final String CLIENT_ACCOUNT_ID_CLAIM = "clientAccountId";
 
     private SecurityUtils() {}
 

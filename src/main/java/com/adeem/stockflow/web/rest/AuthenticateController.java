@@ -1,9 +1,9 @@
 package com.adeem.stockflow.web.rest;
 
-import static com.adeem.stockflow.security.SecurityUtils.AUTHORITIES_CLAIM;
-import static com.adeem.stockflow.security.SecurityUtils.JWT_ALGORITHM;
-import static com.adeem.stockflow.security.SecurityUtils.USER_ID_CLAIM;
+import static com.adeem.stockflow.security.SecurityUtils.*;
 
+import com.adeem.stockflow.repository.UserRepository;
+import com.adeem.stockflow.security.AuthoritiesConstants;
 import com.adeem.stockflow.security.DomainUserDetailsService.UserWithId;
 import com.adeem.stockflow.web.rest.vm.LoginVM;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -39,6 +39,7 @@ public class AuthenticateController {
     private static final Logger LOG = LoggerFactory.getLogger(AuthenticateController.class);
 
     private final JwtEncoder jwtEncoder;
+    private final UserRepository userRepository;
 
     @Value("${jhipster.security.authentication.jwt.token-validity-in-seconds:0}")
     private long tokenValidityInSeconds;
@@ -48,8 +49,13 @@ public class AuthenticateController {
 
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
 
-    public AuthenticateController(JwtEncoder jwtEncoder, AuthenticationManagerBuilder authenticationManagerBuilder) {
+    public AuthenticateController(
+        JwtEncoder jwtEncoder,
+        UserRepository userRepository,
+        AuthenticationManagerBuilder authenticationManagerBuilder
+    ) {
         this.jwtEncoder = jwtEncoder;
+        this.userRepository = userRepository;
         this.authenticationManagerBuilder = authenticationManagerBuilder;
     }
 
@@ -99,6 +105,10 @@ public class AuthenticateController {
             .claim(AUTHORITIES_CLAIM, authorities);
         if (authentication.getPrincipal() instanceof UserWithId user) {
             builder.claim(USER_ID_CLAIM, user.getId());
+            if (authorities.contains(AuthoritiesConstants.USER_ADMIN)) {
+                Long clientAccountId = userRepository.getClientAccountIdByUser(user.getId());
+                builder.claim(CLIENT_ACCOUNT_ID_CLAIM, clientAccountId);
+            }
         }
 
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
