@@ -2,7 +2,7 @@ package com.adeem.stockflow.web.rest;
 
 import com.adeem.stockflow.domain.Authority;
 import com.adeem.stockflow.repository.AuthorityRepository;
-import com.adeem.stockflow.web.rest.errors.BadRequestAlertException;
+import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;

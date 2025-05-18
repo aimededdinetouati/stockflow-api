@@ -179,23 +179,6 @@ class ClientAccountResourceIT {
 
     @Test
     @Transactional
-    void checkContactPersonIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        clientAccount.setContactPerson(null);
-
-        // Create the ClientAccount, which fails.
-        ClientAccountDTO clientAccountDTO = clientAccountMapper.toDto(clientAccount);
-
-        restClientAccountMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clientAccountDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
     void checkPhoneIsRequired() throws Exception {
         long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null

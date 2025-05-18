@@ -3,7 +3,7 @@ package com.adeem.stockflow.web.rest;
 import com.adeem.stockflow.repository.SubscriptionRepository;
 import com.adeem.stockflow.service.SubscriptionService;
 import com.adeem.stockflow.service.dto.SubscriptionDTO;
-import com.adeem.stockflow.web.rest.errors.BadRequestAlertException;
+import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.net.URI;

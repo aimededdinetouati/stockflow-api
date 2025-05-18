@@ -3,7 +3,7 @@ package com.adeem.stockflow.web.rest;
 import com.adeem.stockflow.repository.RolePermissionRepository;
 import com.adeem.stockflow.service.RolePermissionService;
 import com.adeem.stockflow.service.dto.RolePermissionDTO;
-import com.adeem.stockflow.web.rest.errors.BadRequestAlertException;
+import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
