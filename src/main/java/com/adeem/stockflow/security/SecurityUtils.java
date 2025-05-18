@@ -74,6 +74,14 @@ public final class SecurityUtils {
             .map(principal -> principal.getClaim(USER_ID_CLAIM));
     }
 
+    public static Optional<Long> getCurrentClientAccountId() {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        return Optional.ofNullable(securityContext.getAuthentication())
+            .filter(authentication -> authentication.getPrincipal() instanceof ClaimAccessor)
+            .map(authentication -> (ClaimAccessor) authentication.getPrincipal())
+            .map(principal -> principal.getClaim(CLIENT_ACCOUNT_ID_CLAIM));
+    }
+
     /**
      * Check if a user is authenticated.
      *
