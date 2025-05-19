@@ -42,7 +42,7 @@
                 <constraints nullable="true" />
             </column>
             <column name="reset_date" type="${datetimeType}">
-                <constraints nullable="false" />
+                <constraints nullable="true" />
             </column>
             <column name="created_by" type="varchar(50)">
                 <constraints nullable="false" />

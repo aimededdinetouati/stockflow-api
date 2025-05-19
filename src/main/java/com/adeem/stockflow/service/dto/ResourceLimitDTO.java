@@ -16,7 +16,6 @@ public class ResourceLimitDTO implements Serializable {
     @NotNull
     private String resourceType;
 
-    @NotNull
     private Integer maxAmount;
 
     @NotNull

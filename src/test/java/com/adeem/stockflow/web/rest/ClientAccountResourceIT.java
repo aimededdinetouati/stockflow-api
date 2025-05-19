@@ -38,9 +38,6 @@ class ClientAccountResourceIT {
     private static final String DEFAULT_COMPANY_NAME = "AAAAAAAAAA";
     private static final String UPDATED_COMPANY_NAME = "BBBBBBBBBB";
 
-    private static final String DEFAULT_CONTACT_PERSON = "AAAAAAAAAA";
-    private static final String UPDATED_CONTACT_PERSON = "BBBBBBBBBB";
-
     private static final String DEFAULT_PHONE = "AAAAAAAAAA";
     private static final String UPDATED_PHONE = "BBBBBBBBBB";
 
@@ -82,12 +79,7 @@ class ClientAccountResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static ClientAccount createEntity() {
-        return new ClientAccount()
-            .companyName(DEFAULT_COMPANY_NAME)
-            .contactPerson(DEFAULT_CONTACT_PERSON)
-            .phone(DEFAULT_PHONE)
-            .email(DEFAULT_EMAIL)
-            .status(DEFAULT_STATUS);
+        return new ClientAccount().companyName(DEFAULT_COMPANY_NAME).phone(DEFAULT_PHONE).email(DEFAULT_EMAIL).status(DEFAULT_STATUS);
     }
 
     /**
@@ -97,12 +89,7 @@ class ClientAccountResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static ClientAccount createUpdatedEntity() {
-        return new ClientAccount()
-            .companyName(UPDATED_COMPANY_NAME)
-            .contactPerson(UPDATED_CONTACT_PERSON)
-            .phone(UPDATED_PHONE)
-            .email(UPDATED_EMAIL)
-            .status(UPDATED_STATUS);
+        return new ClientAccount().companyName(UPDATED_COMPANY_NAME).phone(UPDATED_PHONE).email(UPDATED_EMAIL).status(UPDATED_STATUS);
     }
 
     @BeforeEach
@@ -241,7 +228,6 @@ class ClientAccountResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(clientAccount.getId().intValue())))
             .andExpect(jsonPath("$.[*].companyName").value(hasItem(DEFAULT_COMPANY_NAME)))
-            .andExpect(jsonPath("$.[*].contactPerson").value(hasItem(DEFAULT_CONTACT_PERSON)))
             .andExpect(jsonPath("$.[*].phone").value(hasItem(DEFAULT_PHONE)))
             .andExpect(jsonPath("$.[*].email").value(hasItem(DEFAULT_EMAIL)))
             .andExpect(jsonPath("$.[*].status").value(hasItem(DEFAULT_STATUS.toString())));
@@ -260,7 +246,6 @@ class ClientAccountResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(clientAccount.getId().intValue()))
             .andExpect(jsonPath("$.companyName").value(DEFAULT_COMPANY_NAME))
-            .andExpect(jsonPath("$.contactPerson").value(DEFAULT_CONTACT_PERSON))
             .andExpect(jsonPath("$.phone").value(DEFAULT_PHONE))
             .andExpect(jsonPath("$.email").value(DEFAULT_EMAIL))
             .andExpect(jsonPath("$.status").value(DEFAULT_STATUS.toString()));
@@ -285,12 +270,7 @@ class ClientAccountResourceIT {
         ClientAccount updatedClientAccount = clientAccountRepository.findById(clientAccount.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedClientAccount are not directly saved in db
         em.detach(updatedClientAccount);
-        updatedClientAccount
-            .companyName(UPDATED_COMPANY_NAME)
-            .contactPerson(UPDATED_CONTACT_PERSON)
-            .phone(UPDATED_PHONE)
-            .email(UPDATED_EMAIL)
-            .status(UPDATED_STATUS);
+        updatedClientAccount.companyName(UPDATED_COMPANY_NAME).phone(UPDATED_PHONE).email(UPDATED_EMAIL).status(UPDATED_STATUS);
         ClientAccountDTO clientAccountDTO = clientAccountMapper.toDto(updatedClientAccount);
 
         restClientAccountMockMvc
@@ -380,7 +360,7 @@ class ClientAccountResourceIT {
         ClientAccount partialUpdatedClientAccount = new ClientAccount();
         partialUpdatedClientAccount.setId(clientAccount.getId());
 
-        partialUpdatedClientAccount.phone(UPDATED_PHONE).email(UPDATED_EMAIL).status(UPDATED_STATUS);
+        partialUpdatedClientAccount.email(UPDATED_EMAIL).status(UPDATED_STATUS);
 
         restClientAccountMockMvc
             .perform(
@@ -411,12 +391,7 @@ class ClientAccountResourceIT {
         ClientAccount partialUpdatedClientAccount = new ClientAccount();
         partialUpdatedClientAccount.setId(clientAccount.getId());
 
-        partialUpdatedClientAccount
-            .companyName(UPDATED_COMPANY_NAME)
-            .contactPerson(UPDATED_CONTACT_PERSON)
-            .phone(UPDATED_PHONE)
-            .email(UPDATED_EMAIL)
-            .status(UPDATED_STATUS);
+        partialUpdatedClientAccount.companyName(UPDATED_COMPANY_NAME).phone(UPDATED_PHONE).email(UPDATED_EMAIL).status(UPDATED_STATUS);
 
         restClientAccountMockMvc
             .perform(

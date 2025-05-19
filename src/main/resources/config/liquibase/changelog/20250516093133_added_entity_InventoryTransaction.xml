@@ -41,13 +41,7 @@
             <column name="last_modified_date" type="${datetimeType}">
                 <constraints nullable="false" />
             </column>
-            <column name="return_order_item_id" type="bigint">
-                <constraints nullable="true" />
-            </column>
-            <column name="sale_order_item_id" type="bigint">
-                <constraints nullable="true" />
-            </column>
-            <column name="purchase_order_item_id" type="bigint">
+            <column name="product_id" type="bigint">
                 <constraints nullable="true" />
             </column>
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->

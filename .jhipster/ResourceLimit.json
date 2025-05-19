@@ -13,8 +13,7 @@
     },
     {
       "fieldName": "maxAmount",
-      "fieldType": "Integer",
-      "fieldValidateRules": ["required"]
+      "fieldType": "Integer"
     },
     {
       "fieldName": "isUnlimited",

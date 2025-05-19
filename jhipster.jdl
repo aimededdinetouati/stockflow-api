@@ -510,9 +510,6 @@ relationship ManyToOne {
 
 relationship ManyToOne {
   InventoryTransaction{product} to Product,
-  InventoryTransaction{returnOrderItem} to ReturnOrderItem,
-  InventoryTransaction{saleOrderItem} to SaleOrder,
-  InventoryTransaction{purchaseOrderItem} to PurchaseOrder,
 }
 
 relationship OneToMany {

@@ -35,10 +35,6 @@ public class ClientAccount extends AbstractAuditingEntity<Long> implements Seria
     private String companyName;
 
     @NotNull
-    @Column(name = "contact_person")
-    private String contactPerson;
-
-    @NotNull
     @Column(name = "phone", nullable = false)
     private String phone;
 
@@ -100,19 +96,6 @@ public class ClientAccount extends AbstractAuditingEntity<Long> implements Seria
 
     public void setCompanyName(String companyName) {
         this.companyName = companyName;
-    }
-
-    public String getContactPerson() {
-        return this.contactPerson;
-    }
-
-    public ClientAccount contactPerson(String contactPerson) {
-        this.setContactPerson(contactPerson);
-        return this;
-    }
-
-    public void setContactPerson(String contactPerson) {
-        this.contactPerson = contactPerson;
     }
 
     public String getPhone() {
@@ -278,7 +261,6 @@ public class ClientAccount extends AbstractAuditingEntity<Long> implements Seria
         return "ClientAccount{" +
             "id=" + getId() +
             ", companyName='" + getCompanyName() + "'" +
-            ", contactPerson='" + getContactPerson() + "'" +
             ", phone='" + getPhone() + "'" +
             ", email='" + getEmail() + "'" +
             ", status='" + getStatus() + "'" +

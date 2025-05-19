@@ -12,11 +12,6 @@
       "fieldValidateRules": ["required"]
     },
     {
-      "fieldName": "contactPerson",
-      "fieldType": "String",
-      "fieldValidateRules": ["required"]
-    },
-    {
       "fieldName": "phone",
       "fieldType": "String",
       "fieldValidateRules": ["required"]

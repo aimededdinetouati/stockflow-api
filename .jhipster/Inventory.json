@@ -17,10 +17,6 @@
       "fieldValidateRules": ["required"]
     },
     {
-      "fieldName": "location",
-      "fieldType": "String"
-    },
-    {
       "fieldName": "lastUpdated",
       "fieldType": "Instant",
       "fieldValidateRules": ["required"]

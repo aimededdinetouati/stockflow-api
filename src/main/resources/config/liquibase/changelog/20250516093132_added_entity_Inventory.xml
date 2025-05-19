@@ -20,9 +20,6 @@
             <column name="available_quantity" type="decimal(21,2)">
                 <constraints nullable="false" />
             </column>
-            <column name="location" type="varchar(255)">
-                <constraints nullable="true" />
-            </column>
             <column name="last_updated" type="${datetimeType}">
                 <constraints nullable="false" />
             </column>
@@ -70,7 +67,6 @@
             <column name="id" type="numeric"/>
             <column name="quantity" type="numeric"/>
             <column name="available_quantity" type="numeric"/>
-            <column name="location" type="string"/>
             <column name="last_updated" type="date"/>
             <column name="status" type="string"/>
             <column name="created_by" type="string"/>

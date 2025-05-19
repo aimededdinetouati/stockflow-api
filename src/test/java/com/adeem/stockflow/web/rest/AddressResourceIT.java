@@ -245,6 +245,23 @@ class AddressResourceIT {
 
     @Test
     @Transactional
+    void checkPostalCodeIsRequired() throws Exception {
+        long databaseSizeBeforeTest = getRepositoryCount();
+        // set the field null
+        address.setPostalCode(null);
+
+        // Create the Address, which fails.
+        AddressDTO addressDTO = addressMapper.toDto(address);
+
+        restAddressMockMvc
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(addressDTO)))
+            .andExpect(status().isBadRequest());
+
+        assertSameRepositoryCount(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
     void checkCountryIsRequired() throws Exception {
         long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null

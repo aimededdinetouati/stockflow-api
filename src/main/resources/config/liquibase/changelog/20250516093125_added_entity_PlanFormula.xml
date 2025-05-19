@@ -21,10 +21,10 @@
                 <constraints nullable="true" />
             </column>
             <column name="base_price" type="decimal(21,2)">
-                <constraints nullable="false" />
+                <constraints nullable="true" />
             </column>
             <column name="billing_cycle" type="varchar(255)">
-                <constraints nullable="false" />
+                <constraints nullable="true" />
             </column>
             <column name="is_active" type="boolean">
                 <constraints nullable="false" />

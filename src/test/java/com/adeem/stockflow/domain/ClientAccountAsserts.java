@@ -50,7 +50,6 @@ public class ClientAccountAsserts {
         assertThat(actual)
             .as("Verify ClientAccount relevant properties")
             .satisfies(a -> assertThat(a.getCompanyName()).as("check companyName").isEqualTo(expected.getCompanyName()))
-            .satisfies(a -> assertThat(a.getContactPerson()).as("check contactPerson").isEqualTo(expected.getContactPerson()))
             .satisfies(a -> assertThat(a.getPhone()).as("check phone").isEqualTo(expected.getPhone()))
             .satisfies(a -> assertThat(a.getEmail()).as("check email").isEqualTo(expected.getEmail()))
             .satisfies(a -> assertThat(a.getStatus()).as("check status").isEqualTo(expected.getStatus()));

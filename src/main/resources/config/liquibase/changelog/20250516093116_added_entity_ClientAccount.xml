@@ -17,9 +17,6 @@
             <column name="company_name" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
-            <column name="contact_person" type="varchar(255)">
-                <constraints nullable="true" />
-            </column>
             <column name="phone" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
@@ -71,7 +68,6 @@
                   usePreparedStatements="true">
             <column name="id" type="numeric"/>
             <column name="company_name" type="string"/>
-            <column name="contact_person" type="string"/>
             <column name="phone" type="string"/>
             <column name="email" type="string"/>
             <column name="status" type="string"/>

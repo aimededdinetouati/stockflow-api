@@ -59,7 +59,6 @@ public class InventoryAsserts {
                     .usingComparator(bigDecimalCompareTo)
                     .isEqualTo(expected.getAvailableQuantity())
             )
-            .satisfies(a -> assertThat(a.getLocation()).as("check location").isEqualTo(expected.getLocation()))
             .satisfies(a -> assertThat(a.getLastUpdated()).as("check lastUpdated").isEqualTo(expected.getLastUpdated()))
             .satisfies(a -> assertThat(a.getStatus()).as("check status").isEqualTo(expected.getStatus()));
     }

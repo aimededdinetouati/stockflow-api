@@ -1,12 +1,12 @@
 package com.adeem.stockflow.service.dto;
 
+import com.adeem.stockflow.domain.enumeration.ProductCategory;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * A DTO for the {@link com.adeem.stockflow.domain.Product} entity.
@@ -28,25 +28,19 @@ public class ProductDTO implements Serializable {
 
     private String upc;
 
-    @NotNull
     private BigDecimal sellingPrice;
 
-    @NotNull
     private BigDecimal costPrice;
 
-    @NotNull
     private BigDecimal profitMargin;
 
-    @NotNull
     private BigDecimal minimumStockLevel;
 
-    @NotNull
-    private String category;
+    private ProductCategory category;
 
     @NotNull
     private Boolean applyTva;
 
-    @NotNull
     private Boolean isVisibleToCustomers;
 
     private ZonedDateTime expirationDate;
@@ -145,11 +139,11 @@ public class ProductDTO implements Serializable {
         this.minimumStockLevel = minimumStockLevel;
     }
 
-    public String getCategory() {
+    public ProductCategory getCategory() {
         return category;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(ProductCategory category) {
         this.category = category;
     }
 

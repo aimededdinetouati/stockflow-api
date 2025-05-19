@@ -44,8 +44,7 @@
     },
     {
       "fieldName": "resetDate",
-      "fieldType": "ZonedDateTime",
-      "fieldValidateRules": ["required"]
+      "fieldType": "ZonedDateTime"
     },
     {
       "auditField": true,

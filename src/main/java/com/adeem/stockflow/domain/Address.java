@@ -46,11 +46,11 @@ public class Address extends AbstractAuditingEntity<Long> implements Serializabl
     private String state;
 
     @NotNull
-    @Column(name = "postal_code")
+    @Column(name = "postal_code", nullable = false)
     private String postalCode;
 
     @NotNull
-    @Column(name = "country")
+    @Column(name = "country", nullable = false)
     private String country;
 
     @NotNull

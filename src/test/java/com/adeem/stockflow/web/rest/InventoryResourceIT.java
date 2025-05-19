@@ -45,9 +45,6 @@ class InventoryResourceIT {
     private static final BigDecimal DEFAULT_AVAILABLE_QUANTITY = new BigDecimal(1);
     private static final BigDecimal UPDATED_AVAILABLE_QUANTITY = new BigDecimal(2);
 
-    private static final String DEFAULT_LOCATION = "AAAAAAAAAA";
-    private static final String UPDATED_LOCATION = "BBBBBBBBBB";
-
     private static final Instant DEFAULT_LAST_UPDATED = Instant.ofEpochMilli(0L);
     private static final Instant UPDATED_LAST_UPDATED = Instant.now().truncatedTo(ChronoUnit.MILLIS);
 
@@ -89,7 +86,6 @@ class InventoryResourceIT {
         return new Inventory()
             .quantity(DEFAULT_QUANTITY)
             .availableQuantity(DEFAULT_AVAILABLE_QUANTITY)
-            .location(DEFAULT_LOCATION)
             .lastUpdated(DEFAULT_LAST_UPDATED)
             .status(DEFAULT_STATUS);
     }
@@ -104,7 +100,6 @@ class InventoryResourceIT {
         return new Inventory()
             .quantity(UPDATED_QUANTITY)
             .availableQuantity(UPDATED_AVAILABLE_QUANTITY)
-            .location(UPDATED_LOCATION)
             .lastUpdated(UPDATED_LAST_UPDATED)
             .status(UPDATED_STATUS);
     }
@@ -246,7 +241,6 @@ class InventoryResourceIT {
             .andExpect(jsonPath("$.[*].id").value(hasItem(inventory.getId().intValue())))
             .andExpect(jsonPath("$.[*].quantity").value(hasItem(sameNumber(DEFAULT_QUANTITY))))
             .andExpect(jsonPath("$.[*].availableQuantity").value(hasItem(sameNumber(DEFAULT_AVAILABLE_QUANTITY))))
-            .andExpect(jsonPath("$.[*].location").value(hasItem(DEFAULT_LOCATION)))
             .andExpect(jsonPath("$.[*].lastUpdated").value(hasItem(DEFAULT_LAST_UPDATED.toString())))
             .andExpect(jsonPath("$.[*].status").value(hasItem(DEFAULT_STATUS.toString())));
     }
@@ -265,7 +259,6 @@ class InventoryResourceIT {
             .andExpect(jsonPath("$.id").value(inventory.getId().intValue()))
             .andExpect(jsonPath("$.quantity").value(sameNumber(DEFAULT_QUANTITY)))
             .andExpect(jsonPath("$.availableQuantity").value(sameNumber(DEFAULT_AVAILABLE_QUANTITY)))
-            .andExpect(jsonPath("$.location").value(DEFAULT_LOCATION))
             .andExpect(jsonPath("$.lastUpdated").value(DEFAULT_LAST_UPDATED.toString()))
             .andExpect(jsonPath("$.status").value(DEFAULT_STATUS.toString()));
     }
@@ -292,7 +285,6 @@ class InventoryResourceIT {
         updatedInventory
             .quantity(UPDATED_QUANTITY)
             .availableQuantity(UPDATED_AVAILABLE_QUANTITY)
-            .location(UPDATED_LOCATION)
             .lastUpdated(UPDATED_LAST_UPDATED)
             .status(UPDATED_STATUS);
         InventoryDTO inventoryDTO = inventoryMapper.toDto(updatedInventory);
@@ -384,7 +376,7 @@ class InventoryResourceIT {
         Inventory partialUpdatedInventory = new Inventory();
         partialUpdatedInventory.setId(inventory.getId());
 
-        partialUpdatedInventory.quantity(UPDATED_QUANTITY).availableQuantity(UPDATED_AVAILABLE_QUANTITY).lastUpdated(UPDATED_LAST_UPDATED);
+        partialUpdatedInventory.quantity(UPDATED_QUANTITY).availableQuantity(UPDATED_AVAILABLE_QUANTITY).status(UPDATED_STATUS);
 
         restInventoryMockMvc
             .perform(
@@ -418,7 +410,6 @@ class InventoryResourceIT {
         partialUpdatedInventory
             .quantity(UPDATED_QUANTITY)
             .availableQuantity(UPDATED_AVAILABLE_QUANTITY)
-            .location(UPDATED_LOCATION)
             .lastUpdated(UPDATED_LAST_UPDATED)
             .status(UPDATED_STATUS);
 

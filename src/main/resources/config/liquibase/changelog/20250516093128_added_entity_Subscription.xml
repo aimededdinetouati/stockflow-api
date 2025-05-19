@@ -24,10 +24,10 @@
                 <constraints nullable="false" />
             </column>
             <column name="payment_method" type="varchar(255)">
-                <constraints nullable="false" />
+                <constraints nullable="true" />
             </column>
             <column name="actual_price" type="decimal(21,2)">
-                <constraints nullable="false" />
+                <constraints nullable="true" />
             </column>
             <column name="created_by" type="varchar(50)">
                 <constraints nullable="false" />

@@ -18,7 +18,7 @@
                 <constraints nullable="false" />
             </column>
             <column name="max_amount" type="integer">
-                <constraints nullable="false" />
+                <constraints nullable="true" />
             </column>
             <column name="is_unlimited" type="boolean">
                 <constraints nullable="false" />
