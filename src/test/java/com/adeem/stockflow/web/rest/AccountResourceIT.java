@@ -437,7 +437,6 @@ class AccountResourceIT {
         clientAccountDTO.setPhone("0782243462");
         clientAccountDTO.setStatus(AccountStatus.ENABLED);
         clientAccountDTO.setAddress(addressDTO);
-        clientAccountDTO.setContactPerson("John Smith");
 
         restAccountMockMvc
             .perform(
@@ -483,7 +482,6 @@ class AccountResourceIT {
         clientAccountDTO.setPhone("0782243462");
         clientAccountDTO.setStatus(AccountStatus.ENABLED);
         clientAccountDTO.setAddress(addressDTO);
-        clientAccountDTO.setContactPerson("John Smith");
         restAccountMockMvc
             .perform(
                 post("/api/activate?key=wrongActivationKey")

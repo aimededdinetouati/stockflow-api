@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * A DTO for the {@link com.adeem.stockflow.domain.Product} entity.

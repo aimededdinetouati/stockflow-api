@@ -145,7 +145,6 @@ public class InventoryDTO implements Serializable {
             "id=" + getId() +
             ", quantity=" + getQuantity() +
             ", availableQuantity=" + getAvailableQuantity() +
-            ", location='" + getLocation() + "'" +
             ", lastUpdated='" + getLastUpdated() + "'" +
             ", status='" + getStatus() + "'" +
             ", createdBy='" + getCreatedBy() + "'" +
