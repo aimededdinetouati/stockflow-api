@@ -14,6 +14,8 @@ public final class ErrorConstants {
     public static final URI LOGIN_ALREADY_USED_TYPE = URI.create(PROBLEM_BASE_URL + "/login-already-used");
 
     public static final String COMPANY_NAME_EXISTS = "E001";
+    public static final String PRODUCT_CODE_EXISTS = "E002";
+    public static final String PRODUCT_FAMILY_DOES_NOT_EXIST = "E003";
 
     private ErrorConstants() {}
 }

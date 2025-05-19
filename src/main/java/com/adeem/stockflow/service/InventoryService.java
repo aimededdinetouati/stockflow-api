@@ -1,9 +1,14 @@
 package com.adeem.stockflow.service;
 
 import com.adeem.stockflow.domain.Inventory;
+import com.adeem.stockflow.domain.enumeration.InventoryStatus;
+import com.adeem.stockflow.domain.enumeration.TransactionType;
 import com.adeem.stockflow.repository.InventoryRepository;
 import com.adeem.stockflow.service.dto.InventoryDTO;
+import com.adeem.stockflow.service.dto.InventoryTransactionDTO;
 import com.adeem.stockflow.service.mapper.InventoryMapper;
+import com.adeem.stockflow.service.util.DateTimeUtils;
+import java.math.BigDecimal;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,11 +27,17 @@ public class InventoryService {
     private static final Logger LOG = LoggerFactory.getLogger(InventoryService.class);
 
     private final InventoryRepository inventoryRepository;
+    private final InventoryTransactionService inventoryTransactionService;
 
     private final InventoryMapper inventoryMapper;
 
-    public InventoryService(InventoryRepository inventoryRepository, InventoryMapper inventoryMapper) {
+    public InventoryService(
+        InventoryRepository inventoryRepository,
+        InventoryTransactionService inventoryTransactionService,
+        InventoryMapper inventoryMapper
+    ) {
         this.inventoryRepository = inventoryRepository;
+        this.inventoryTransactionService = inventoryTransactionService;
         this.inventoryMapper = inventoryMapper;
     }
 
@@ -41,6 +52,25 @@ public class InventoryService {
         Inventory inventory = inventoryMapper.toEntity(inventoryDTO);
         inventory = inventoryRepository.save(inventory);
         return inventoryMapper.toDto(inventory);
+    }
+
+    public InventoryDTO create(BigDecimal quantity, BigDecimal availableQuantity, TransactionType transactionType, Long productId) {
+        InventoryDTO newInventory = new InventoryDTO();
+
+        newInventory.setQuantity(quantity);
+        newInventory.setAvailableQuantity(availableQuantity == null ? quantity : availableQuantity);
+        newInventory.setStatus(InventoryStatus.AVAILABLE);
+        newInventory.setProductId(productId);
+        InventoryDTO savedInventory = save(newInventory);
+
+        // Record the initial inventory transaction
+        InventoryTransactionDTO inventoryTransactionDTO = new InventoryTransactionDTO();
+        inventoryTransactionDTO.setQuantity(savedInventory.getQuantity());
+        inventoryTransactionDTO.setTransactionDate(DateTimeUtils.nowAlgeria());
+        inventoryTransactionDTO.setTransactionType(transactionType);
+        inventoryTransactionService.create(inventoryTransactionDTO);
+
+        return savedInventory;
     }
 
     /**

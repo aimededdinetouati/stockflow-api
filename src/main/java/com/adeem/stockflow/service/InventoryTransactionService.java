@@ -46,6 +46,21 @@ public class InventoryTransactionService {
         return inventoryTransactionMapper.toDto(inventoryTransaction);
     }
 
+    public void create(InventoryTransactionDTO inventoryTransactionDTO) {
+        LOG.debug("Request to save Inventory Transaction : {}", inventoryTransactionDTO);
+
+        InventoryTransactionDTO newInventoryTransaction = new InventoryTransactionDTO();
+        newInventoryTransaction.setQuantity(inventoryTransactionDTO.getQuantity());
+        newInventoryTransaction.setTransactionDate(inventoryTransactionDTO.getTransactionDate());
+        newInventoryTransaction.setTransactionType(inventoryTransactionDTO.getTransactionType());
+        newInventoryTransaction.setReferenceNumber(inventoryTransactionDTO.getReferenceNumber());
+        newInventoryTransaction.setNotes(inventoryTransactionDTO.getNotes());
+        newInventoryTransaction.setReturnItemId(inventoryTransactionDTO.getReturnItemId());
+        newInventoryTransaction.setSaleItemId(inventoryTransactionDTO.getSaleItemId());
+        newInventoryTransaction.setPurchaseItemId(inventoryTransactionDTO.getPurchaseItemId());
+        save(newInventoryTransaction);
+    }
+
     /**
      * Update a inventoryTransaction.
      *

@@ -1,9 +1,16 @@
 package com.adeem.stockflow.service;
 
 import com.adeem.stockflow.domain.Product;
+import com.adeem.stockflow.domain.enumeration.TransactionType;
+import com.adeem.stockflow.repository.ProductFamilyRepository;
 import com.adeem.stockflow.repository.ProductRepository;
+import com.adeem.stockflow.service.criteria.ProductSpecification;
+import com.adeem.stockflow.service.dto.InventoryDTO;
 import com.adeem.stockflow.service.dto.ProductDTO;
+import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
+import com.adeem.stockflow.service.exceptions.ErrorConstants;
 import com.adeem.stockflow.service.mapper.ProductMapper;
+import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Service Implementation for managing {@link com.adeem.stockflow.domain.Product}.
@@ -22,11 +30,22 @@ public class ProductService {
     private static final Logger LOG = LoggerFactory.getLogger(ProductService.class);
 
     private final ProductRepository productRepository;
-
+    private final ProductFamilyRepository productFamilyRepository;
+    private final InventoryService inventoryService;
+    private final AttachmentService attachmentService;
     private final ProductMapper productMapper;
 
-    public ProductService(ProductRepository productRepository, ProductMapper productMapper) {
+    public ProductService(
+        ProductRepository productRepository,
+        ProductFamilyRepository productFamilyRepository,
+        InventoryService inventoryService,
+        AttachmentService attachmentService,
+        ProductMapper productMapper
+    ) {
         this.productRepository = productRepository;
+        this.productFamilyRepository = productFamilyRepository;
+        this.inventoryService = inventoryService;
+        this.attachmentService = attachmentService;
         this.productMapper = productMapper;
     }
 
@@ -41,6 +60,65 @@ public class ProductService {
         Product product = productMapper.toEntity(productDTO);
         product = productRepository.save(product);
         return productMapper.toDto(product);
+    }
+
+    public ProductDTO create(ProductDTO productDTO, InventoryDTO inventoryDTO, List<MultipartFile> images) {
+        LOG.debug("Request to create Product : {}", productDTO);
+        checkFields(productDTO);
+
+        ProductDTO newProduct = new ProductDTO();
+
+        // Set product fields
+        newProduct.setCode(productDTO.getCode());
+        newProduct.setName(productDTO.getName());
+        newProduct.setDescription(productDTO.getDescription());
+        newProduct.setManufacturerCode(productDTO.getManufacturerCode());
+        newProduct.setUpc(productDTO.getUpc());
+        newProduct.setSellingPrice(productDTO.getSellingPrice());
+        newProduct.setCostPrice(productDTO.getCostPrice());
+        newProduct.setProfitMargin(productDTO.getProfitMargin());
+        newProduct.setMinimumStockLevel(productDTO.getMinimumStockLevel());
+        newProduct.setCategory(productDTO.getCategory());
+        newProduct.setApplyTva(productDTO.getApplyTva());
+        newProduct.setIsVisibleToCustomers(productDTO.getIsVisibleToCustomers());
+        newProduct.setExpirationDate(productDTO.getExpirationDate());
+        newProduct.setClientAccountId(productDTO.getClientAccountId());
+        newProduct.setProductFamily(productDTO.getProductFamily());
+
+        ProductDTO savedProduct = save(newProduct);
+
+        inventoryDTO.setProductId(savedProduct.getId());
+        inventoryService.create(
+            inventoryDTO.getQuantity(),
+            inventoryDTO.getAvailableQuantity(),
+            TransactionType.INITIAL,
+            savedProduct.getId()
+        );
+
+        return savedProduct;
+    }
+
+    private void checkFields(ProductDTO productDTO) {
+        LOG.debug("Checking product validity");
+
+        // Check if a product with the same code already exists in the database to ensure uniqueness
+        productRepository
+            .findOne(ProductSpecification.withCode(productDTO.getCode()))
+            .ifPresent(existing -> {
+                if (!existing.getCode().equals(productDTO.getCode())) {
+                    throw new BadRequestAlertException("Product code already exists", "product", ErrorConstants.PRODUCT_CODE_EXISTS);
+                }
+            });
+
+        // Verify if the specified product family exists in the database
+        var productFamily = productDTO.getProductFamily();
+        if (productFamily != null) {
+            productFamilyRepository
+                .findById(productFamily.getId())
+                .orElseThrow(() ->
+                    new BadRequestAlertException("Product family does not exist", "", ErrorConstants.PRODUCT_FAMILY_DOES_NOT_EXIST)
+                );
+        }
     }
 
     /**

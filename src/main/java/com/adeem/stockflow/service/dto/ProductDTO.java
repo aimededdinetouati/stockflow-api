@@ -22,31 +22,25 @@ public class ProductDTO implements Serializable {
     private String description;
 
     @NotNull
+    @NotEmpty
     private String code;
 
     private String manufacturerCode;
 
     private String upc;
 
-    @NotNull
     private BigDecimal sellingPrice;
 
-    @NotNull
     private BigDecimal costPrice;
 
-    @NotNull
     private BigDecimal profitMargin;
 
-    @NotNull
     private BigDecimal minimumStockLevel;
 
-    @NotNull
     private String category;
 
-    @NotNull
     private Boolean applyTva;
 
-    @NotNull
     private Boolean isVisibleToCustomers;
 
     private ZonedDateTime expirationDate;

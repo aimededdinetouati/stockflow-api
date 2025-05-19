@@ -30,25 +30,25 @@
                 <constraints nullable="true" />
             </column>
             <column name="selling_price" type="decimal(21,2)">
-                <constraints nullable="false" />
+                <constraints nullable="true" />
             </column>
             <column name="cost_price" type="decimal(21,2)">
-                <constraints nullable="false" />
+                <constraints nullable="true" />
             </column>
             <column name="profit_margin" type="decimal(21,2)">
-                <constraints nullable="false" />
+                <constraints nullable="true" />
             </column>
             <column name="minimum_stock_level" type="decimal(21,2)">
-                <constraints nullable="false" />
+                <constraints nullable="true" />
             </column>
             <column name="category" type="varchar(255)">
-                <constraints nullable="false" />
+                <constraints nullable="true" />
             </column>
             <column name="apply_tva" type="boolean">
-                <constraints nullable="false" />
+                <constraints nullable="true" />
             </column>
             <column name="is_visible_to_customers" type="boolean">
-                <constraints nullable="false" />
+                <constraints nullable="true" />
             </column>
             <column name="expiration_date" type="${datetimeType}">
                 <constraints nullable="true" />

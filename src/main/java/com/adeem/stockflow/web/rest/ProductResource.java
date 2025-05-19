@@ -1,7 +1,9 @@
 package com.adeem.stockflow.web.rest;
 
 import com.adeem.stockflow.repository.ProductRepository;
+import com.adeem.stockflow.security.SecurityUtils;
 import com.adeem.stockflow.service.ProductService;
+import com.adeem.stockflow.service.dto.InventoryDTO;
 import com.adeem.stockflow.service.dto.ProductDTO;
 import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
 import jakarta.validation.Valid;
@@ -19,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.PaginationUtil;
@@ -55,12 +58,15 @@ public class ProductResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
-    public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody ProductDTO productDTO) throws URISyntaxException {
+    public ResponseEntity<ProductDTO> createProduct(
+        @Valid @RequestPart("productData") ProductDTO productDTO,
+        @Valid @RequestPart("inventoryData") InventoryDTO inventoryDTO,
+        @RequestPart(value = "productImage", required = false) List<MultipartFile> images
+    ) throws URISyntaxException {
         LOG.debug("REST request to save Product : {}", productDTO);
-        if (productDTO.getId() != null) {
-            throw new BadRequestAlertException("A new product cannot already have an ID", ENTITY_NAME, "idexists");
-        }
-        productDTO = productService.save(productDTO);
+        Long clientAccountId = SecurityUtils.getCurrentClientAccountId();
+        productDTO.setClientAccountId(clientAccountId);
+        productDTO = productService.create(productDTO, inventoryDTO);
         return ResponseEntity.created(new URI("/api/products/" + productDTO.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, productDTO.getId().toString()))
             .body(productDTO);
