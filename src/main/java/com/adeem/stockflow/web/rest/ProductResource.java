@@ -66,7 +66,7 @@ public class ProductResource {
         LOG.debug("REST request to save Product : {}", productDTO);
         Long clientAccountId = SecurityUtils.getCurrentClientAccountId();
         productDTO.setClientAccountId(clientAccountId);
-        productDTO = productService.create(productDTO, inventoryDTO);
+        productDTO = productService.create(productDTO, inventoryDTO, images);
         return ResponseEntity.created(new URI("/api/products/" + productDTO.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, productDTO.getId().toString()))
             .body(productDTO);

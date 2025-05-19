@@ -54,27 +54,6 @@ public class InventorySpecification {
     }
 
     /**
-     * Filter by last updated date before the specified date.
-     */
-    public static Specification<Inventory> withLastUpdatedBefore(Instant date) {
-        return BaseSpecification.lessThan("lastUpdated", date);
-    }
-
-    /**
-     * Filter by last updated date after the specified date.
-     */
-    public static Specification<Inventory> withLastUpdatedAfter(Instant date) {
-        return BaseSpecification.greaterThan("lastUpdated", date);
-    }
-
-    /**
-     * Filter by last updated date between two dates.
-     */
-    public static Specification<Inventory> withLastUpdatedBetween(Instant start, Instant end) {
-        return BaseSpecification.between("lastUpdated", start, end);
-    }
-
-    /**
      * Filter inventory items that are low in stock (available quantity less than or equal to minimum stock level).
      */
     public static Specification<Inventory> isLowStock() {

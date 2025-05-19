@@ -55,9 +55,6 @@ public class InventoryTransactionService {
         newInventoryTransaction.setTransactionType(inventoryTransactionDTO.getTransactionType());
         newInventoryTransaction.setReferenceNumber(inventoryTransactionDTO.getReferenceNumber());
         newInventoryTransaction.setNotes(inventoryTransactionDTO.getNotes());
-        newInventoryTransaction.setReturnItemId(inventoryTransactionDTO.getReturnItemId());
-        newInventoryTransaction.setSaleItemId(inventoryTransactionDTO.getSaleItemId());
-        newInventoryTransaction.setPurchaseItemId(inventoryTransactionDTO.getPurchaseItemId());
         save(newInventoryTransaction);
     }
 

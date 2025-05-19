@@ -45,9 +45,6 @@ class InventoryResourceIT {
     private static final BigDecimal DEFAULT_AVAILABLE_QUANTITY = new BigDecimal(1);
     private static final BigDecimal UPDATED_AVAILABLE_QUANTITY = new BigDecimal(2);
 
-    private static final Instant DEFAULT_LAST_UPDATED = Instant.ofEpochMilli(0L);
-    private static final Instant UPDATED_LAST_UPDATED = Instant.now().truncatedTo(ChronoUnit.MILLIS);
-
     private static final InventoryStatus DEFAULT_STATUS = InventoryStatus.AVAILABLE;
     private static final InventoryStatus UPDATED_STATUS = InventoryStatus.RESERVED;
 
@@ -83,11 +80,7 @@ class InventoryResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Inventory createEntity() {
-        return new Inventory()
-            .quantity(DEFAULT_QUANTITY)
-            .availableQuantity(DEFAULT_AVAILABLE_QUANTITY)
-            .lastUpdated(DEFAULT_LAST_UPDATED)
-            .status(DEFAULT_STATUS);
+        return new Inventory().quantity(DEFAULT_QUANTITY).availableQuantity(DEFAULT_AVAILABLE_QUANTITY).status(DEFAULT_STATUS);
     }
 
     /**
@@ -97,11 +90,7 @@ class InventoryResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Inventory createUpdatedEntity() {
-        return new Inventory()
-            .quantity(UPDATED_QUANTITY)
-            .availableQuantity(UPDATED_AVAILABLE_QUANTITY)
-            .lastUpdated(UPDATED_LAST_UPDATED)
-            .status(UPDATED_STATUS);
+        return new Inventory().quantity(UPDATED_QUANTITY).availableQuantity(UPDATED_AVAILABLE_QUANTITY).status(UPDATED_STATUS);
     }
 
     @BeforeEach
@@ -178,40 +167,6 @@ class InventoryResourceIT {
 
     @Test
     @Transactional
-    void checkAvailableQuantityIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        inventory.setAvailableQuantity(null);
-
-        // Create the Inventory, which fails.
-        InventoryDTO inventoryDTO = inventoryMapper.toDto(inventory);
-
-        restInventoryMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(inventoryDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
-    void checkLastUpdatedIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        inventory.setLastUpdated(null);
-
-        // Create the Inventory, which fails.
-        InventoryDTO inventoryDTO = inventoryMapper.toDto(inventory);
-
-        restInventoryMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(inventoryDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
     void checkStatusIsRequired() throws Exception {
         long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
@@ -241,7 +196,6 @@ class InventoryResourceIT {
             .andExpect(jsonPath("$.[*].id").value(hasItem(inventory.getId().intValue())))
             .andExpect(jsonPath("$.[*].quantity").value(hasItem(sameNumber(DEFAULT_QUANTITY))))
             .andExpect(jsonPath("$.[*].availableQuantity").value(hasItem(sameNumber(DEFAULT_AVAILABLE_QUANTITY))))
-            .andExpect(jsonPath("$.[*].lastUpdated").value(hasItem(DEFAULT_LAST_UPDATED.toString())))
             .andExpect(jsonPath("$.[*].status").value(hasItem(DEFAULT_STATUS.toString())));
     }
 
@@ -259,7 +213,6 @@ class InventoryResourceIT {
             .andExpect(jsonPath("$.id").value(inventory.getId().intValue()))
             .andExpect(jsonPath("$.quantity").value(sameNumber(DEFAULT_QUANTITY)))
             .andExpect(jsonPath("$.availableQuantity").value(sameNumber(DEFAULT_AVAILABLE_QUANTITY)))
-            .andExpect(jsonPath("$.lastUpdated").value(DEFAULT_LAST_UPDATED.toString()))
             .andExpect(jsonPath("$.status").value(DEFAULT_STATUS.toString()));
     }
 
@@ -282,11 +235,7 @@ class InventoryResourceIT {
         Inventory updatedInventory = inventoryRepository.findById(inventory.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedInventory are not directly saved in db
         em.detach(updatedInventory);
-        updatedInventory
-            .quantity(UPDATED_QUANTITY)
-            .availableQuantity(UPDATED_AVAILABLE_QUANTITY)
-            .lastUpdated(UPDATED_LAST_UPDATED)
-            .status(UPDATED_STATUS);
+        updatedInventory.quantity(UPDATED_QUANTITY).availableQuantity(UPDATED_AVAILABLE_QUANTITY).status(UPDATED_STATUS);
         InventoryDTO inventoryDTO = inventoryMapper.toDto(updatedInventory);
 
         restInventoryMockMvc
@@ -407,11 +356,7 @@ class InventoryResourceIT {
         Inventory partialUpdatedInventory = new Inventory();
         partialUpdatedInventory.setId(inventory.getId());
 
-        partialUpdatedInventory
-            .quantity(UPDATED_QUANTITY)
-            .availableQuantity(UPDATED_AVAILABLE_QUANTITY)
-            .lastUpdated(UPDATED_LAST_UPDATED)
-            .status(UPDATED_STATUS);
+        partialUpdatedInventory.quantity(UPDATED_QUANTITY).availableQuantity(UPDATED_AVAILABLE_QUANTITY).status(UPDATED_STATUS);
 
         restInventoryMockMvc
             .perform(

@@ -274,7 +274,6 @@ entity ProductFamily {
 entity Inventory {
   quantity BigDecimal required
   availableQuantity BigDecimal required
-  lastUpdated Instant required
   status InventoryStatus required
 }
 

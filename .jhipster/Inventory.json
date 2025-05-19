@@ -17,11 +17,6 @@
       "fieldValidateRules": ["required"]
     },
     {
-      "fieldName": "lastUpdated",
-      "fieldType": "Instant",
-      "fieldValidateRules": ["required"]
-    },
-    {
       "fieldName": "status",
       "fieldType": "InventoryStatus",
       "fieldValidateRules": ["required"],

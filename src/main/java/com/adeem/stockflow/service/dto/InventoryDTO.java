@@ -57,14 +57,6 @@ public class InventoryDTO implements Serializable {
         this.availableQuantity = availableQuantity;
     }
 
-    public Instant getLastUpdated() {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated(Instant lastUpdated) {
-        this.lastUpdated = lastUpdated;
-    }
-
     public InventoryStatus getStatus() {
         return status;
     }
@@ -141,7 +133,6 @@ public class InventoryDTO implements Serializable {
             "id=" + getId() +
             ", quantity=" + getQuantity() +
             ", availableQuantity=" + getAvailableQuantity() +
-            ", lastUpdated='" + getLastUpdated() + "'" +
             ", status='" + getStatus() + "'" +
             ", createdBy='" + getCreatedBy() + "'" +
             ", createdDate='" + getCreatedDate() + "'" +
