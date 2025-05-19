@@ -1,3 +1,35 @@
+enum ProductCategory {
+    ELECTRONICS,
+    COMPUTERS,
+    MOBILE_PHONES,
+    FURNITURE,
+    CLOTHING,
+    FOOTWEAR,
+    GROCERIES,
+    BEAUTY_PRODUCTS,
+    HEALTHCARE,
+    BOOKS,
+    STATIONERY,
+    OFFICE_SUPPLIES,
+    KITCHEN_APPLIANCES,
+    HOME_APPLIANCES,
+    SPORTS_EQUIPMENT,
+    TOYS,
+    AUTOMOTIVE,
+    HARDWARE,
+    SOFTWARE,
+    ACCESSORIES,
+    CLEANING_SUPPLIES,
+    PET_SUPPLIES,
+    JEWELRY,
+    ART_SUPPLIES,
+    MEDICAL_SUPPLIES,
+    INDUSTRIAL_EQUIPMENT,
+    FOOD_AND_BEVERAGES,
+    SUBSCRIPTION_SERVICE, // For digital products
+    MISC // For uncategorized or miscellaneous products
+}
+
 enum AccountStatus {
   ENABLED, DISABLED, SUSPENDED
 }
@@ -99,7 +131,6 @@ entity Attachment {
 @EnableAudit
 entity ClientAccount {
   companyName String required
-  contactPerson String required
   phone String required
   email String required
   status AccountStatus required
@@ -175,8 +206,8 @@ entity UserRole {
 entity PlanFormula {
   name String required
   description String
-  basePrice BigDecimal required
-  billingCycle BillingCycle required
+  basePrice BigDecimal
+  billingCycle BillingCycle
   isActive Boolean required
 }
 
@@ -190,7 +221,7 @@ entity PlanFeature {
 @EnableAudit
 entity ResourceLimit {
   resourceType String required
-  maxAmount Integer required
+  maxAmount Integer
   isUnlimited Boolean required
 }
 
@@ -199,8 +230,8 @@ entity Subscription {
   startDate ZonedDateTime required
   endDate ZonedDateTime required
   status SubscriptionStatus required
-  paymentMethod String required
-  actualPrice BigDecimal required
+  paymentMethod String
+  actualPrice BigDecimal
 }
 
 @EnableAudit
@@ -214,7 +245,7 @@ entity Quota {
   customers Integer
   suppliers Integer
   shipments Integer
-  resetDate ZonedDateTime required
+  resetDate ZonedDateTime
 }
 
 @EnableAudit
@@ -224,13 +255,13 @@ entity Product {
   code String required
   manufacturerCode String
   upc String
-  sellingPrice BigDecimal required
-  costPrice BigDecimal required
-  profitMargin BigDecimal required
-  minimumStockLevel BigDecimal required
-  category String required
+  sellingPrice BigDecimal
+  costPrice BigDecimal
+  profitMargin BigDecimal
+  minimumStockLevel BigDecimal
+  category ProductCategory
   applyTva Boolean required
-  isVisibleToCustomers Boolean required
+  isVisibleToCustomers Boolean
   expirationDate ZonedDateTime
 }
 
@@ -243,7 +274,6 @@ entity ProductFamily {
 entity Inventory {
   quantity BigDecimal required
   availableQuantity BigDecimal required
-  location String
   lastUpdated Instant required
   status InventoryStatus required
 }
@@ -326,7 +356,6 @@ entity ReturnOrder {
   isPartialReturn Boolean required
   discountAllocationMethod DiscountAllocationMethod
 
-  // Audit fields
 }
 
 @EnableAudit
@@ -395,7 +424,6 @@ entity Payment {
   reconciledBy String
   notes String
 
-  // Audit fields
 }
 
 @EnableAudit
@@ -406,7 +434,6 @@ entity PaymentReceipt {
   reviewDate ZonedDateTime
   reviewNotes String
 
-  // Audit fields
 }
 
 @EnableAudit
@@ -418,7 +445,6 @@ entity PaymentConfiguration {
   rib String
   iban String
 
-  // Audit fields
 }
 
 relationship ManyToOne {
@@ -483,6 +509,7 @@ relationship ManyToOne {
 }
 
 relationship ManyToOne {
+  InventoryTransaction{product} to Product,
   InventoryTransaction{returnOrderItem} to ReturnOrderItem,
   InventoryTransaction{saleOrderItem} to SaleOrder,
   InventoryTransaction{purchaseOrderItem} to PurchaseOrder,
