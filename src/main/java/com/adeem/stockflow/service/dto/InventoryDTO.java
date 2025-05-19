@@ -20,8 +20,6 @@ public class InventoryDTO implements Serializable {
 
     private BigDecimal availableQuantity;
 
-    private String location;
-
     @NotNull
     private InventoryStatus status;
 
@@ -59,12 +57,12 @@ public class InventoryDTO implements Serializable {
         this.availableQuantity = availableQuantity;
     }
 
-    public String getLocation() {
-        return location;
+    public Instant getLastUpdated() {
+        return lastUpdated;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
+    public void setLastUpdated(Instant lastUpdated) {
+        this.lastUpdated = lastUpdated;
     }
 
     public InventoryStatus getStatus() {
@@ -143,7 +141,7 @@ public class InventoryDTO implements Serializable {
             "id=" + getId() +
             ", quantity=" + getQuantity() +
             ", availableQuantity=" + getAvailableQuantity() +
-            ", location='" + getLocation() + "'" +
+            ", lastUpdated='" + getLastUpdated() + "'" +
             ", status='" + getStatus() + "'" +
             ", createdBy='" + getCreatedBy() + "'" +
             ", createdDate='" + getCreatedDate() + "'" +

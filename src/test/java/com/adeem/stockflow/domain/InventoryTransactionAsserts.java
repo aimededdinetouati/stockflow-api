@@ -74,8 +74,6 @@ public class InventoryTransactionAsserts {
     public static void assertInventoryTransactionUpdatableRelationshipsEquals(InventoryTransaction expected, InventoryTransaction actual) {
         assertThat(actual)
             .as("Verify InventoryTransaction relationships")
-            .satisfies(a -> assertThat(a.getReturnOrderItem()).as("check returnOrderItem").isEqualTo(expected.getReturnOrderItem()))
-            .satisfies(a -> assertThat(a.getSaleOrderItem()).as("check saleOrderItem").isEqualTo(expected.getSaleOrderItem()))
-            .satisfies(a -> assertThat(a.getPurchaseOrderItem()).as("check purchaseOrderItem").isEqualTo(expected.getPurchaseOrderItem()));
+            .satisfies(a -> assertThat(a.getProduct()).as("check product").isEqualTo(expected.getProduct()));
     }
 }

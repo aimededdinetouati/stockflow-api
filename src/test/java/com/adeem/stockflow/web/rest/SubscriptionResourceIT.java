@@ -220,40 +220,6 @@ class SubscriptionResourceIT {
 
     @Test
     @Transactional
-    void checkPaymentMethodIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        subscription.setPaymentMethod(null);
-
-        // Create the Subscription, which fails.
-        SubscriptionDTO subscriptionDTO = subscriptionMapper.toDto(subscription);
-
-        restSubscriptionMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(subscriptionDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
-    void checkActualPriceIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        subscription.setActualPrice(null);
-
-        // Create the Subscription, which fails.
-        SubscriptionDTO subscriptionDTO = subscriptionMapper.toDto(subscription);
-
-        restSubscriptionMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(subscriptionDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
     void getAllSubscriptions() throws Exception {
         // Initialize the database
         insertedSubscription = subscriptionRepository.saveAndFlush(subscription);

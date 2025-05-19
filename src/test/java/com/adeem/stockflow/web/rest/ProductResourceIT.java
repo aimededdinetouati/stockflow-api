@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.adeem.stockflow.IntegrationTest;
 import com.adeem.stockflow.domain.Product;
+import com.adeem.stockflow.domain.enumeration.ProductCategory;
 import com.adeem.stockflow.repository.ProductRepository;
 import com.adeem.stockflow.service.dto.ProductDTO;
 import com.adeem.stockflow.service.mapper.ProductMapper;
@@ -68,8 +69,8 @@ class ProductResourceIT {
     private static final BigDecimal DEFAULT_MINIMUM_STOCK_LEVEL = new BigDecimal(1);
     private static final BigDecimal UPDATED_MINIMUM_STOCK_LEVEL = new BigDecimal(2);
 
-    private static final String DEFAULT_CATEGORY = "AAAAAAAAAA";
-    private static final String UPDATED_CATEGORY = "BBBBBBBBBB";
+    private static final ProductCategory DEFAULT_CATEGORY = ProductCategory.ELECTRONICS;
+    private static final ProductCategory UPDATED_CATEGORY = ProductCategory.COMPUTERS;
 
     private static final Boolean DEFAULT_APPLY_TVA = false;
     private static final Boolean UPDATED_APPLY_TVA = true;
@@ -242,6 +243,23 @@ class ProductResourceIT {
 
     @Test
     @Transactional
+    void checkApplyTvaIsRequired() throws Exception {
+        long databaseSizeBeforeTest = getRepositoryCount();
+        // set the field null
+        product.setApplyTva(null);
+
+        // Create the Product, which fails.
+        ProductDTO productDTO = productMapper.toDto(product);
+
+        restProductMockMvc
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(productDTO)))
+            .andExpect(status().isBadRequest());
+
+        assertSameRepositoryCount(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
     void getAllProducts() throws Exception {
         // Initialize the database
         insertedProduct = productRepository.saveAndFlush(product);
@@ -261,7 +279,7 @@ class ProductResourceIT {
             .andExpect(jsonPath("$.[*].costPrice").value(hasItem(sameNumber(DEFAULT_COST_PRICE))))
             .andExpect(jsonPath("$.[*].profitMargin").value(hasItem(sameNumber(DEFAULT_PROFIT_MARGIN))))
             .andExpect(jsonPath("$.[*].minimumStockLevel").value(hasItem(sameNumber(DEFAULT_MINIMUM_STOCK_LEVEL))))
-            .andExpect(jsonPath("$.[*].category").value(hasItem(DEFAULT_CATEGORY)))
+            .andExpect(jsonPath("$.[*].category").value(hasItem(DEFAULT_CATEGORY.toString())))
             .andExpect(jsonPath("$.[*].applyTva").value(hasItem(DEFAULT_APPLY_TVA)))
             .andExpect(jsonPath("$.[*].isVisibleToCustomers").value(hasItem(DEFAULT_IS_VISIBLE_TO_CUSTOMERS)))
             .andExpect(jsonPath("$.[*].expirationDate").value(hasItem(sameInstant(DEFAULT_EXPIRATION_DATE))));
@@ -288,7 +306,7 @@ class ProductResourceIT {
             .andExpect(jsonPath("$.costPrice").value(sameNumber(DEFAULT_COST_PRICE)))
             .andExpect(jsonPath("$.profitMargin").value(sameNumber(DEFAULT_PROFIT_MARGIN)))
             .andExpect(jsonPath("$.minimumStockLevel").value(sameNumber(DEFAULT_MINIMUM_STOCK_LEVEL)))
-            .andExpect(jsonPath("$.category").value(DEFAULT_CATEGORY))
+            .andExpect(jsonPath("$.category").value(DEFAULT_CATEGORY.toString()))
             .andExpect(jsonPath("$.applyTva").value(DEFAULT_APPLY_TVA))
             .andExpect(jsonPath("$.isVisibleToCustomers").value(DEFAULT_IS_VISIBLE_TO_CUSTOMERS))
             .andExpect(jsonPath("$.expirationDate").value(sameInstant(DEFAULT_EXPIRATION_DATE)));

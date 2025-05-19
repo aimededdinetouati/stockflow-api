@@ -17,8 +17,6 @@ public class ClientAccountDTO implements Serializable {
     @NotNull
     private String companyName;
 
-    private String contactPerson;
-
     @NotNull
     private String phone;
 
@@ -54,14 +52,6 @@ public class ClientAccountDTO implements Serializable {
 
     public void setCompanyName(String companyName) {
         this.companyName = companyName;
-    }
-
-    public String getContactPerson() {
-        return contactPerson;
-    }
-
-    public void setContactPerson(String contactPerson) {
-        this.contactPerson = contactPerson;
     }
 
     public String getPhone() {
@@ -163,7 +153,6 @@ public class ClientAccountDTO implements Serializable {
         return "ClientAccountDTO{" +
             "id=" + getId() +
             ", companyName='" + getCompanyName() + "'" +
-            ", contactPerson='" + getContactPerson() + "'" +
             ", phone='" + getPhone() + "'" +
             ", email='" + getEmail() + "'" +
             ", status='" + getStatus() + "'" +

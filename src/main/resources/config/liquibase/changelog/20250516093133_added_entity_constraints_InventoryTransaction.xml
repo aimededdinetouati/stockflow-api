@@ -10,25 +10,11 @@
     -->
     <changeSet id="20250516093133-2" author="jhipster">
 
-        <addForeignKeyConstraint baseColumnNames="return_order_item_id"
+        <addForeignKeyConstraint baseColumnNames="product_id"
                                  baseTableName="inventory_transaction"
-                                 constraintName="fk_inventory_transaction__return_order_item_id"
+                                 constraintName="fk_inventory_transaction__product_id"
                                  referencedColumnNames="id"
-                                 referencedTableName="return_order_item"
-                                 />
-
-        <addForeignKeyConstraint baseColumnNames="sale_order_item_id"
-                                 baseTableName="inventory_transaction"
-                                 constraintName="fk_inventory_transaction__sale_order_item_id"
-                                 referencedColumnNames="id"
-                                 referencedTableName="sale_order"
-                                 />
-
-        <addForeignKeyConstraint baseColumnNames="purchase_order_item_id"
-                                 baseTableName="inventory_transaction"
-                                 constraintName="fk_inventory_transaction__purchase_order_item_id"
-                                 referencedColumnNames="id"
-                                 referencedTableName="purchase_order"
+                                 referencedTableName="product"
                                  />
     </changeSet>
 </databaseChangeLog>

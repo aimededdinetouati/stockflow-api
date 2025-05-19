@@ -1,13 +1,9 @@
 package com.adeem.stockflow.service.mapper;
 
 import com.adeem.stockflow.domain.InventoryTransaction;
-import com.adeem.stockflow.domain.PurchaseOrder;
-import com.adeem.stockflow.domain.ReturnOrderItem;
-import com.adeem.stockflow.domain.SaleOrder;
+import com.adeem.stockflow.domain.Product;
 import com.adeem.stockflow.service.dto.InventoryTransactionDTO;
-import com.adeem.stockflow.service.dto.PurchaseOrderDTO;
-import com.adeem.stockflow.service.dto.ReturnOrderItemDTO;
-import com.adeem.stockflow.service.dto.SaleOrderDTO;
+import com.adeem.stockflow.service.dto.ProductDTO;
 import org.mapstruct.*;
 
 /**
@@ -15,8 +11,11 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface InventoryTransactionMapper extends EntityMapper<InventoryTransactionDTO, InventoryTransaction> {
-    @Mapping(target = "returnItemId", source = "returnOrderItem.id")
-    @Mapping(target = "saleItemId", source = "saleOrderItem.id")
-    @Mapping(target = "purchaseItemId", source = "purchaseOrderItem.id")
+    @Mapping(target = "product", source = "product", qualifiedByName = "productId")
     InventoryTransactionDTO toDto(InventoryTransaction s);
+
+    @Named("productId")
+    @BeanMapping(ignoreByDefault = true)
+    @Mapping(target = "id", source = "id")
+    ProductDTO toDtoProductId(Product product);
 }

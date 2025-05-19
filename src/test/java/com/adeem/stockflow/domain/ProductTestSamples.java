@@ -17,7 +17,6 @@ public class ProductTestSamples {
             .code("code1")
             .manufacturerCode("manufacturerCode1")
             .upc("upc1")
-            .category("category1")
             .createdBy("createdBy1")
             .lastModifiedBy("lastModifiedBy1");
     }
@@ -30,7 +29,6 @@ public class ProductTestSamples {
             .code("code2")
             .manufacturerCode("manufacturerCode2")
             .upc("upc2")
-            .category("category2")
             .createdBy("createdBy2")
             .lastModifiedBy("lastModifiedBy2");
     }
@@ -43,7 +41,6 @@ public class ProductTestSamples {
             .code(UUID.randomUUID().toString())
             .manufacturerCode(UUID.randomUUID().toString())
             .upc(UUID.randomUUID().toString())
-            .category(UUID.randomUUID().toString())
             .createdBy(UUID.randomUUID().toString())
             .lastModifiedBy(UUID.randomUUID().toString());
     }

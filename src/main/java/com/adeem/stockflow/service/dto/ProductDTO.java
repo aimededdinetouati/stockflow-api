@@ -1,5 +1,6 @@
 package com.adeem.stockflow.service.dto;
 
+import com.adeem.stockflow.domain.enumeration.ProductCategory;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -37,7 +38,7 @@ public class ProductDTO implements Serializable {
 
     private BigDecimal minimumStockLevel;
 
-    private String category;
+    private ProductCategory category;
 
     private Boolean applyTva;
 
@@ -139,11 +140,11 @@ public class ProductDTO implements Serializable {
         this.minimumStockLevel = minimumStockLevel;
     }
 
-    public String getCategory() {
+    public ProductCategory getCategory() {
         return category;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(ProductCategory category) {
         this.category = category;
     }
 

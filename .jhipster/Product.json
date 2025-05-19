@@ -30,28 +30,24 @@
     },
     {
       "fieldName": "sellingPrice",
-      "fieldType": "BigDecimal",
-      "fieldValidateRules": ["required"]
+      "fieldType": "BigDecimal"
     },
     {
       "fieldName": "costPrice",
-      "fieldType": "BigDecimal",
-      "fieldValidateRules": ["required"]
+      "fieldType": "BigDecimal"
     },
     {
       "fieldName": "profitMargin",
-      "fieldType": "BigDecimal",
-      "fieldValidateRules": ["required"]
+      "fieldType": "BigDecimal"
     },
     {
       "fieldName": "minimumStockLevel",
-      "fieldType": "BigDecimal",
-      "fieldValidateRules": ["required"]
+      "fieldType": "BigDecimal"
     },
     {
       "fieldName": "category",
-      "fieldType": "String",
-      "fieldValidateRules": ["required"]
+      "fieldType": "ProductCategory",
+      "fieldValues": "ELECTRONICS,COMPUTERS,MOBILE_PHONES,FURNITURE,CLOTHING,FOOTWEAR,GROCERIES,BEAUTY_PRODUCTS,HEALTHCARE,BOOKS,STATIONERY,OFFICE_SUPPLIES,KITCHEN_APPLIANCES,HOME_APPLIANCES,SPORTS_EQUIPMENT,TOYS,AUTOMOTIVE,HARDWARE,SOFTWARE,ACCESSORIES,CLEANING_SUPPLIES,PET_SUPPLIES,JEWELRY,ART_SUPPLIES,MEDICAL_SUPPLIES,INDUSTRIAL_EQUIPMENT,FOOD_AND_BEVERAGES,SUBSCRIPTION_SERVICE,MISC"
     },
     {
       "fieldName": "applyTva",
@@ -60,8 +56,7 @@
     },
     {
       "fieldName": "isVisibleToCustomers",
-      "fieldType": "Boolean",
-      "fieldValidateRules": ["required"]
+      "fieldType": "Boolean"
     },
     {
       "fieldName": "expirationDate",

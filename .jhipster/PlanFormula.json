@@ -17,13 +17,11 @@
     },
     {
       "fieldName": "basePrice",
-      "fieldType": "BigDecimal",
-      "fieldValidateRules": ["required"]
+      "fieldType": "BigDecimal"
     },
     {
       "fieldName": "billingCycle",
       "fieldType": "BillingCycle",
-      "fieldValidateRules": ["required"],
       "fieldValues": "MONTHLY,QUARTERLY,ANNUAL"
     },
     {

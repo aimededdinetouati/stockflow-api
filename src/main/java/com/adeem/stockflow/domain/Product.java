@@ -1,5 +1,6 @@
 package com.adeem.stockflow.domain;
 
+import com.adeem.stockflow.domain.enumeration.ProductCategory;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -60,8 +61,9 @@ public class Product extends AbstractAuditingEntity<Long> implements Serializabl
     @Column(name = "minimum_stock_level", precision = 21, scale = 2)
     private BigDecimal minimumStockLevel;
 
-    @Column(name = "category")
-    private String category;
+    @NotNull
+    @Column(name = "category", nullable = false)
+    private ProductCategory category;
 
     @NotNull
     @Column(name = "apply_tva", columnDefinition = "boolean default false")
@@ -230,16 +232,16 @@ public class Product extends AbstractAuditingEntity<Long> implements Serializabl
         this.minimumStockLevel = minimumStockLevel;
     }
 
-    public String getCategory() {
+    public ProductCategory getCategory() {
         return this.category;
     }
 
-    public Product category(String category) {
+    public Product category(ProductCategory category) {
         this.setCategory(category);
         return this;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(ProductCategory category) {
         this.category = category;
     }
 

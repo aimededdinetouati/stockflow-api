@@ -5,19 +5,5 @@
   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
   <changeSet id="20250518120000-1" author="aimed">
-    <!-- Remove NOT NULL constraint from resetDate in quota table -->
-    <dropNotNullConstraint tableName="quota"
-                           columnName="reset_date"
-                           columnDataType="${datetimeType}"/>
-
-    <!-- Remove NOT NULL constraint from postal_code in address table -->
-    <dropNotNullConstraint tableName="address"
-                           columnName="postal_code"
-                           columnDataType="varchar(255)"/>
-
-    <!-- Remove NOT NULL constraint from contact_person in client_account table -->
-    <dropNotNullConstraint tableName="client_account"
-                           columnName="contact_person"
-                           columnDataType="varchar(255)"/>
   </changeSet>
 </databaseChangeLog>

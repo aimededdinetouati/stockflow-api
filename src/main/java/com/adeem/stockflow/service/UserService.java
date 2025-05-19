@@ -103,7 +103,6 @@ public class UserService {
         Address address = addressMapper.toEntity(clientAccountDTO.getAddress());
         address = addressRepository.save(address);
         clientAccount.setAddress(address);
-        clientAccount.setContactPerson(clientAccountDTO.getContactPerson());
         clientAccount.setQuota(quota);
         clientAccountRepository.save(clientAccount);
 

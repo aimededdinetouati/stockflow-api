@@ -181,40 +181,6 @@ class PlanFormulaResourceIT {
 
     @Test
     @Transactional
-    void checkBasePriceIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        planFormula.setBasePrice(null);
-
-        // Create the PlanFormula, which fails.
-        PlanFormulaDTO planFormulaDTO = planFormulaMapper.toDto(planFormula);
-
-        restPlanFormulaMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(planFormulaDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
-    void checkBillingCycleIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        planFormula.setBillingCycle(null);
-
-        // Create the PlanFormula, which fails.
-        PlanFormulaDTO planFormulaDTO = planFormulaMapper.toDto(planFormula);
-
-        restPlanFormulaMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(planFormulaDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
     void checkIsActiveIsRequired() throws Exception {
         long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null

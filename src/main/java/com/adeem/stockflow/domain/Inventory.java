@@ -37,9 +37,6 @@ public class Inventory extends AbstractAuditingEntity<Long> implements Serializa
     @Column(name = "available_quantity", precision = 21, scale = 2, nullable = false)
     private BigDecimal availableQuantity;
 
-    @Column(name = "location")
-    private String location;
-
     @NotNull
     @Column(name = "last_updated", nullable = false)
     private Instant lastUpdated;
@@ -100,19 +97,6 @@ public class Inventory extends AbstractAuditingEntity<Long> implements Serializa
 
     public void setAvailableQuantity(BigDecimal availableQuantity) {
         this.availableQuantity = availableQuantity;
-    }
-
-    public String getLocation() {
-        return this.location;
-    }
-
-    public Inventory location(String location) {
-        this.setLocation(location);
-        return this;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
     }
 
     public Instant getLastUpdated() {
@@ -222,7 +206,6 @@ public class Inventory extends AbstractAuditingEntity<Long> implements Serializa
             "id=" + getId() +
             ", quantity=" + getQuantity() +
             ", availableQuantity=" + getAvailableQuantity() +
-            ", location='" + getLocation() + "'" +
             ", lastUpdated='" + getLastUpdated() + "'" +
             ", status='" + getStatus() + "'" +
             ", createdBy='" + getCreatedBy() + "'" +

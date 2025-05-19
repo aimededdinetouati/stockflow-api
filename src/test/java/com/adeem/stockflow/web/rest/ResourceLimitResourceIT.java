@@ -162,23 +162,6 @@ class ResourceLimitResourceIT {
 
     @Test
     @Transactional
-    void checkMaxAmountIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        resourceLimit.setMaxAmount(null);
-
-        // Create the ResourceLimit, which fails.
-        ResourceLimitDTO resourceLimitDTO = resourceLimitMapper.toDto(resourceLimit);
-
-        restResourceLimitMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(resourceLimitDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
     void checkIsUnlimitedIsRequired() throws Exception {
         long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null

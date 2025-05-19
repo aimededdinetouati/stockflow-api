@@ -70,20 +70,8 @@
   "pagination": "pagination",
   "relationships": [
     {
-      "otherEntityName": "returnOrderItem",
-      "relationshipName": "returnOrderItem",
-      "relationshipSide": "left",
-      "relationshipType": "many-to-one"
-    },
-    {
-      "otherEntityName": "saleOrder",
-      "relationshipName": "saleOrderItem",
-      "relationshipSide": "left",
-      "relationshipType": "many-to-one"
-    },
-    {
-      "otherEntityName": "purchaseOrder",
-      "relationshipName": "purchaseOrderItem",
+      "otherEntityName": "product",
+      "relationshipName": "product",
       "relationshipSide": "left",
       "relationshipType": "many-to-one"
     }
