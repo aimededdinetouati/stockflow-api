@@ -16,4 +16,13 @@ public interface CustomerMapper extends EntityMapper<CustomerDTO, Customer> {
     @Mapping(target = "userId", source = "user.id")
     @Mapping(target = "clientAccountId", source = "clientAccount.id")
     CustomerDTO toDto(Customer s);
+
+    default Customer fromId(Long id) {
+        if (id == null) {
+            return null;
+        }
+        Customer customer = new Customer();
+        customer.setId(id);
+        return customer;
+    }
 }

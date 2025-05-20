@@ -13,4 +13,13 @@ import org.mapstruct.*;
 public interface PaymentConfigurationMapper extends EntityMapper<PaymentConfigurationDTO, PaymentConfiguration> {
     @Mapping(target = "clientAccountId", source = "clientAccount.id")
     PaymentConfigurationDTO toDto(PaymentConfiguration s);
+
+    default PaymentConfiguration fromId(Long id) {
+        if (id == null) {
+            return null;
+        }
+        PaymentConfiguration paymentConfiguration = new PaymentConfiguration();
+        paymentConfiguration.setId(id);
+        return paymentConfiguration;
+    }
 }

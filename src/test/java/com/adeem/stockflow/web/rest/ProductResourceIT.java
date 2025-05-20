@@ -20,6 +20,8 @@ import com.adeem.stockflow.domain.enumeration.ProductCategory;
 import com.adeem.stockflow.repository.AttachmentRepository;
 import com.adeem.stockflow.repository.InventoryRepository;
 import com.adeem.stockflow.repository.ProductRepository;
+import com.adeem.stockflow.security.TestSecurityContextHelper;
+import com.adeem.stockflow.security.WithMockClientAccount;
 import com.adeem.stockflow.service.dto.InventoryDTO;
 import com.adeem.stockflow.service.dto.ProductDTO;
 import com.adeem.stockflow.service.mapper.ProductMapper;
@@ -181,10 +183,12 @@ class ProductResourceIT {
             productRepository.delete(insertedProduct);
             insertedProduct = null;
         }
+        TestSecurityContextHelper.clearSecurityContext();
     }
 
     @Test
     @Transactional
+    @WithMockClientAccount
     void createProduct() throws Exception {
         long databaseSizeBeforeCreate = getRepositoryCount();
 
@@ -229,7 +233,8 @@ class ProductResourceIT {
         assertProductUpdatableFieldsEquals(returnedProduct, getPersistedProduct(returnedProduct));
 
         // Verify that inventory was created
-        Assertions.assertNotNull(inventoryRepository.findByProductId(returnedProduct.getId()));
+        var inventory = inventoryRepository.findByProductId(returnedProduct.getId());
+        assertThat(inventory).isPresent();
 
         // Verify that image was attached
         List<Attachment> attachments = attachmentRepository.findByProductId(returnedProduct.getId());

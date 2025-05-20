@@ -98,7 +98,7 @@ public class ProductService {
         );
 
         if (images != null && !images.isEmpty()) {
-            addProductImages(productDTO.getId(), images);
+            addProductImages(savedProduct.getId(), images);
         }
 
         return savedProduct;

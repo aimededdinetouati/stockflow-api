@@ -22,4 +22,13 @@ public interface ProductMapper extends EntityMapper<ProductDTO, Product> {
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
     ProductFamilyDTO toDtoProductFamilyId(ProductFamily productFamily);
+
+    default Product fromId(Long id) {
+        if (id == null) {
+            return null;
+        }
+        Product product = new Product();
+        product.setId(id);
+        return product;
+    }
 }

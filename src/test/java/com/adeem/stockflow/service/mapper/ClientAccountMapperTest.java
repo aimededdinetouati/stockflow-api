@@ -21,4 +21,13 @@ class ClientAccountMapperTest {
         var actual = clientAccountMapper.toEntity(clientAccountMapper.toDto(expected));
         assertClientAccountAllPropertiesEquals(expected, actual);
     }
+
+    @Test
+    void shouldCreateClientAccountFromId() {
+        Long id = 1L;
+        var clientAccount = clientAccountMapper.fromId(id);
+
+        assert clientAccount != null;
+        assert clientAccount.getId().equals(id);
+    }
 }
