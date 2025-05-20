@@ -6,6 +6,7 @@ import com.adeem.stockflow.domain.enumeration.TransactionType;
 import com.adeem.stockflow.repository.InventoryRepository;
 import com.adeem.stockflow.service.dto.InventoryDTO;
 import com.adeem.stockflow.service.dto.InventoryTransactionDTO;
+import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
 import com.adeem.stockflow.service.mapper.InventoryMapper;
 import com.adeem.stockflow.service.util.DateTimeUtils;
 import java.math.BigDecimal;
@@ -55,6 +56,14 @@ public class InventoryService {
     }
 
     public InventoryDTO create(BigDecimal quantity, BigDecimal availableQuantity, TransactionType transactionType, Long productId) {
+        if (quantity == null || quantity.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestAlertException("Quantity cannot be null or negative", "inventory", "quantityinvalid");
+        }
+
+        if (availableQuantity != null && availableQuantity.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestAlertException("Quantity cannot be null or negative", "inventory", "quantityinvalid");
+        }
+
         InventoryDTO newInventory = new InventoryDTO();
 
         newInventory.setQuantity(quantity);
@@ -68,6 +77,7 @@ public class InventoryService {
         inventoryTransactionDTO.setQuantity(savedInventory.getQuantity());
         inventoryTransactionDTO.setTransactionDate(DateTimeUtils.nowAlgeria());
         inventoryTransactionDTO.setTransactionType(transactionType);
+        inventoryTransactionDTO.setProductId(productId);
         inventoryTransactionService.create(inventoryTransactionDTO);
 
         return savedInventory;

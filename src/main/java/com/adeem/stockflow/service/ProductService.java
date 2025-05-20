@@ -95,6 +95,10 @@ public class ProductService {
             savedProduct.getId()
         );
 
+        if (images != null && !images.isEmpty()) {
+            addProductImages(productDTO.getId(), images);
+        }
+
         return savedProduct;
     }
 
@@ -120,6 +124,8 @@ public class ProductService {
                 );
         }
     }
+
+    private void addProductImages(Long id, List<MultipartFile> images) {}
 
     /**
      * Update a product.

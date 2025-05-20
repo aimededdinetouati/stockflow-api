@@ -4,6 +4,7 @@ import com.adeem.stockflow.domain.InventoryTransaction;
 import com.adeem.stockflow.repository.InventoryTransactionRepository;
 import com.adeem.stockflow.service.dto.InventoryTransactionDTO;
 import com.adeem.stockflow.service.mapper.InventoryTransactionMapper;
+import com.adeem.stockflow.service.util.GlobalUtils;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,10 +51,11 @@ public class InventoryTransactionService {
         LOG.debug("Request to save Inventory Transaction : {}", inventoryTransactionDTO);
 
         InventoryTransactionDTO newInventoryTransaction = new InventoryTransactionDTO();
+        newInventoryTransaction.setProductId(inventoryTransactionDTO.getProductId());
         newInventoryTransaction.setQuantity(inventoryTransactionDTO.getQuantity());
         newInventoryTransaction.setTransactionDate(inventoryTransactionDTO.getTransactionDate());
         newInventoryTransaction.setTransactionType(inventoryTransactionDTO.getTransactionType());
-        newInventoryTransaction.setReferenceNumber(inventoryTransactionDTO.getReferenceNumber());
+        newInventoryTransaction.setReferenceNumber(generateReference());
         newInventoryTransaction.setNotes(inventoryTransactionDTO.getNotes());
         save(newInventoryTransaction);
     }
@@ -124,5 +126,10 @@ public class InventoryTransactionService {
     public void delete(Long id) {
         LOG.debug("Request to delete InventoryTransaction : {}", id);
         inventoryTransactionRepository.deleteById(id);
+    }
+
+    private String generateReference() {
+        String reference = inventoryTransactionRepository.getLastReference().orElse(null);
+        return GlobalUtils.generateReference(reference);
     }
 }
