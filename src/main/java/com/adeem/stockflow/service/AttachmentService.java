@@ -4,6 +4,7 @@ import com.adeem.stockflow.domain.Attachment;
 import com.adeem.stockflow.repository.AttachmentRepository;
 import com.adeem.stockflow.service.dto.AttachmentDTO;
 import com.adeem.stockflow.service.mapper.AttachmentMapper;
+import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,18 @@ public class AttachmentService {
         Attachment attachment = attachmentMapper.toEntity(attachmentDTO);
         attachment = attachmentRepository.save(attachment);
         return attachmentMapper.toDto(attachment);
+    }
+
+    /**
+     * Save multiple attachments.
+     *
+     * @param attachmentDTOSet the entities to save.
+     * @return the list of persisted entities.
+     */
+    public void saveAll(List<AttachmentDTO> attachmentDTOSet) {
+        LOG.debug("Request to save Attachments : {}", attachmentDTOSet);
+        List<Attachment> attachments = attachmentMapper.toEntity(attachmentDTOSet);
+        attachmentRepository.saveAll(attachments);
     }
 
     /**

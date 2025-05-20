@@ -1,17 +1,19 @@
 package com.adeem.stockflow.service;
 
 import com.adeem.stockflow.domain.Product;
+import com.adeem.stockflow.domain.enumeration.AttachmentType;
 import com.adeem.stockflow.domain.enumeration.TransactionType;
 import com.adeem.stockflow.repository.ProductFamilyRepository;
 import com.adeem.stockflow.repository.ProductRepository;
 import com.adeem.stockflow.service.criteria.ProductSpecification;
+import com.adeem.stockflow.service.dto.AttachmentDTO;
 import com.adeem.stockflow.service.dto.InventoryDTO;
 import com.adeem.stockflow.service.dto.ProductDTO;
 import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
 import com.adeem.stockflow.service.exceptions.ErrorConstants;
 import com.adeem.stockflow.service.mapper.ProductMapper;
-import java.util.List;
-import java.util.Optional;
+import java.io.IOException;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -62,7 +64,7 @@ public class ProductService {
         return productMapper.toDto(product);
     }
 
-    public ProductDTO create(ProductDTO productDTO, InventoryDTO inventoryDTO, List<MultipartFile> images) {
+    public ProductDTO create(ProductDTO productDTO, InventoryDTO inventoryDTO, List<MultipartFile> images) throws IOException {
         LOG.debug("Request to create Product : {}", productDTO);
         checkFields(productDTO);
 
@@ -125,7 +127,21 @@ public class ProductService {
         }
     }
 
-    private void addProductImages(Long id, List<MultipartFile> images) {}
+    private void addProductImages(Long productId, List<MultipartFile> images) throws IOException {
+        List<AttachmentDTO> attachmentDTOList = new ArrayList<>();
+        for (MultipartFile image : images) {
+            AttachmentDTO attachmentDTO = new AttachmentDTO();
+            attachmentDTO.setProductId(productId);
+            attachmentDTO.setAltText(image.getOriginalFilename());
+            attachmentDTO.setData(image.getBytes());
+            attachmentDTO.setType(AttachmentType.PRODUCT_IMAGE);
+            attachmentDTO.setFileSize(image.getSize());
+            attachmentDTO.setIsPrimary(false);
+            attachmentDTO.setDataContentType(image.getContentType());
+            attachmentDTOList.add(attachmentDTO);
+        }
+        attachmentService.saveAll(attachmentDTOList);
+    }
 
     /**
      * Update a product.

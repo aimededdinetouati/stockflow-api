@@ -8,6 +8,7 @@ import com.adeem.stockflow.service.dto.ProductDTO;
 import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -62,7 +63,7 @@ public class ProductResource {
         @Valid @RequestPart("productData") ProductDTO productDTO,
         @Valid @RequestPart("inventoryData") InventoryDTO inventoryDTO,
         @RequestPart(value = "productImage", required = false) List<MultipartFile> images
-    ) throws URISyntaxException {
+    ) throws URISyntaxException, IOException {
         LOG.debug("REST request to save Product : {}", productDTO);
         Long clientAccountId = SecurityUtils.getCurrentClientAccountId();
         productDTO.setClientAccountId(clientAccountId);

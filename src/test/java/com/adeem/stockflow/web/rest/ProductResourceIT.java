@@ -6,13 +6,21 @@ import static com.adeem.stockflow.web.rest.TestUtil.sameInstant;
 import static com.adeem.stockflow.web.rest.TestUtil.sameNumber;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.adeem.stockflow.IntegrationTest;
+import com.adeem.stockflow.domain.Attachment;
 import com.adeem.stockflow.domain.Product;
+import com.adeem.stockflow.domain.enumeration.InventoryStatus;
 import com.adeem.stockflow.domain.enumeration.ProductCategory;
+import com.adeem.stockflow.repository.AttachmentRepository;
+import com.adeem.stockflow.repository.InventoryRepository;
 import com.adeem.stockflow.repository.ProductRepository;
+import com.adeem.stockflow.service.dto.InventoryDTO;
 import com.adeem.stockflow.service.dto.ProductDTO;
 import com.adeem.stockflow.service.mapper.ProductMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,16 +30,20 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -92,6 +104,12 @@ class ProductResourceIT {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private InventoryRepository inventoryRepository;
+
+    @Autowired
+    private AttachmentRepository attachmentRepository;
 
     @Autowired
     private ProductMapper productMapper;
@@ -169,22 +187,53 @@ class ProductResourceIT {
     @Transactional
     void createProduct() throws Exception {
         long databaseSizeBeforeCreate = getRepositoryCount();
+
         // Create the Product
         ProductDTO productDTO = productMapper.toDto(product);
-        var returnedProductDTO = om.readValue(
-            restProductMockMvc
-                .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(productDTO)))
-                .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString(),
-            ProductDTO.class
+
+        // Create an Inventory
+        InventoryDTO inventoryDTO = new InventoryDTO();
+        inventoryDTO.setQuantity(new BigDecimal("10.0"));
+        inventoryDTO.setAvailableQuantity(new BigDecimal("10.0"));
+        inventoryDTO.setStatus(InventoryStatus.AVAILABLE);
+
+        // Create mock image files (optional)
+        MockMultipartFile productDataPart = new MockMultipartFile("productData", "", "application/json", om.writeValueAsBytes(productDTO));
+
+        MockMultipartFile inventoryDataPart = new MockMultipartFile(
+            "inventoryData",
+            "",
+            "application/json",
+            om.writeValueAsBytes(inventoryDTO)
         );
+
+        MockMultipartFile imagePart = new MockMultipartFile(
+            "productImage",
+            "test-image.jpg",
+            "image/jpeg",
+            "test image content".getBytes()
+        );
+
+        // Perform the request
+        MvcResult result = restProductMockMvc
+            .perform(multipart(ENTITY_API_URL).file(productDataPart).file(inventoryDataPart).file(imagePart))
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        // Extract the result
+        var returnedProductDTO = om.readValue(result.getResponse().getContentAsString(), ProductDTO.class);
 
         // Validate the Product in the database
         assertIncrementedRepositoryCount(databaseSizeBeforeCreate);
         var returnedProduct = productMapper.toEntity(returnedProductDTO);
         assertProductUpdatableFieldsEquals(returnedProduct, getPersistedProduct(returnedProduct));
+
+        // Verify that inventory was created
+        Assertions.assertNotNull(inventoryRepository.findByProductId(returnedProduct.getId()));
+
+        // Verify that image was attached
+        List<Attachment> attachments = attachmentRepository.findByProductId(returnedProduct.getId());
+        Assertions.assertFalse(attachments.isEmpty());
 
         insertedProduct = returnedProduct;
     }
