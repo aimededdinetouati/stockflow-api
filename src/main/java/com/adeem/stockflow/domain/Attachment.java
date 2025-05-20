@@ -34,6 +34,13 @@ public class Attachment extends AbstractAuditingEntity<Long> implements Serializ
     @Column(name = "url")
     private String url;
 
+    @Lob
+    @Column(name = "data")
+    private byte[] data;
+
+    @Column(name = "data_content_type")
+    private String dataContentType;
+
     @Column(name = "file_size")
     private Long fileSize;
 
@@ -105,6 +112,32 @@ public class Attachment extends AbstractAuditingEntity<Long> implements Serializ
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public byte[] getData() {
+        return this.data;
+    }
+
+    public Attachment data(byte[] data) {
+        this.setData(data);
+        return this;
+    }
+
+    public void setData(byte[] data) {
+        this.data = data;
+    }
+
+    public String getDataContentType() {
+        return this.dataContentType;
+    }
+
+    public Attachment dataContentType(String dataContentType) {
+        this.dataContentType = dataContentType;
+        return this;
+    }
+
+    public void setDataContentType(String dataContentType) {
+        this.dataContentType = dataContentType;
     }
 
     public Long getFileSize() {
@@ -266,6 +299,8 @@ public class Attachment extends AbstractAuditingEntity<Long> implements Serializ
             "id=" + getId() +
             ", type='" + getType() + "'" +
             ", url='" + getUrl() + "'" +
+            ", data='" + getData() + "'" +
+            ", dataContentType='" + getDataContentType() + "'" +
             ", fileSize=" + getFileSize() +
             ", isPrimary='" + getIsPrimary() + "'" +
             ", altText='" + getAltText() + "'" +

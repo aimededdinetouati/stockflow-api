@@ -123,6 +123,7 @@ entity User
 entity Attachment {
 	type AttachmentType
   url String
+  data Blob
   fileSize Long
   isPrimary Boolean
   altText String

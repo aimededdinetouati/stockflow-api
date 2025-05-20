@@ -16,6 +16,10 @@
       "fieldType": "String"
     },
     {
+      "fieldName": "data",
+      "fieldType": "Blob"
+    },
+    {
       "fieldName": "fileSize",
       "fieldType": "Long"
     },
