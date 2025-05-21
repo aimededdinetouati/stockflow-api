@@ -14,11 +14,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.adeem.stockflow.IntegrationTest;
 import com.adeem.stockflow.domain.Attachment;
+import com.adeem.stockflow.domain.Inventory;
+import com.adeem.stockflow.domain.InventoryTransaction;
 import com.adeem.stockflow.domain.Product;
 import com.adeem.stockflow.domain.enumeration.InventoryStatus;
 import com.adeem.stockflow.domain.enumeration.ProductCategory;
+import com.adeem.stockflow.domain.enumeration.TransactionType;
 import com.adeem.stockflow.repository.AttachmentRepository;
 import com.adeem.stockflow.repository.InventoryRepository;
+import com.adeem.stockflow.repository.InventoryTransactionRepository;
 import com.adeem.stockflow.repository.ProductRepository;
 import com.adeem.stockflow.security.TestSecurityContextHelper;
 import com.adeem.stockflow.security.WithMockClientAccount;
@@ -33,6 +37,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
@@ -109,6 +114,9 @@ class ProductResourceIT {
 
     @Autowired
     private InventoryRepository inventoryRepository;
+
+    @Autowired
+    private InventoryTransactionRepository inventoryTransactionRepository;
 
     @Autowired
     private AttachmentRepository attachmentRepository;
@@ -375,14 +383,107 @@ class ProductResourceIT {
 
     @Test
     @Transactional
-    void putExistingProduct() throws Exception {
+    @WithMockClientAccount
+    void updateProductWithInventoryAndImages() throws Exception {
         // Initialize the database
         insertedProduct = productRepository.saveAndFlush(product);
 
+        Inventory initialInventory = new Inventory();
+        initialInventory.setQuantity(new BigDecimal("10.0"));
+        initialInventory.setAvailableQuantity(new BigDecimal("10.0"));
+        initialInventory.setStatus(InventoryStatus.AVAILABLE);
+        initialInventory.setProduct(insertedProduct);
+        inventoryRepository.saveAndFlush(initialInventory);
+
+        InventoryTransaction inventoryTransaction = new InventoryTransaction();
+        inventoryTransaction.setProduct(insertedProduct);
+        inventoryTransaction.setQuantity(new BigDecimal("10.0"));
+        inventoryTransaction.setTransactionDate(ZonedDateTime.now());
+        inventoryTransaction.setTransactionType(TransactionType.INITIAL);
+        inventoryTransaction.setReferenceNumber("0001");
+        inventoryTransactionRepository.saveAndFlush(inventoryTransaction);
+
         long databaseSizeBeforeUpdate = getRepositoryCount();
 
+        // Find the inventory to update
+        Optional<Inventory> inventoryOpt = inventoryRepository.findByProductId(insertedProduct.getId());
+        assertThat(inventoryOpt).isPresent();
+        Inventory inventoryToUpdate = inventoryOpt.get();
+
+        // Count the initial images
+        List<Attachment> initialAttachments = attachmentRepository.findByProductId(insertedProduct.getId());
+        int initialImageCount = initialAttachments.size();
+
         // Update the product
-        Product updatedProduct = productRepository.findById(product.getId()).orElseThrow();
+        Product updatedProduct = createUpdatedEntity();
+        updatedProduct.setId(insertedProduct.getId());
+        ProductDTO productDTO = productMapper.toDto(updatedProduct);
+
+        // Update inventory
+        InventoryDTO updatedInventory = new InventoryDTO();
+        updatedInventory.setId(inventoryToUpdate.getId());
+        updatedInventory.setQuantity(new BigDecimal("20.0"));
+        updatedInventory.setAvailableQuantity(new BigDecimal("15.0"));
+        updatedInventory.setStatus(InventoryStatus.AVAILABLE);
+        updatedInventory.setProductId(insertedProduct.getId());
+
+        // Create multipart request
+        MockMultipartFile productDataPart = new MockMultipartFile("productData", "", "application/json", om.writeValueAsBytes(productDTO));
+
+        MockMultipartFile inventoryDataPart = new MockMultipartFile(
+            "inventoryData",
+            "",
+            "application/json",
+            om.writeValueAsBytes(updatedInventory)
+        );
+
+        MockMultipartFile imagePart = new MockMultipartFile("productImage", "new-image.jpg", "image/jpeg", "new test image".getBytes());
+
+        // Perform the request
+        restProductMockMvc
+            .perform(multipart(ENTITY_API_URL_ID, insertedProduct.getId()).file(productDataPart).file(inventoryDataPart).file(imagePart))
+            .andExpect(status().isOk());
+
+        // Validate the Product in the database
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertPersistedProductToMatchAllProperties(updatedProduct);
+
+        // Verify that inventory was updated
+        Inventory updatedInventoryEntity = inventoryRepository.findById(inventoryToUpdate.getId()).orElseThrow();
+        assertThat(updatedInventoryEntity.getQuantity()).isEqualByComparingTo(new BigDecimal("20.0"));
+        assertThat(updatedInventoryEntity.getAvailableQuantity()).isEqualByComparingTo(new BigDecimal("15.0"));
+
+        // Verify that image was added
+        List<Attachment> attachments = attachmentRepository.findByProductId(insertedProduct.getId());
+        assertThat(attachments).hasSize(initialImageCount + 1);
+    }
+
+    @Test
+    @Transactional
+    @WithMockClientAccount
+    void updateProductWithInventory() throws Exception {
+        // Initialize the database
+        insertedProduct = productRepository.saveAndFlush(product);
+
+        // Create initial inventory
+        Inventory initialInventory = new Inventory();
+        initialInventory.setQuantity(new BigDecimal("10.0"));
+        initialInventory.setAvailableQuantity(new BigDecimal("10.0"));
+        initialInventory.setStatus(InventoryStatus.AVAILABLE);
+        initialInventory.setProduct(insertedProduct);
+        inventoryRepository.saveAndFlush(initialInventory);
+
+        InventoryTransaction inventoryTransaction = new InventoryTransaction();
+        inventoryTransaction.setProduct(insertedProduct);
+        inventoryTransaction.setQuantity(new BigDecimal("10.0"));
+        inventoryTransaction.setTransactionDate(ZonedDateTime.now());
+        inventoryTransaction.setTransactionType(TransactionType.INITIAL);
+        inventoryTransaction.setReferenceNumber("0001");
+        inventoryTransactionRepository.saveAndFlush(inventoryTransaction);
+
+        long databaseSizeBeforeUpdate = getRepositoryCount();
+
+        Product updatedProduct = productRepository.findById(insertedProduct.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedProduct are not directly saved in db
         em.detach(updatedProduct);
         updatedProduct
@@ -399,205 +500,133 @@ class ProductResourceIT {
             .applyTva(UPDATED_APPLY_TVA)
             .isVisibleToCustomers(UPDATED_IS_VISIBLE_TO_CUSTOMERS)
             .expirationDate(UPDATED_EXPIRATION_DATE);
+
         ProductDTO productDTO = productMapper.toDto(updatedProduct);
 
+        // Find the inventory to update
+        Optional<Inventory> inventoryOpt = inventoryRepository.findByProductId(insertedProduct.getId());
+        assertThat(inventoryOpt).isPresent();
+        Inventory inventoryToUpdate = inventoryOpt.get();
+
+        // Update inventory
+        InventoryDTO updatedInventory = new InventoryDTO();
+        updatedInventory.setId(inventoryToUpdate.getId());
+        updatedInventory.setQuantity(new BigDecimal("20.0"));
+        updatedInventory.setAvailableQuantity(new BigDecimal("15.0"));
+        updatedInventory.setStatus(InventoryStatus.AVAILABLE);
+        updatedInventory.setProductId(insertedProduct.getId());
+
+        // Create multipart request
+        MockMultipartFile productDataPart = new MockMultipartFile("productData", "", "application/json", om.writeValueAsBytes(productDTO));
+
+        MockMultipartFile inventoryDataPart = new MockMultipartFile(
+            "inventoryData",
+            "",
+            "application/json",
+            om.writeValueAsBytes(updatedInventory)
+        );
+
+        // Perform the request
         restProductMockMvc
-            .perform(
-                put(ENTITY_API_URL_ID, productDTO.getId()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(productDTO))
-            )
+            .perform(multipart(ENTITY_API_URL_ID, insertedProduct.getId()).file(productDataPart).file(inventoryDataPart))
             .andExpect(status().isOk());
 
         // Validate the Product in the database
         assertSameRepositoryCount(databaseSizeBeforeUpdate);
         assertPersistedProductToMatchAllProperties(updatedProduct);
+
+        // Verify that inventory was updated
+        Inventory updatedInventoryEntity = inventoryRepository.findById(inventoryToUpdate.getId()).orElseThrow();
+        assertThat(updatedInventoryEntity.getQuantity()).isEqualByComparingTo(new BigDecimal("20.0"));
+        assertThat(updatedInventoryEntity.getAvailableQuantity()).isEqualByComparingTo(new BigDecimal("15.0"));
     }
 
     @Test
     @Transactional
-    void putNonExistingProduct() throws Exception {
-        long databaseSizeBeforeUpdate = getRepositoryCount();
-        product.setId(longCount.incrementAndGet());
-
-        // Create the Product
-        ProductDTO productDTO = productMapper.toDto(product);
-
-        // If the entity doesn't have an ID, it will throw BadRequestAlertException
-        restProductMockMvc
-            .perform(
-                put(ENTITY_API_URL_ID, productDTO.getId()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(productDTO))
-            )
-            .andExpect(status().isBadRequest());
-
-        // Validate the Product in the database
-        assertSameRepositoryCount(databaseSizeBeforeUpdate);
-    }
-
-    @Test
-    @Transactional
-    void putWithIdMismatchProduct() throws Exception {
-        long databaseSizeBeforeUpdate = getRepositoryCount();
-        product.setId(longCount.incrementAndGet());
-
-        // Create the Product
-        ProductDTO productDTO = productMapper.toDto(product);
-
-        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
-        restProductMockMvc
-            .perform(
-                put(ENTITY_API_URL_ID, longCount.incrementAndGet())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(productDTO))
-            )
-            .andExpect(status().isBadRequest());
-
-        // Validate the Product in the database
-        assertSameRepositoryCount(databaseSizeBeforeUpdate);
-    }
-
-    @Test
-    @Transactional
-    void putWithMissingIdPathParamProduct() throws Exception {
-        long databaseSizeBeforeUpdate = getRepositoryCount();
-        product.setId(longCount.incrementAndGet());
-
-        // Create the Product
-        ProductDTO productDTO = productMapper.toDto(product);
-
-        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
-        restProductMockMvc
-            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(productDTO)))
-            .andExpect(status().isMethodNotAllowed());
-
-        // Validate the Product in the database
-        assertSameRepositoryCount(databaseSizeBeforeUpdate);
-    }
-
-    @Test
-    @Transactional
-    void partialUpdateProductWithPatch() throws Exception {
+    @WithMockClientAccount
+    void updateProductWithImages() throws Exception {
         // Initialize the database
         insertedProduct = productRepository.saveAndFlush(product);
 
         long databaseSizeBeforeUpdate = getRepositoryCount();
 
-        // Update the product using partial update
-        Product partialUpdatedProduct = new Product();
-        partialUpdatedProduct.setId(product.getId());
+        // Count the initial images
+        List<Attachment> initialAttachments = attachmentRepository.findByProductId(insertedProduct.getId());
+        int initialImageCount = initialAttachments.size();
 
-        partialUpdatedProduct.profitMargin(UPDATED_PROFIT_MARGIN).applyTva(UPDATED_APPLY_TVA).expirationDate(UPDATED_EXPIRATION_DATE);
+        // Update the product
+        Product updatedProduct = createUpdatedEntity();
+        updatedProduct.setId(insertedProduct.getId());
+        ProductDTO productDTO = productMapper.toDto(updatedProduct);
 
+        // Create multipart request
+        MockMultipartFile productDataPart = new MockMultipartFile("productData", "", "application/json", om.writeValueAsBytes(productDTO));
+
+        MockMultipartFile imagePart1 = new MockMultipartFile(
+            "productImage",
+            "new-image-1.jpg",
+            "image/jpeg",
+            "new test image 1".getBytes()
+        );
+
+        MockMultipartFile imagePart2 = new MockMultipartFile(
+            "productImage",
+            "new-image-2.jpg",
+            "image/jpeg",
+            "new test image 2".getBytes()
+        );
+
+        // Perform the request
         restProductMockMvc
-            .perform(
-                patch(ENTITY_API_URL_ID, partialUpdatedProduct.getId())
-                    .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(partialUpdatedProduct))
-            )
+            .perform(multipart(ENTITY_API_URL_ID, insertedProduct.getId()).file(productDataPart).file(imagePart1).file(imagePart2))
             .andExpect(status().isOk());
 
         // Validate the Product in the database
-
         assertSameRepositoryCount(databaseSizeBeforeUpdate);
-        assertProductUpdatableFieldsEquals(createUpdateProxyForBean(partialUpdatedProduct, product), getPersistedProduct(product));
+        assertPersistedProductToMatchAllProperties(updatedProduct);
+
+        // Verify that images were added
+        List<Attachment> attachments = attachmentRepository.findByProductId(insertedProduct.getId());
+        assertThat(attachments).hasSize(initialImageCount + 2);
     }
 
     @Test
     @Transactional
-    void fullUpdateProductWithPatch() throws Exception {
-        // Initialize the database
-        insertedProduct = productRepository.saveAndFlush(product);
-
-        long databaseSizeBeforeUpdate = getRepositoryCount();
-
-        // Update the product using partial update
-        Product partialUpdatedProduct = new Product();
-        partialUpdatedProduct.setId(product.getId());
-
-        partialUpdatedProduct
-            .name(UPDATED_NAME)
-            .description(UPDATED_DESCRIPTION)
-            .code(UPDATED_CODE)
-            .manufacturerCode(UPDATED_MANUFACTURER_CODE)
-            .upc(UPDATED_UPC)
-            .sellingPrice(UPDATED_SELLING_PRICE)
-            .costPrice(UPDATED_COST_PRICE)
-            .profitMargin(UPDATED_PROFIT_MARGIN)
-            .minimumStockLevel(UPDATED_MINIMUM_STOCK_LEVEL)
-            .category(UPDATED_CATEGORY)
-            .applyTva(UPDATED_APPLY_TVA)
-            .isVisibleToCustomers(UPDATED_IS_VISIBLE_TO_CUSTOMERS)
-            .expirationDate(UPDATED_EXPIRATION_DATE);
-
-        restProductMockMvc
-            .perform(
-                patch(ENTITY_API_URL_ID, partialUpdatedProduct.getId())
-                    .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(partialUpdatedProduct))
-            )
-            .andExpect(status().isOk());
-
-        // Validate the Product in the database
-
-        assertSameRepositoryCount(databaseSizeBeforeUpdate);
-        assertProductUpdatableFieldsEquals(partialUpdatedProduct, getPersistedProduct(partialUpdatedProduct));
-    }
-
-    @Test
-    @Transactional
-    void patchNonExistingProduct() throws Exception {
+    void updateWithIdMismatchProduct() throws Exception {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         product.setId(longCount.incrementAndGet());
 
         // Create the Product
         ProductDTO productDTO = productMapper.toDto(product);
+
+        // Create multipart request
+        MockMultipartFile productDataPart = new MockMultipartFile("productData", "", "application/json", om.writeValueAsBytes(productDTO));
+
+        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
+        restProductMockMvc
+            .perform(multipart(ENTITY_API_URL_ID, longCount.incrementAndGet()).file(productDataPart))
+            .andExpect(status().isBadRequest());
+
+        // Validate the Product in the database
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+    }
+
+    @Test
+    @Transactional
+    void updateWithMissingIdProduct() throws Exception {
+        long databaseSizeBeforeUpdate = getRepositoryCount();
+
+        // Create the Product without ID
+        ProductDTO productDTO = productMapper.toDto(product);
+        productDTO.setId(null);
+
+        // Create multipart request
+        MockMultipartFile productDataPart = new MockMultipartFile("productData", "", "application/json", om.writeValueAsBytes(productDTO));
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restProductMockMvc
-            .perform(
-                patch(ENTITY_API_URL_ID, productDTO.getId())
-                    .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(productDTO))
-            )
+            .perform(multipart(ENTITY_API_URL_ID, longCount.incrementAndGet()).file(productDataPart))
             .andExpect(status().isBadRequest());
-
-        // Validate the Product in the database
-        assertSameRepositoryCount(databaseSizeBeforeUpdate);
-    }
-
-    @Test
-    @Transactional
-    void patchWithIdMismatchProduct() throws Exception {
-        long databaseSizeBeforeUpdate = getRepositoryCount();
-        product.setId(longCount.incrementAndGet());
-
-        // Create the Product
-        ProductDTO productDTO = productMapper.toDto(product);
-
-        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
-        restProductMockMvc
-            .perform(
-                patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
-                    .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(productDTO))
-            )
-            .andExpect(status().isBadRequest());
-
-        // Validate the Product in the database
-        assertSameRepositoryCount(databaseSizeBeforeUpdate);
-    }
-
-    @Test
-    @Transactional
-    void patchWithMissingIdPathParamProduct() throws Exception {
-        long databaseSizeBeforeUpdate = getRepositoryCount();
-        product.setId(longCount.incrementAndGet());
-
-        // Create the Product
-        ProductDTO productDTO = productMapper.toDto(product);
-
-        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
-        restProductMockMvc
-            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(om.writeValueAsBytes(productDTO)))
-            .andExpect(status().isMethodNotAllowed());
 
         // Validate the Product in the database
         assertSameRepositoryCount(databaseSizeBeforeUpdate);

@@ -1,6 +1,7 @@
 package com.adeem.stockflow.service;
 
 import com.adeem.stockflow.domain.Product;
+import com.adeem.stockflow.domain.ProductFamily;
 import com.adeem.stockflow.domain.enumeration.AttachmentType;
 import com.adeem.stockflow.domain.enumeration.TransactionType;
 import com.adeem.stockflow.repository.ProductFamilyRepository;
@@ -9,6 +10,7 @@ import com.adeem.stockflow.service.criteria.ProductSpecification;
 import com.adeem.stockflow.service.dto.AttachmentDTO;
 import com.adeem.stockflow.service.dto.InventoryDTO;
 import com.adeem.stockflow.service.dto.ProductDTO;
+import com.adeem.stockflow.service.dto.ProductFamilyDTO;
 import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
 import com.adeem.stockflow.service.exceptions.ErrorConstants;
 import com.adeem.stockflow.service.mapper.ProductMapper;
@@ -18,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -68,40 +71,103 @@ public class ProductService {
         LOG.debug("Request to create Product : {}", productDTO);
         checkFields(productDTO);
 
-        ProductDTO newProduct = new ProductDTO();
-
-        // Set product fields
-        newProduct.setCode(productDTO.getCode());
-        newProduct.setName(productDTO.getName());
-        newProduct.setDescription(productDTO.getDescription());
-        newProduct.setManufacturerCode(productDTO.getManufacturerCode());
-        newProduct.setUpc(productDTO.getUpc());
-        newProduct.setSellingPrice(productDTO.getSellingPrice());
-        newProduct.setCostPrice(productDTO.getCostPrice());
-        newProduct.setProfitMargin(productDTO.getProfitMargin());
-        newProduct.setMinimumStockLevel(productDTO.getMinimumStockLevel());
-        newProduct.setCategory(productDTO.getCategory());
-        newProduct.setApplyTva(productDTO.getApplyTva());
-        newProduct.setIsVisibleToCustomers(productDTO.getIsVisibleToCustomers());
-        newProduct.setExpirationDate(productDTO.getExpirationDate());
-        newProduct.setClientAccountId(productDTO.getClientAccountId());
-        newProduct.setProductFamily(productDTO.getProductFamily());
+        ProductDTO newProduct = copyProductFields(productDTO, new ProductDTO());
 
         ProductDTO savedProduct = save(newProduct);
 
-        inventoryDTO.setProductId(savedProduct.getId());
-        inventoryService.create(
-            inventoryDTO.getQuantity(),
-            inventoryDTO.getAvailableQuantity(),
-            TransactionType.INITIAL,
-            savedProduct.getId()
-        );
+        if (inventoryDTO != null) {
+            inventoryDTO.setProductId(savedProduct.getId());
+            inventoryService.create(inventoryDTO);
+        }
 
         if (images != null && !images.isEmpty()) {
             addProductImages(savedProduct.getId(), images);
         }
 
         return savedProduct;
+    }
+
+    /**
+     * Update a product with inventory and images.
+     *
+     * @param productDTO the entity to update
+     * @param inventoryDTO the inventory data to update (optional)
+     * @param images the product images to add (optional)
+     * @return the updated entity
+     */
+    public ProductDTO update(ProductDTO productDTO, InventoryDTO inventoryDTO, List<MultipartFile> images) throws IOException {
+        LOG.debug("Request to update Product : {}", productDTO);
+
+        Product existing = productRepository
+            .findById(productDTO.getId())
+            .orElseThrow(() -> new BadRequestAlertException("Entity not found", "", "idnotfound"));
+
+        // Validate the product fields
+        checkFields(productDTO);
+
+        // Update product fields
+        updateProductFields(existing, productDTO);
+
+        // update the product family
+        updateProductFamily(existing, productDTO.getProductFamily());
+
+        // Update the product fields
+        existing.setIsPersisted();
+        Product updated = productRepository.save(existing);
+
+        // Update the inventory if provided
+        if (inventoryDTO != null && inventoryDTO.getId() != null) {
+            inventoryDTO.setProductId(updated.getId());
+            inventoryService.update(inventoryDTO);
+        }
+
+        // Add new images if provided
+        if (images != null && !images.isEmpty()) {
+            addProductImages(updated.getId(), images);
+        }
+
+        return productMapper.toDto(updated);
+    }
+
+    /**
+     * Helper method to copy product fields from source to target DTO
+     */
+    private ProductDTO copyProductFields(ProductDTO source, ProductDTO target) {
+        target.setCode(source.getCode());
+        target.setName(source.getName());
+        target.setDescription(source.getDescription());
+        target.setManufacturerCode(source.getManufacturerCode());
+        target.setUpc(source.getUpc());
+        target.setSellingPrice(source.getSellingPrice());
+        target.setCostPrice(source.getCostPrice());
+        target.setProfitMargin(source.getProfitMargin());
+        target.setMinimumStockLevel(source.getMinimumStockLevel());
+        target.setCategory(source.getCategory());
+        target.setApplyTva(source.getApplyTva());
+        target.setIsVisibleToCustomers(source.getIsVisibleToCustomers());
+        target.setExpirationDate(source.getExpirationDate());
+        target.setClientAccountId(source.getClientAccountId());
+        target.setProductFamily(source.getProductFamily());
+        return target;
+    }
+
+    /**
+     * Helper method to update product fields from DTO to entity
+     */
+    private void updateProductFields(Product entity, ProductDTO dto) {
+        entity.setName(dto.getName());
+        entity.setCode(dto.getCode());
+        entity.setDescription(dto.getDescription());
+        entity.setCategory(dto.getCategory());
+        entity.setManufacturerCode(dto.getManufacturerCode());
+        entity.setUpc(dto.getUpc());
+        entity.setSellingPrice(dto.getSellingPrice());
+        entity.setCostPrice(dto.getCostPrice());
+        entity.setProfitMargin(dto.getProfitMargin());
+        entity.setMinimumStockLevel(dto.getMinimumStockLevel());
+        entity.setApplyTva(dto.getApplyTva());
+        entity.setIsVisibleToCustomers(dto.getIsVisibleToCustomers());
+        entity.setExpirationDate(dto.getExpirationDate());
     }
 
     private void checkFields(ProductDTO productDTO) {
@@ -144,37 +210,65 @@ public class ProductService {
     }
 
     /**
-     * Update a product.
+     * Update the product family of a product.
      *
-     * @param productDTO the entity to save.
-     * @return the persisted entity.
+     * @param product the product entity to update
+     * @param newProductFamilyDTO the new product family data (can be null to remove product family)
      */
-    public ProductDTO update(ProductDTO productDTO) {
-        LOG.debug("Request to update Product : {}", productDTO);
-        Product product = productMapper.toEntity(productDTO);
-        product.setIsPersisted();
-        product = productRepository.save(product);
-        return productMapper.toDto(product);
+    private void updateProductFamily(Product product, ProductFamilyDTO newProductFamilyDTO) {
+        // If no change in product family, do nothing
+        if (!isProductFamilyChanged(product, newProductFamilyDTO)) {
+            return;
+        }
+
+        // Set product family to null if newProductFamilyDTO is null
+        if (newProductFamilyDTO == null) {
+            product.setProductFamily(null);
+            return;
+        }
+
+        // Otherwise, fetch and set the new product family
+        ProductFamily newProductFamily = findProductFamilyById(newProductFamilyDTO.getId());
+        product.setProductFamily(newProductFamily);
     }
 
     /**
-     * Partially update a product.
+     * Check if the product family has changed.
      *
-     * @param productDTO the entity to update partially.
-     * @return the persisted entity.
+     * @param product the product entity
+     * @param newProductFamilyDTO the new product family data
+     * @return true if the product family has changed, false otherwise
      */
-    public Optional<ProductDTO> partialUpdate(ProductDTO productDTO) {
-        LOG.debug("Request to partially update Product : {}", productDTO);
+    private boolean isProductFamilyChanged(Product product, ProductFamilyDTO newProductFamilyDTO) {
+        ProductFamily existingProductFamily = product.getProductFamily();
 
-        return productRepository
-            .findById(productDTO.getId())
-            .map(existingProduct -> {
-                productMapper.partialUpdate(existingProduct, productDTO);
+        // Both are null - no change
+        if (existingProductFamily == null && newProductFamilyDTO == null) {
+            return false;
+        }
 
-                return existingProduct;
-            })
-            .map(productRepository::save)
-            .map(productMapper::toDto);
+        // One is null, the other is not - change detected
+        if (existingProductFamily == null || newProductFamilyDTO == null) {
+            return true;
+        }
+
+        // Both are not null - compare IDs
+        return !existingProductFamily.getId().equals(newProductFamilyDTO.getId());
+    }
+
+    /**
+     * Find a product family by ID or throw an exception if not found.
+     *
+     * @param id the product family ID
+     * @return the product family entity
+     * @throws BadRequestAlertException if the product family does not exist
+     */
+    private ProductFamily findProductFamilyById(Long id) {
+        return productFamilyRepository
+            .findById(id)
+            .orElseThrow(() ->
+                new BadRequestAlertException("Product family does not exist", "", ErrorConstants.PRODUCT_FAMILY_DOES_NOT_EXIST)
+            );
     }
 
     /**
@@ -197,8 +291,13 @@ public class ProductService {
      */
     @Transactional(readOnly = true)
     public Optional<ProductDTO> findOne(Long id) {
-        LOG.debug("Request to get Product : {}", id);
+        LOG.debug("Request to get ProductDTO : {}", id);
         return productRepository.findById(id).map(productMapper::toDto);
+    }
+
+    public Optional<Product> findEntity(Specification<Product> specification) {
+        LOG.debug("Request to get Product : {}", specification);
+        return productRepository.findOne(specification);
     }
 
     /**

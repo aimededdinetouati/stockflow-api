@@ -1,10 +1,14 @@
 package com.adeem.stockflow.service;
 
 import com.adeem.stockflow.domain.InventoryTransaction;
+import com.adeem.stockflow.domain.Product;
+import com.adeem.stockflow.domain.enumeration.TransactionType;
 import com.adeem.stockflow.repository.InventoryTransactionRepository;
 import com.adeem.stockflow.service.dto.InventoryTransactionDTO;
 import com.adeem.stockflow.service.mapper.InventoryTransactionMapper;
+import com.adeem.stockflow.service.util.DateTimeUtils;
 import com.adeem.stockflow.service.util.GlobalUtils;
+import java.math.BigDecimal;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,41 +41,33 @@ public class InventoryTransactionService {
     /**
      * Save a inventoryTransaction.
      *
-     * @param inventoryTransactionDTO the entity to save.
-     * @return the persisted entity.
      */
-    public InventoryTransactionDTO save(InventoryTransactionDTO inventoryTransactionDTO) {
-        LOG.debug("Request to save InventoryTransaction : {}", inventoryTransactionDTO);
-        InventoryTransaction inventoryTransaction = inventoryTransactionMapper.toEntity(inventoryTransactionDTO);
-        inventoryTransaction = inventoryTransactionRepository.save(inventoryTransaction);
-        return inventoryTransactionMapper.toDto(inventoryTransaction);
-    }
+    public void save(Long productId, BigDecimal quantity, TransactionType transactionType) {
+        LOG.debug("Request to save InventoryTransaction");
 
-    public void create(InventoryTransactionDTO inventoryTransactionDTO) {
-        LOG.debug("Request to save Inventory Transaction : {}", inventoryTransactionDTO);
+        Product product = new Product();
+        product.setId(productId);
 
-        InventoryTransactionDTO newInventoryTransaction = new InventoryTransactionDTO();
-        newInventoryTransaction.setProductId(inventoryTransactionDTO.getProductId());
-        newInventoryTransaction.setQuantity(inventoryTransactionDTO.getQuantity());
-        newInventoryTransaction.setTransactionDate(inventoryTransactionDTO.getTransactionDate());
-        newInventoryTransaction.setTransactionType(inventoryTransactionDTO.getTransactionType());
-        newInventoryTransaction.setReferenceNumber(generateReference());
-        newInventoryTransaction.setNotes(inventoryTransactionDTO.getNotes());
-        save(newInventoryTransaction);
+        InventoryTransaction inventoryTransaction = new InventoryTransaction();
+        inventoryTransaction.setQuantity(quantity);
+        inventoryTransaction.setTransactionDate(DateTimeUtils.nowAlgeria());
+        inventoryTransaction.setTransactionType(transactionType);
+        inventoryTransaction.setProduct(product);
+        inventoryTransaction.setReferenceNumber(generateReference());
+
+        inventoryTransactionRepository.save(inventoryTransaction);
     }
 
     /**
      * Update a inventoryTransaction.
      *
-     * @param inventoryTransactionDTO the entity to save.
+     * @param inventoryTransaction the entity to save.
      * @return the persisted entity.
      */
-    public InventoryTransactionDTO update(InventoryTransactionDTO inventoryTransactionDTO) {
-        LOG.debug("Request to update InventoryTransaction : {}", inventoryTransactionDTO);
-        InventoryTransaction inventoryTransaction = inventoryTransactionMapper.toEntity(inventoryTransactionDTO);
+    public void update(InventoryTransaction inventoryTransaction) {
+        LOG.debug("Request to update InventoryTransaction : {}", inventoryTransaction);
         inventoryTransaction.setIsPersisted();
-        inventoryTransaction = inventoryTransactionRepository.save(inventoryTransaction);
-        return inventoryTransactionMapper.toDto(inventoryTransaction);
+        inventoryTransactionRepository.save(inventoryTransaction);
     }
 
     /**

@@ -1,6 +1,8 @@
 package com.adeem.stockflow.service;
 
 import com.adeem.stockflow.domain.Inventory;
+import com.adeem.stockflow.domain.InventoryTransaction;
+import com.adeem.stockflow.domain.Product;
 import com.adeem.stockflow.domain.enumeration.InventoryStatus;
 import com.adeem.stockflow.domain.enumeration.TransactionType;
 import com.adeem.stockflow.repository.InventoryRepository;
@@ -55,30 +57,14 @@ public class InventoryService {
         return inventoryMapper.toDto(inventory);
     }
 
-    public InventoryDTO create(BigDecimal quantity, BigDecimal availableQuantity, TransactionType transactionType, Long productId) {
-        if (quantity == null || quantity.compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestAlertException("Quantity cannot be null or negative", "inventory", "quantityinvalid");
-        }
+    public InventoryDTO create(InventoryDTO inventoryDTO) {
+        LOG.debug("Request to create Inventory : {}", inventoryDTO);
 
-        if (availableQuantity != null && availableQuantity.compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestAlertException("Quantity cannot be null or negative", "inventory", "quantityinvalid");
-        }
-
-        InventoryDTO newInventory = new InventoryDTO();
-
-        newInventory.setQuantity(quantity);
-        newInventory.setAvailableQuantity(availableQuantity == null ? quantity : availableQuantity);
-        newInventory.setStatus(InventoryStatus.AVAILABLE);
-        newInventory.setProductId(productId);
-        InventoryDTO savedInventory = save(newInventory);
+        checkFields(inventoryDTO);
+        InventoryDTO savedInventory = save(inventoryDTO);
 
         // Record the initial inventory transaction
-        InventoryTransactionDTO inventoryTransactionDTO = new InventoryTransactionDTO();
-        inventoryTransactionDTO.setQuantity(savedInventory.getQuantity());
-        inventoryTransactionDTO.setTransactionDate(DateTimeUtils.nowAlgeria());
-        inventoryTransactionDTO.setTransactionType(transactionType);
-        inventoryTransactionDTO.setProductId(productId);
-        inventoryTransactionService.create(inventoryTransactionDTO);
+        inventoryTransactionService.save(savedInventory.getProductId(), savedInventory.getQuantity(), TransactionType.INITIAL);
 
         return savedInventory;
     }
@@ -91,10 +77,33 @@ public class InventoryService {
      */
     public InventoryDTO update(InventoryDTO inventoryDTO) {
         LOG.debug("Request to update Inventory : {}", inventoryDTO);
+
+        if (!inventoryRepository.existsById(inventoryDTO.getId())) {
+            throw new BadRequestAlertException("Entity not found", "", "idnotfound");
+        }
+        checkFields(inventoryDTO);
+
         Inventory inventory = inventoryMapper.toEntity(inventoryDTO);
         inventory.setIsPersisted();
         inventory = inventoryRepository.save(inventory);
+
+        // Record inventory transaction
+        inventoryTransactionService.save(inventoryDTO.getProductId(), inventoryDTO.getQuantity(), TransactionType.ADJUSTMENT);
+
         return inventoryMapper.toDto(inventory);
+    }
+
+    public void checkFields(InventoryDTO inventoryDTO) {
+        BigDecimal quantity = inventoryDTO.getQuantity();
+        BigDecimal availableQuantity = inventoryDTO.getAvailableQuantity();
+
+        if (quantity == null || quantity.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestAlertException("Quantity cannot be null or negative", "inventory", "quantityinvalid");
+        }
+
+        if (availableQuantity != null && availableQuantity.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestAlertException("Quantity cannot be null or negative", "inventory", "quantityinvalid");
+        }
     }
 
     /**

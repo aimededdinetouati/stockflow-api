@@ -18,6 +18,7 @@ public class InventoryDTO implements Serializable {
     @NotNull
     private BigDecimal quantity;
 
+    @NotNull
     private BigDecimal availableQuantity;
 
     @NotNull
