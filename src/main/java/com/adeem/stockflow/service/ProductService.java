@@ -1,5 +1,6 @@
 package com.adeem.stockflow.service;
 
+import com.adeem.stockflow.domain.Inventory;
 import com.adeem.stockflow.domain.Product;
 import com.adeem.stockflow.domain.ProductFamily;
 import com.adeem.stockflow.domain.enumeration.AttachmentType;
@@ -7,18 +8,18 @@ import com.adeem.stockflow.domain.enumeration.TransactionType;
 import com.adeem.stockflow.repository.ProductFamilyRepository;
 import com.adeem.stockflow.repository.ProductRepository;
 import com.adeem.stockflow.service.criteria.ProductSpecification;
-import com.adeem.stockflow.service.dto.AttachmentDTO;
-import com.adeem.stockflow.service.dto.InventoryDTO;
-import com.adeem.stockflow.service.dto.ProductDTO;
-import com.adeem.stockflow.service.dto.ProductFamilyDTO;
+import com.adeem.stockflow.service.dto.*;
 import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
 import com.adeem.stockflow.service.exceptions.ErrorConstants;
+import com.adeem.stockflow.service.mapper.InventoryMapper;
 import com.adeem.stockflow.service.mapper.ProductMapper;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -39,19 +40,22 @@ public class ProductService {
     private final InventoryService inventoryService;
     private final AttachmentService attachmentService;
     private final ProductMapper productMapper;
+    private final InventoryMapper inventoryMapper;
 
     public ProductService(
         ProductRepository productRepository,
         ProductFamilyRepository productFamilyRepository,
         InventoryService inventoryService,
         AttachmentService attachmentService,
-        ProductMapper productMapper
+        ProductMapper productMapper,
+        InventoryMapper inventoryMapper
     ) {
         this.productRepository = productRepository;
         this.productFamilyRepository = productFamilyRepository;
         this.inventoryService = inventoryService;
         this.attachmentService = attachmentService;
         this.productMapper = productMapper;
+        this.inventoryMapper = inventoryMapper;
     }
 
     /**
@@ -77,6 +81,7 @@ public class ProductService {
 
         if (inventoryDTO != null) {
             inventoryDTO.setProductId(savedProduct.getId());
+            inventoryDTO.setQuantity(inventoryDTO.getQuantity() == null ? BigDecimal.ZERO : inventoryDTO.getQuantity());
             inventoryService.create(inventoryDTO);
         }
 
@@ -191,6 +196,18 @@ public class ProductService {
                     new BadRequestAlertException("Product family does not exist", "", ErrorConstants.PRODUCT_FAMILY_DOES_NOT_EXIST)
                 );
         }
+
+        if (productDTO.getApplyTva() == null) {
+            throw new BadRequestAlertException("Apply TVA cannot be null", "product", "applytva");
+        }
+
+        if (productDTO.getName() == null) {
+            throw new BadRequestAlertException("Name cannot be null", "product", "name");
+        }
+
+        if (productDTO.getCode() == null) {
+            throw new BadRequestAlertException("Code cannot be null", "product", "code");
+        }
     }
 
     private void addProductImages(Long productId, List<MultipartFile> images) throws IOException {
@@ -278,9 +295,9 @@ public class ProductService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Page<ProductDTO> findAll(Pageable pageable) {
+    public Page<ProductDTO> findAll(Specification<Product> specification, Pageable pageable) {
         LOG.debug("Request to get all Products");
-        return productRepository.findAll(pageable).map(productMapper::toDto);
+        return productRepository.findAll(specification, pageable).map(productMapper::toDto);
     }
 
     /**
@@ -298,6 +315,65 @@ public class ProductService {
     public Optional<Product> findEntity(Specification<Product> specification) {
         LOG.debug("Request to get Product : {}", specification);
         return productRepository.findOne(specification);
+    }
+
+    /**
+     * Count products matching the given specification.
+     *
+     * @param spec The specification to match.
+     * @return The count of matching products.
+     */
+    @Transactional(readOnly = true)
+    public long countByCriteria(Specification<Product> spec) {
+        LOG.debug("Request to count Products by criteria");
+        return productRepository.count(spec);
+    }
+
+    /**
+     * Get one product by id and client account id.
+     *
+     * @param id the id of the entity.
+     * @param clientAccountId the client account id.
+     * @return the entity.
+     */
+    @Transactional(readOnly = true)
+    public Optional<ProductDTO> findOneForClientAccount(Long id, Long clientAccountId) {
+        LOG.debug("Request to get ProductDTO for client account : {}, {}", id, clientAccountId);
+        return productRepository
+            .findOne(ProductSpecification.withId(id).and(ProductSpecification.withClientAccountId(clientAccountId)))
+            .map(productMapper::toDto);
+    }
+
+    /**
+     * Find products with inventory below minimum stock level.
+     *
+     * @param clientAccountId the client account ID.
+     * @param pageable the pagination information.
+     * @return a page of products with low stock.
+     */
+    @Transactional(readOnly = true)
+    public Page<ProductWithInventoryDTO> findLowStockProducts(Long clientAccountId, Pageable pageable) {
+        LOG.debug("Request to get low stock products for client account : {}", clientAccountId);
+
+        // Get products with their inventory information
+        Page<Object[]> result = productRepository.findProductsWithLowStock(clientAccountId, pageable);
+
+        List<ProductWithInventoryDTO> dtoList = new ArrayList<>();
+
+        for (Object[] row : result.getContent()) {
+            Product product = (Product) row[0];
+            com.adeem.stockflow.domain.Inventory inventory = (com.adeem.stockflow.domain.Inventory) row[1];
+
+            ProductWithInventoryDTO dto = new ProductWithInventoryDTO();
+            dto.setProduct(productMapper.toDto(product));
+            if (inventory != null) {
+                dto.setInventory(inventoryMapper.toDto(inventory));
+            }
+
+            dtoList.add(dto);
+        }
+
+        return new PageImpl<>(dtoList, pageable, result.getTotalElements());
     }
 
     /**

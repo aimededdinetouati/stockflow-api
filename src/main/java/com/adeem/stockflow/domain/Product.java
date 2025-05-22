@@ -63,6 +63,7 @@ public class Product extends AbstractAuditingEntity<Long> implements Serializabl
 
     @NotNull
     @Column(name = "category", nullable = false)
+    @Enumerated(EnumType.STRING)
     private ProductCategory category;
 
     @NotNull

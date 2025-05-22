@@ -1,15 +1,114 @@
 package com.adeem.stockflow.service.criteria;
 
-import com.adeem.stockflow.domain.Product;
+import com.adeem.stockflow.domain.*;
 import com.adeem.stockflow.domain.enumeration.InventoryStatus;
+import com.adeem.stockflow.service.criteria.filter.ProductCriteria;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import org.springframework.data.jpa.domain.Specification;
+import tech.jhipster.service.QueryService;
+import tech.jhipster.service.filter.RangeFilter;
 
 /**
  * Specifications for filtering Product entities.
  */
-public class ProductSpecification {
+public class ProductSpecification extends QueryService<Product> {
+
+    /**
+     * Return a {@link Specification} based on the given criteria.
+     *
+     * @param criteria the criteria to create the specification from.
+     * @return the specification.
+     */
+    public static Specification<Product> createSpecification(ProductCriteria criteria) {
+        ProductSpecification helper = new ProductSpecification();
+        Specification<Product> specification = Specification.where(null);
+
+        if (criteria != null) {
+            if (criteria.getId() != null) {
+                specification = specification.and(helper.buildRangeSpecification(criteria.getId(), Product_.id));
+            }
+            if (criteria.getName() != null) {
+                specification = specification.and(helper.buildStringSpecification(criteria.getName(), Product_.name));
+            }
+            if (criteria.getCode() != null) {
+                specification = specification.and(helper.buildStringSpecification(criteria.getCode(), Product_.code));
+            }
+            if (criteria.getManufacturerCode() != null) {
+                specification = specification.and(
+                    helper.buildStringSpecification(criteria.getManufacturerCode(), Product_.manufacturerCode)
+                );
+            }
+            if (criteria.getUpc() != null) {
+                specification = specification.and(helper.buildStringSpecification(criteria.getUpc(), Product_.upc));
+            }
+            if (criteria.getSellingPrice() != null) {
+                specification = specification.and(helper.buildRangeSpecification(criteria.getSellingPrice(), Product_.sellingPrice));
+            }
+            if (criteria.getCostPrice() != null) {
+                specification = specification.and(helper.buildRangeSpecification(criteria.getCostPrice(), Product_.costPrice));
+            }
+            if (criteria.getProfitMargin() != null) {
+                specification = specification.and(helper.buildRangeSpecification(criteria.getProfitMargin(), Product_.profitMargin));
+            }
+            if (criteria.getMinimumStockLevel() != null) {
+                specification = specification.and(
+                    helper.buildRangeSpecification(criteria.getMinimumStockLevel(), Product_.minimumStockLevel)
+                );
+            }
+            if (criteria.getCategory() != null) {
+                specification = specification.and(helper.buildSpecification(criteria.getCategory(), Product_.category));
+            }
+            if (criteria.getApplyTva() != null) {
+                specification = specification.and(helper.buildSpecification(criteria.getApplyTva(), Product_.applyTva));
+            }
+            if (criteria.getIsVisibleToCustomers() != null) {
+                specification = specification.and(
+                    helper.buildSpecification(criteria.getIsVisibleToCustomers(), Product_.isVisibleToCustomers)
+                );
+            }
+            if (criteria.getExpirationDate() != null) {
+                specification = specification.and(helper.buildRangeSpecification(criteria.getExpirationDate(), Product_.expirationDate));
+            }
+            if (criteria.getProductFamilyId() != null) {
+                specification = specification.and(
+                    helper.buildSpecification(criteria.getProductFamilyId(), root -> root.get(Product_.productFamily).get(ProductFamily_.id)
+                    )
+                );
+            }
+
+            if (criteria.getInventoryQuantity() != null) {
+                RangeFilter<BigDecimal> q = criteria.getInventoryQuantity();
+                specification = specification.and((root, query, cb) -> {
+                    Join<Product, Inventory> inv = root.join(Product_.inventories, JoinType.LEFT);
+                    Predicate p = cb.conjunction();
+                    if (q.getGreaterThan() != null) {
+                        p = cb.and(p, cb.greaterThan(inv.get(Inventory_.quantity), q.getGreaterThan()));
+                    }
+                    if (q.getLessThan() != null) {
+                        p = cb.and(p, cb.lessThan(inv.get(Inventory_.quantity), q.getLessThan()));
+                    }
+                    if (q.getEquals() != null) {
+                        p = cb.and(p, cb.equal(inv.get(Inventory_.quantity), q.getEquals()));
+                    }
+                    return p;
+                });
+            }
+
+            if (criteria.getLowStock() != null && criteria.getLowStock().getEquals()) {
+                specification = specification.and(withLowStock());
+            }
+        }
+
+        return specification;
+    }
+
+    public static Specification<Product> withId(Long id) {
+        return BaseSpecification.equals("id", id);
+    }
 
     /**
      * Filter by product name (case-insensitive, partial match).
