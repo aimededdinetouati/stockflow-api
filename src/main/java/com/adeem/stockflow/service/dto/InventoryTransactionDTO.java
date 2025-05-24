@@ -38,8 +38,9 @@ public class InventoryTransactionDTO implements Serializable {
 
     private Instant lastModifiedDate;
 
-    private Long productId;
-    private String productName;
+    private ProductDTO product;
+
+    private InventoryDTO inventory;
 
     public Long getId() {
         return id;
@@ -121,20 +122,20 @@ public class InventoryTransactionDTO implements Serializable {
         this.lastModifiedDate = lastModifiedDate;
     }
 
-    public Long getProductId() {
-        return productId;
+    public ProductDTO getProduct() {
+        return product;
     }
 
-    public void setProductId(Long productId) {
-        this.productId = productId;
+    public void setProduct(ProductDTO product) {
+        this.product = product;
     }
 
-    public String getProductName() {
-        return productName;
+    public InventoryDTO getInventory() {
+        return inventory;
     }
 
-    public void setProductName(String productName) {
-        this.productName = productName;
+    public void setInventory(InventoryDTO inventory) {
+        this.inventory = inventory;
     }
 
     @Override
@@ -172,8 +173,8 @@ public class InventoryTransactionDTO implements Serializable {
             ", createdDate='" + getCreatedDate() + "'" +
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +
             ", lastModifiedDate='" + getLastModifiedDate() + "'" +
-            ", productId=" + getProductId() +
-            ", productName=" + getProductName() +
+            ", product=" + getProduct() +
+            ", inventory=" + getInventory() +
             "}";
     }
 }

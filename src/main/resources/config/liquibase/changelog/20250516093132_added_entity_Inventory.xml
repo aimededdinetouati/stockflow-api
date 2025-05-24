@@ -35,6 +35,9 @@
             <column name="last_modified_date" type="${datetimeType}">
                 <constraints nullable="false" />
             </column>
+            <column name="client_account_id" type="bigint">
+                <constraints nullable="true" />
+            </column>
             <column name="product_id" type="bigint">
                 <constraints nullable="true" />
             </column>

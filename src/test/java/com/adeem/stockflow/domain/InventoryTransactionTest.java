@@ -1,5 +1,6 @@
 package com.adeem.stockflow.domain;
 
+import static com.adeem.stockflow.domain.InventoryTestSamples.*;
 import static com.adeem.stockflow.domain.InventoryTransactionTestSamples.*;
 import static com.adeem.stockflow.domain.ProductTestSamples.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,5 +34,17 @@ class InventoryTransactionTest {
 
         inventoryTransaction.product(null);
         assertThat(inventoryTransaction.getProduct()).isNull();
+    }
+
+    @Test
+    void inventoryTest() {
+        InventoryTransaction inventoryTransaction = getInventoryTransactionRandomSampleGenerator();
+        Inventory inventoryBack = getInventoryRandomSampleGenerator();
+
+        inventoryTransaction.setInventory(inventoryBack);
+        assertThat(inventoryTransaction.getInventory()).isEqualTo(inventoryBack);
+
+        inventoryTransaction.inventory(null);
+        assertThat(inventoryTransaction.getInventory()).isNull();
     }
 }
