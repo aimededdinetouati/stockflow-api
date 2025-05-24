@@ -12,6 +12,7 @@ import org.mapstruct.*;
 @Mapper(componentModel = "spring")
 public interface InventoryTransactionMapper extends EntityMapper<InventoryTransactionDTO, InventoryTransaction> {
     @Mapping(target = "productId", source = "product.id")
+    @Mapping(target = "productName", source = "product.name")
     InventoryTransactionDTO toDto(InventoryTransaction s);
 
     default InventoryTransaction fromId(Long id) {

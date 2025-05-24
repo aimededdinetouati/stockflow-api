@@ -39,6 +39,7 @@ public class InventoryTransactionDTO implements Serializable {
     private Instant lastModifiedDate;
 
     private Long productId;
+    private String productName;
 
     public Long getId() {
         return id;
@@ -128,6 +129,14 @@ public class InventoryTransactionDTO implements Serializable {
         this.productId = productId;
     }
 
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -164,6 +173,7 @@ public class InventoryTransactionDTO implements Serializable {
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +
             ", lastModifiedDate='" + getLastModifiedDate() + "'" +
             ", productId=" + getProductId() +
+            ", productName=" + getProductName() +
             "}";
     }
 }
