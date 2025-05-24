@@ -20,6 +20,12 @@
             <column name="url" type="varchar(255)">
                 <constraints nullable="true" />
             </column>
+            <column name="data" type="${blobType}">
+                <constraints nullable="true" />
+            </column>
+            <column name="data_content_type" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
             <column name="file_size" type="bigint">
                 <constraints nullable="true" />
             </column>
@@ -78,6 +84,8 @@
             <column name="id" type="numeric"/>
             <column name="type" type="string"/>
             <column name="url" type="string"/>
+            <column name="data" type="blob"/>
+            <column name="data_content_type" type="string"/>
             <column name="file_size" type="numeric"/>
             <column name="is_primary" type="boolean"/>
             <column name="alt_text" type="string"/>

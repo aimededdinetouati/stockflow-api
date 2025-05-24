@@ -38,10 +38,6 @@ public class Inventory extends AbstractAuditingEntity<Long> implements Serializa
     private BigDecimal availableQuantity;
 
     @NotNull
-    @Column(name = "last_updated", nullable = false)
-    private Instant lastUpdated;
-
-    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private InventoryStatus status;
@@ -97,19 +93,6 @@ public class Inventory extends AbstractAuditingEntity<Long> implements Serializa
 
     public void setAvailableQuantity(BigDecimal availableQuantity) {
         this.availableQuantity = availableQuantity;
-    }
-
-    public Instant getLastUpdated() {
-        return this.lastUpdated;
-    }
-
-    public Inventory lastUpdated(Instant lastUpdated) {
-        this.setLastUpdated(lastUpdated);
-        return this;
-    }
-
-    public void setLastUpdated(Instant lastUpdated) {
-        this.lastUpdated = lastUpdated;
     }
 
     public InventoryStatus getStatus() {
@@ -206,7 +189,6 @@ public class Inventory extends AbstractAuditingEntity<Long> implements Serializa
             "id=" + getId() +
             ", quantity=" + getQuantity() +
             ", availableQuantity=" + getAvailableQuantity() +
-            ", lastUpdated='" + getLastUpdated() + "'" +
             ", status='" + getStatus() + "'" +
             ", createdBy='" + getCreatedBy() + "'" +
             ", createdDate='" + getCreatedDate() + "'" +

@@ -21,4 +21,13 @@ public interface CartItemMapper extends EntityMapper<CartItemDTO, CartItem> {
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
     ProductDTO toDtoProductId(Product product);
+
+    default CartItem fromId(Long id) {
+        if (id == null) {
+            return null;
+        }
+        CartItem cartItem = new CartItem();
+        cartItem.setId(id);
+        return cartItem;
+    }
 }

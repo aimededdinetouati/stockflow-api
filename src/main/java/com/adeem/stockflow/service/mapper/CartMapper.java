@@ -13,4 +13,13 @@ import org.mapstruct.*;
 public interface CartMapper extends EntityMapper<CartDTO, Cart> {
     @Mapping(target = "customerId", source = "customer.id")
     CartDTO toDto(Cart s);
+
+    default Cart fromId(Long id) {
+        if (id == null) {
+            return null;
+        }
+        Cart cart = new Cart();
+        cart.setId(id);
+        return cart;
+    }
 }

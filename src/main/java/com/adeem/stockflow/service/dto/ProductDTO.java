@@ -23,6 +23,7 @@ public class ProductDTO implements Serializable {
     private String description;
 
     @NotNull
+    @NotEmpty
     private String code;
 
     private String manufacturerCode;
@@ -39,7 +40,6 @@ public class ProductDTO implements Serializable {
 
     private ProductCategory category;
 
-    @NotNull
     private Boolean applyTva;
 
     private Boolean isVisibleToCustomers;

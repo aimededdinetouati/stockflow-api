@@ -20,9 +20,6 @@
             <column name="available_quantity" type="decimal(21,2)">
                 <constraints nullable="false" />
             </column>
-            <column name="last_updated" type="${datetimeType}">
-                <constraints nullable="false" />
-            </column>
             <column name="status" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
@@ -43,7 +40,6 @@
             </column>
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
         </createTable>
-        <dropDefaultValue tableName="inventory" columnName="last_updated" columnDataType="${datetimeType}"/>
         <dropDefaultValue tableName="inventory" columnName="created_date" columnDataType="${datetimeType}"/>
         <dropDefaultValue tableName="inventory" columnName="last_modified_date" columnDataType="${datetimeType}"/>
     </changeSet>
@@ -67,7 +63,6 @@
             <column name="id" type="numeric"/>
             <column name="quantity" type="numeric"/>
             <column name="available_quantity" type="numeric"/>
-            <column name="last_updated" type="date"/>
             <column name="status" type="string"/>
             <column name="created_by" type="string"/>
             <column name="created_date" type="date"/>

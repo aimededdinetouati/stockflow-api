@@ -18,4 +18,13 @@ public interface AdminMapper extends EntityMapper<AdminDTO, Admin> {
     @Mapping(target = "userId", source = "user.id")
     @Mapping(target = "clientAccountId", source = "clientAccount.id")
     AdminDTO toDto(Admin s);
+
+    default Admin fromId(Long id) {
+        if (id == null) {
+            return null;
+        }
+        Admin admin = new Admin();
+        admin.setId(id);
+        return admin;
+    }
 }

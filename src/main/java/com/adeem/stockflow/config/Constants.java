@@ -1,5 +1,7 @@
 package com.adeem.stockflow.config;
 
+import java.time.ZoneId;
+
 /**
  * Application constants.
  */
@@ -10,6 +12,7 @@ public final class Constants {
     public static final String NOT_ALLOWED = "Resource not allowed";
     public static final String SYSTEM = "system";
     public static final String DEFAULT_LANGUAGE = "en";
+    public static final ZoneId ALGERIA_ZONE = ZoneId.of("Africa/Algiers");
 
     private Constants() {}
 }

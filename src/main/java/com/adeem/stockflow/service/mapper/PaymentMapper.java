@@ -21,4 +21,13 @@ public interface PaymentMapper extends EntityMapper<PaymentDTO, Payment> {
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
     CustomerDTO toDtoCustomerId(Customer customer);
+
+    default Payment fromId(Long id) {
+        if (id == null) {
+            return null;
+        }
+        Payment payment = new Payment();
+        payment.setId(id);
+        return payment;
+    }
 }

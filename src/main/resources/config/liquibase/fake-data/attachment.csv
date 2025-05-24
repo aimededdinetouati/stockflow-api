@@ -1,11 +1,11 @@
-id;type;url;file_size;is_primary;alt_text;created_by;created_date;last_modified_by;last_modified_date
-1;PROFILE_PICTURE;https://alive-alert.com;3489;true;awful unruly;exacerbate practical kindheartedly;2025-05-15T21:05:39;slushy;2025-05-15T19:22:14
-2;PRODUCT_IMAGE;https://evil-bidet.org;22227;true;whereas fatally pish;uh-huh costume whoever;2025-05-16T08:13:22;about attraction;2025-05-15T23:15:26
-3;COMPANY_LOGO;https://better-fax.info/;8825;false;sashay so;um welcome decryption;2025-05-16T01:19:04;irritably plumber;2025-05-16T06:06:43
-4;PROFILE_PICTURE;https://husky-newsprint.net/;4687;true;jaywalk ha;quip;2025-05-15T09:34:18;lest hyena;2025-05-16T08:19:25
-5;PROFILE_PICTURE;https://quintessential-seagull.biz/;16663;true;receptor telescope irritably;when;2025-05-15T18:24:04;archive past;2025-05-15T23:56:49
-6;COMPANY_LOGO;https://moist-igloo.info;11187;true;inquisitively wiggly vivaciously;tomorrow nephew;2025-05-15T16:06:10;ack beneath;2025-05-15T11:12:27
-7;PROFILE_PICTURE;https://impish-developing.info/;24170;false;blah;doubtfully;2025-05-15T11:52:50;misread chunder atrium;2025-05-15T12:20:19
-8;COMPANY_LOGO;https://well-lit-scenario.net/;22142;true;squiggly or technician;misreport;2025-05-16T07:22:57;at;2025-05-16T04:55:56
-9;PRODUCT_IMAGE;https://tragic-disk.net;2638;true;against;amid graduate responsible;2025-05-15T10:26:31;well-documented saw;2025-05-15T18:09:55
-10;PRODUCT_IMAGE;https://youthful-reservation.com/;27296;true;after;atop yuck hm;2025-05-15T23:13:12;finally authentic drat;2025-05-15T18:06:48
+id;type;url;data;data_content_type;file_size;is_primary;alt_text;created_by;created_date;last_modified_by;last_modified_date
+1;PROFILE_PICTURE;https://alive-alert.com;../fake-data/blob/hipster.png;image/png;3489;true;awful unruly;exacerbate practical kindheartedly;2025-05-15T21:05:39;slushy;2025-05-15T19:22:14
+2;PRODUCT_IMAGE;https://evil-bidet.org;../fake-data/blob/hipster.png;image/png;22227;true;whereas fatally pish;uh-huh costume whoever;2025-05-16T08:13:22;about attraction;2025-05-15T23:15:26
+3;COMPANY_LOGO;https://better-fax.info/;../fake-data/blob/hipster.png;image/png;8825;false;sashay so;um welcome decryption;2025-05-16T01:19:04;irritably plumber;2025-05-16T06:06:43
+4;PROFILE_PICTURE;https://husky-newsprint.net/;../fake-data/blob/hipster.png;image/png;4687;true;jaywalk ha;quip;2025-05-15T09:34:18;lest hyena;2025-05-16T08:19:25
+5;PROFILE_PICTURE;https://quintessential-seagull.biz/;../fake-data/blob/hipster.png;image/png;16663;true;receptor telescope irritably;when;2025-05-15T18:24:04;archive past;2025-05-15T23:56:49
+6;COMPANY_LOGO;https://moist-igloo.info;../fake-data/blob/hipster.png;image/png;11187;true;inquisitively wiggly vivaciously;tomorrow nephew;2025-05-15T16:06:10;ack beneath;2025-05-15T11:12:27
+7;PROFILE_PICTURE;https://impish-developing.info/;../fake-data/blob/hipster.png;image/png;24170;false;blah;doubtfully;2025-05-15T11:52:50;misread chunder atrium;2025-05-15T12:20:19
+8;COMPANY_LOGO;https://well-lit-scenario.net/;../fake-data/blob/hipster.png;image/png;22142;true;squiggly or technician;misreport;2025-05-16T07:22:57;at;2025-05-16T04:55:56
+9;PRODUCT_IMAGE;https://tragic-disk.net;../fake-data/blob/hipster.png;image/png;2638;true;against;amid graduate responsible;2025-05-15T10:26:31;well-documented saw;2025-05-15T18:09:55
+10;PRODUCT_IMAGE;https://youthful-reservation.com/;../fake-data/blob/hipster.png;image/png;27296;true;after;atop yuck hm;2025-05-15T23:13:12;finally authentic drat;2025-05-15T18:06:48

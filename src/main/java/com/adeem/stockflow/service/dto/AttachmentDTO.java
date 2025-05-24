@@ -1,6 +1,7 @@
 package com.adeem.stockflow.service.dto;
 
 import com.adeem.stockflow.domain.enumeration.AttachmentType;
+import jakarta.persistence.Lob;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
@@ -16,6 +17,11 @@ public class AttachmentDTO implements Serializable {
     private AttachmentType type;
 
     private String url;
+
+    @Lob
+    private byte[] data;
+
+    private String dataContentType;
 
     private Long fileSize;
 
@@ -61,6 +67,22 @@ public class AttachmentDTO implements Serializable {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public byte[] getData() {
+        return data;
+    }
+
+    public void setData(byte[] data) {
+        this.data = data;
+    }
+
+    public String getDataContentType() {
+        return dataContentType;
+    }
+
+    public void setDataContentType(String dataContentType) {
+        this.dataContentType = dataContentType;
     }
 
     public Long getFileSize() {
@@ -187,6 +209,7 @@ public class AttachmentDTO implements Serializable {
             "id=" + getId() +
             ", type='" + getType() + "'" +
             ", url='" + getUrl() + "'" +
+            ", data='" + getData() + "'" +
             ", fileSize=" + getFileSize() +
             ", isPrimary='" + getIsPrimary() + "'" +
             ", altText='" + getAltText() + "'" +

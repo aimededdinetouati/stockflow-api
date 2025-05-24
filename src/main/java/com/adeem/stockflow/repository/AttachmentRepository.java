@@ -13,4 +13,6 @@ import org.springframework.stereotype.Repository;
 public interface AttachmentRepository extends JpaRepository<Attachment, Long> {
     @Query("select attachment from Attachment attachment where attachment.user.login = ?#{authentication.name}")
     List<Attachment> findByUserIsCurrentUser();
+
+    List<Attachment> findByProductId(Long id);
 }

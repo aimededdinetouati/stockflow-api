@@ -49,32 +49,28 @@ public class Product extends AbstractAuditingEntity<Long> implements Serializabl
     @Column(name = "upc")
     private String upc;
 
-    @NotNull
-    @Column(name = "selling_price", precision = 21, scale = 2, nullable = false)
+    @Column(name = "selling_price", precision = 21, scale = 2)
     private BigDecimal sellingPrice;
 
-    @NotNull
-    @Column(name = "cost_price", precision = 21, scale = 2, nullable = false)
+    @Column(name = "cost_price", precision = 21, scale = 2)
     private BigDecimal costPrice;
 
-    @NotNull
-    @Column(name = "profit_margin", precision = 21, scale = 2, nullable = false)
+    @Column(name = "profit_margin", precision = 21, scale = 2)
     private BigDecimal profitMargin;
 
-    @NotNull
-    @Column(name = "minimum_stock_level", precision = 21, scale = 2, nullable = false)
+    @Column(name = "minimum_stock_level", precision = 21, scale = 2)
     private BigDecimal minimumStockLevel;
 
     @NotNull
     @Column(name = "category", nullable = false)
+    @Enumerated(EnumType.STRING)
     private ProductCategory category;
 
     @NotNull
-    @Column(name = "apply_tva", nullable = false)
+    @Column(name = "apply_tva", columnDefinition = "boolean default false")
     private Boolean applyTva;
 
-    @NotNull
-    @Column(name = "is_visible_to_customers", nullable = false)
+    @Column(name = "is_visible_to_customers", columnDefinition = "boolean default true")
     private Boolean isVisibleToCustomers;
 
     @Column(name = "expiration_date")

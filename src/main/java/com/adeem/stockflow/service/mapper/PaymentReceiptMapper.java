@@ -13,4 +13,13 @@ import org.mapstruct.*;
 public interface PaymentReceiptMapper extends EntityMapper<PaymentReceiptDTO, PaymentReceipt> {
     @Mapping(target = "paymentId", source = "payment.id")
     PaymentReceiptDTO toDto(PaymentReceipt s);
+
+    default PaymentReceipt fromId(Long id) {
+        if (id == null) {
+            return null;
+        }
+        PaymentReceipt paymentReceipt = new PaymentReceipt();
+        paymentReceipt.setId(id);
+        return paymentReceipt;
+    }
 }

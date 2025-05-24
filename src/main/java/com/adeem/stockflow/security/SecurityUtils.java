@@ -66,7 +66,7 @@ public final class SecurityUtils {
      *
      * @return the Id of the current user.
      */
-    public static Optional<Long> getCurrentUserId() {
+    public static Optional<Long> getCurrentOptUserId() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         return Optional.ofNullable(securityContext.getAuthentication())
             .filter(authentication -> authentication.getPrincipal() instanceof ClaimAccessor)
@@ -74,12 +74,28 @@ public final class SecurityUtils {
             .map(principal -> principal.getClaim(USER_ID_CLAIM));
     }
 
-    public static Optional<Long> getCurrentClientAccountId() {
+    public static Long getCurrentUserId() {
+        Optional<Long> userId = SecurityUtils.getCurrentOptUserId();
+        if (userId.isEmpty()) {
+            throw new SecurityException("User not associated with a client account");
+        }
+        return userId.get();
+    }
+
+    public static Optional<Long> getCurrentOptClientAccountId() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         return Optional.ofNullable(securityContext.getAuthentication())
             .filter(authentication -> authentication.getPrincipal() instanceof ClaimAccessor)
             .map(authentication -> (ClaimAccessor) authentication.getPrincipal())
             .map(principal -> principal.getClaim(CLIENT_ACCOUNT_ID_CLAIM));
+    }
+
+    public static Long getCurrentClientAccountId() {
+        Optional<Long> clientAccountId = SecurityUtils.getCurrentOptClientAccountId();
+        if (clientAccountId.isEmpty()) {
+            throw new SecurityException("User not associated with a client account");
+        }
+        return clientAccountId.get();
     }
 
     /**

@@ -38,7 +38,7 @@ public class InventoryTransactionDTO implements Serializable {
 
     private Instant lastModifiedDate;
 
-    private ProductDTO product;
+    private Long productId;
 
     public Long getId() {
         return id;
@@ -120,12 +120,12 @@ public class InventoryTransactionDTO implements Serializable {
         this.lastModifiedDate = lastModifiedDate;
     }
 
-    public ProductDTO getProduct() {
-        return product;
+    public Long getProductId() {
+        return productId;
     }
 
-    public void setProduct(ProductDTO product) {
-        this.product = product;
+    public void setProductId(Long productId) {
+        this.productId = productId;
     }
 
     @Override
@@ -163,7 +163,7 @@ public class InventoryTransactionDTO implements Serializable {
             ", createdDate='" + getCreatedDate() + "'" +
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +
             ", lastModifiedDate='" + getLastModifiedDate() + "'" +
-            ", product=" + getProduct() +
+            ", productId=" + getProductId() +
             "}";
     }
 }

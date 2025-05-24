@@ -45,7 +45,7 @@
                 <constraints nullable="true" />
             </column>
             <column name="apply_tva" type="boolean">
-                <constraints nullable="false" />
+                <constraints nullable="true" />
             </column>
             <column name="is_visible_to_customers" type="boolean">
                 <constraints nullable="true" />

@@ -13,4 +13,13 @@ import org.mapstruct.*;
 public interface PlanFeatureMapper extends EntityMapper<PlanFeatureDTO, PlanFeature> {
     @Mapping(target = "planFormulaId", source = "planFormula.id")
     PlanFeatureDTO toDto(PlanFeature s);
+
+    default PlanFeature fromId(Long id) {
+        if (id == null) {
+            return null;
+        }
+        PlanFeature planFeature = new PlanFeature();
+        planFeature.setId(id);
+        return planFeature;
+    }
 }

@@ -57,7 +57,7 @@ class SecurityUtilsUnitTest {
             .build();
         securityContext.setAuthentication(new UsernamePasswordAuthenticationToken(jwt, "token"));
         SecurityContextHolder.setContext(securityContext);
-        var contextUserId = SecurityUtils.getCurrentUserId();
+        var contextUserId = SecurityUtils.getCurrentOptUserId();
         assertThat(contextUserId.orElse(null)).isEqualTo(userId);
     }
 

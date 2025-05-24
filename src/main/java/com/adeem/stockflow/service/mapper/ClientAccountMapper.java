@@ -26,4 +26,13 @@ public interface ClientAccountMapper extends EntityMapper<ClientAccountDTO, Clie
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
     AddressDTO toDtoAddressId(Address address);
+
+    default ClientAccount fromId(Long id) {
+        if (id == null) {
+            return null;
+        }
+        ClientAccount clientAccount = new ClientAccount();
+        clientAccount.setId(id);
+        return clientAccount;
+    }
 }
