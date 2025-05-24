@@ -1,9 +1,9 @@
 package com.adeem.stockflow.service.mapper;
 
-import com.adeem.stockflow.domain.Attachment;
+import com.adeem.stockflow.domain.ClientAccount;
 import com.adeem.stockflow.domain.Inventory;
 import com.adeem.stockflow.domain.Product;
-import com.adeem.stockflow.service.dto.AttachmentDTO;
+import com.adeem.stockflow.service.dto.ClientAccountDTO;
 import com.adeem.stockflow.service.dto.InventoryDTO;
 import com.adeem.stockflow.service.dto.ProductDTO;
 import org.mapstruct.*;
@@ -13,27 +13,17 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface InventoryMapper extends EntityMapper<InventoryDTO, Inventory> {
-    @Mapping(target = "productId", source = "product.id")
+    @Mapping(target = "clientAccount", source = "clientAccount", qualifiedByName = "clientAccountId")
+    @Mapping(target = "product", source = "product", qualifiedByName = "productId")
     InventoryDTO toDto(Inventory s);
 
-    @Mapping(target = "product", source = "productId")
-    Inventory toEntity(InventoryDTO inventoryDTO);
+    @Named("clientAccountId")
+    @BeanMapping(ignoreByDefault = true)
+    @Mapping(target = "id", source = "id")
+    ClientAccountDTO toDtoClientAccountId(ClientAccount clientAccount);
 
-    default Product fromProductId(Long id) {
-        if (id == null) {
-            return null;
-        }
-        Product product = new Product();
-        product.setId(id);
-        return product;
-    }
-
-    default Inventory fromId(Long id) {
-        if (id == null) {
-            return null;
-        }
-        Inventory inventory = new Inventory();
-        inventory.setId(id);
-        return inventory;
-    }
+    @Named("productId")
+    @BeanMapping(ignoreByDefault = true)
+    @Mapping(target = "id", source = "id")
+    ProductDTO toDtoProductId(Product product);
 }
