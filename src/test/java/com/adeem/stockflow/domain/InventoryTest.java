@@ -1,5 +1,6 @@
 package com.adeem.stockflow.domain;
 
+import static com.adeem.stockflow.domain.ClientAccountTestSamples.*;
 import static com.adeem.stockflow.domain.InventoryTestSamples.*;
 import static com.adeem.stockflow.domain.ProductTestSamples.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,6 +22,18 @@ class InventoryTest {
 
         inventory2 = getInventorySample2();
         assertThat(inventory1).isNotEqualTo(inventory2);
+    }
+
+    @Test
+    void clientAccountTest() {
+        Inventory inventory = getInventoryRandomSampleGenerator();
+        ClientAccount clientAccountBack = getClientAccountRandomSampleGenerator();
+
+        inventory.setClientAccount(clientAccountBack);
+        assertThat(inventory.getClientAccount()).isEqualTo(clientAccountBack);
+
+        inventory.clientAccount(null);
+        assertThat(inventory.getClientAccount()).isNull();
     }
 
     @Test

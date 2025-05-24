@@ -74,6 +74,12 @@
       "relationshipName": "product",
       "relationshipSide": "left",
       "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityName": "inventory",
+      "relationshipName": "inventory",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
     }
   ],
   "searchEngine": "no",

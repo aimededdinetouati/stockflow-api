@@ -61,6 +61,12 @@
   "pagination": "pagination",
   "relationships": [
     {
+      "otherEntityName": "clientAccount",
+      "relationshipName": "clientAccount",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    },
+    {
       "otherEntityName": "product",
       "otherEntityRelationshipName": "inventories",
       "relationshipName": "product",

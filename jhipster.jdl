@@ -510,6 +510,8 @@ relationship ManyToOne {
 
 relationship ManyToOne {
   InventoryTransaction{product} to Product,
+  InventoryTransaction{inventory} to Inventory,
+  Inventory{clientAccount} to ClientAccount,
 }
 
 relationship OneToMany {

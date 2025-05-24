@@ -130,6 +130,7 @@ class ProductResourceIT {
     private MockMvc restProductMockMvc;
 
     private Product product;
+    private ClientAccount clientAccount;
 
     private Product insertedProduct;
 
@@ -202,6 +203,10 @@ class ProductResourceIT {
 
     @BeforeEach
     void initTest() {
+        // Create client account
+        clientAccount = ClientAccountResourceIT.createEntity();
+        clientAccount = clientAccountRepository.saveAndFlush(clientAccount);
+
         product = createEntity();
     }
 
@@ -216,11 +221,13 @@ class ProductResourceIT {
 
     @Test
     @Transactional
-    @WithMockClientAccount
     void createProduct() throws Exception {
         long databaseSizeBeforeCreate = getRepositoryCount();
 
-        // Create the Product and Inventory DTOs
+        setSecurityContextWithClientAccountId(clientAccount.getId());
+
+        // Initialize the database
+        product.setClientAccount(clientAccount);
         ProductDTO productDTO = productMapper.toDto(product);
         InventoryDTO inventoryDTO = createDefaultInventoryDTO();
         ProductWithInventoryDTO productWithInventoryDTO = createProductWithInventoryDTO(productDTO, inventoryDTO);
@@ -343,10 +350,8 @@ class ProductResourceIT {
     @Test
     @Transactional
     void getAllProducts() throws Exception {
-        ClientAccount clientAccount = clientAccountRepository.saveAndFlush(ClientAccountResourceIT.createEntity());
+        setSecurityContextWithClientAccountId(clientAccount.getId());
         product.setClientAccount(clientAccount);
-        setSecurityContextWithClientAccountId(product.getClientAccount().getId());
-
         // Initialize the database
         insertedProduct = productRepository.saveAndFlush(product);
 
@@ -374,10 +379,8 @@ class ProductResourceIT {
     @Test
     @Transactional
     void getAllProductsWithNameFilter() throws Exception {
-        ClientAccount clientAccount = clientAccountRepository.saveAndFlush(ClientAccountResourceIT.createEntity());
+        setSecurityContextWithClientAccountId(clientAccount.getId());
         product.setClientAccount(clientAccount);
-        setSecurityContextWithClientAccountId(product.getClientAccount().getId());
-
         // Create second product with different name
         Product product2 = createEntity();
         product2.setName("Different Product Name");
@@ -411,10 +414,8 @@ class ProductResourceIT {
     @Test
     @Transactional
     void getAllProductsWithCategoryFilter() throws Exception {
-        ClientAccount clientAccount = clientAccountRepository.saveAndFlush(ClientAccountResourceIT.createEntity());
+        setSecurityContextWithClientAccountId(clientAccount.getId());
         product.setClientAccount(clientAccount);
-        setSecurityContextWithClientAccountId(product.getClientAccount().getId());
-
         // Create second product with different category
         Product product2 = createEntity();
         product2.setCategory(ProductCategory.COMPUTERS);
@@ -450,10 +451,8 @@ class ProductResourceIT {
     @Test
     @Transactional
     void getAllProductsWithPriceRangeFilter() throws Exception {
-        ClientAccount clientAccount = clientAccountRepository.saveAndFlush(ClientAccountResourceIT.createEntity());
+        setSecurityContextWithClientAccountId(clientAccount.getId());
         product.setClientAccount(clientAccount);
-        setSecurityContextWithClientAccountId(product.getClientAccount().getId());
-
         // Create products with different prices
         Product product2 = createEntity();
         product2.setSellingPrice(new BigDecimal("50"));
@@ -504,10 +503,8 @@ class ProductResourceIT {
     @Test
     @Transactional
     void getAllProductsWithBooleanFilters() throws Exception {
-        ClientAccount clientAccount = clientAccountRepository.saveAndFlush(ClientAccountResourceIT.createEntity());
+        setSecurityContextWithClientAccountId(clientAccount.getId());
         product.setClientAccount(clientAccount);
-        setSecurityContextWithClientAccountId(product.getClientAccount().getId());
-
         // Create products with different boolean values
         Product product2 = createEntity();
         product2.setApplyTva(true);
@@ -552,10 +549,8 @@ class ProductResourceIT {
     @Test
     @Transactional
     void getAllProductsWithCodeFilter() throws Exception {
-        ClientAccount clientAccount = clientAccountRepository.saveAndFlush(ClientAccountResourceIT.createEntity());
+        setSecurityContextWithClientAccountId(clientAccount.getId());
         product.setClientAccount(clientAccount);
-        setSecurityContextWithClientAccountId(product.getClientAccount().getId());
-
         // Create products with different codes
         Product product2 = createEntity();
         product2.setCode("SPECIAL_CODE_123");
@@ -588,11 +583,10 @@ class ProductResourceIT {
     }
 
     @Test
+    @Transactional
     void getAllProductsWithManufacturerCodeFilter() throws Exception {
-        ClientAccount clientAccount = clientAccountRepository.saveAndFlush(ClientAccountResourceIT.createEntity());
+        setSecurityContextWithClientAccountId(clientAccount.getId());
         product.setClientAccount(clientAccount);
-        setSecurityContextWithClientAccountId(product.getClientAccount().getId());
-
         // Create products with different manufacturer codes
         Product product2 = createEntity();
         product2.setManufacturerCode("SONY_12345");
@@ -628,10 +622,8 @@ class ProductResourceIT {
     @Test
     @Transactional
     void getAllProductsWithInventoryQuantityFilter() throws Exception {
-        ClientAccount clientAccount = clientAccountRepository.saveAndFlush(ClientAccountResourceIT.createEntity());
+        setSecurityContextWithClientAccountId(clientAccount.getId());
         product.setClientAccount(clientAccount);
-        setSecurityContextWithClientAccountId(product.getClientAccount().getId());
-
         // Create products
         Product product2 = createEntity();
         product2.setCode("HIGH_STOCK_PRODUCT");
@@ -691,10 +683,8 @@ class ProductResourceIT {
     @Test
     @Transactional
     void getAllProductsWithMultipleCriteria() throws Exception {
-        ClientAccount clientAccount = clientAccountRepository.saveAndFlush(ClientAccountResourceIT.createEntity());
+        setSecurityContextWithClientAccountId(clientAccount.getId());
         product.setClientAccount(clientAccount);
-        setSecurityContextWithClientAccountId(product.getClientAccount().getId());
-
         // Create products with different attributes
         Product product1 = createEntity();
         product1.setCode("ELECTRONICS_PRODUCT_1");
@@ -757,10 +747,8 @@ class ProductResourceIT {
     @Test
     @Transactional
     void getProduct() throws Exception {
-        ClientAccount clientAccount = clientAccountRepository.saveAndFlush(ClientAccountResourceIT.createEntity());
+        setSecurityContextWithClientAccountId(clientAccount.getId());
         product.setClientAccount(clientAccount);
-        setSecurityContextWithClientAccountId(product.getClientAccount().getId());
-
         // Initialize the database
         insertedProduct = productRepository.saveAndFlush(product);
 
@@ -795,9 +783,11 @@ class ProductResourceIT {
 
     @Test
     @Transactional
-    @WithMockClientAccount
     void updateProductWithInventoryAndImages() throws Exception {
+        setSecurityContextWithClientAccountId(clientAccount.getId());
+
         // Initialize the database
+        product.setClientAccount(clientAccount);
         insertedProduct = productRepository.saveAndFlush(product);
 
         Inventory initialInventory = new Inventory();
@@ -829,6 +819,7 @@ class ProductResourceIT {
         // Update the product
         Product updatedProduct = createUpdatedEntity();
         updatedProduct.setId(insertedProduct.getId());
+        updatedProduct.setClientAccount(clientAccount);
         ProductDTO productDTO = productMapper.toDto(updatedProduct);
 
         // Update inventory
@@ -837,7 +828,7 @@ class ProductResourceIT {
         updatedInventory.setQuantity(new BigDecimal("20.0"));
         updatedInventory.setAvailableQuantity(new BigDecimal("15.0"));
         updatedInventory.setStatus(InventoryStatus.AVAILABLE);
-        updatedInventory.setProductId(insertedProduct.getId());
+        updatedInventory.setProduct(productMapper.toDto(insertedProduct));
 
         ProductWithInventoryDTO productWithInventoryDTO = createProductWithInventoryDTO(productDTO, updatedInventory);
 
@@ -872,9 +863,11 @@ class ProductResourceIT {
 
     @Test
     @Transactional
-    @WithMockClientAccount
     void updateProductWithInventory() throws Exception {
+        setSecurityContextWithClientAccountId(clientAccount.getId());
+
         // Initialize the database
+        product.setClientAccount(clientAccount);
         insertedProduct = productRepository.saveAndFlush(product);
 
         // Create initial inventory
@@ -926,7 +919,7 @@ class ProductResourceIT {
         updatedInventory.setQuantity(new BigDecimal("20.0"));
         updatedInventory.setAvailableQuantity(new BigDecimal("15.0"));
         updatedInventory.setStatus(InventoryStatus.AVAILABLE);
-        updatedInventory.setProductId(insertedProduct.getId());
+        updatedInventory.setProduct(productMapper.toDto(insertedProduct));
 
         ProductWithInventoryDTO productWithInventoryDTO = createProductWithInventoryDTO(productDTO, updatedInventory);
 
@@ -955,9 +948,11 @@ class ProductResourceIT {
 
     @Test
     @Transactional
-    @WithMockClientAccount
     void updateProductWithImages() throws Exception {
+        setSecurityContextWithClientAccountId(clientAccount.getId());
+
         // Initialize the database
+        product.setClientAccount(clientAccount);
         insertedProduct = productRepository.saveAndFlush(product);
 
         long databaseSizeBeforeUpdate = getRepositoryCount();
@@ -968,6 +963,7 @@ class ProductResourceIT {
 
         // Update the product
         Product updatedProduct = createUpdatedEntity();
+        updatedProduct.setClientAccount(clientAccount);
         updatedProduct.setId(insertedProduct.getId());
         ProductDTO productDTO = productMapper.toDto(updatedProduct);
 
@@ -1011,8 +1007,10 @@ class ProductResourceIT {
 
     @Test
     @Transactional
-    @WithMockClientAccount
     void updateWithIdMismatchProduct() throws Exception {
+        setSecurityContextWithClientAccountId(clientAccount.getId());
+
+        product.setClientAccount(clientAccount);
         long databaseSizeBeforeUpdate = getRepositoryCount();
         product.setId(longCount.incrementAndGet());
 
@@ -1068,10 +1066,8 @@ class ProductResourceIT {
     @Test
     @Transactional
     void deleteProduct() throws Exception {
-        ClientAccount clientAccount = clientAccountRepository.saveAndFlush(ClientAccountResourceIT.createEntity());
+        setSecurityContextWithClientAccountId(clientAccount.getId());
         product.setClientAccount(clientAccount);
-        setSecurityContextWithClientAccountId(product.getClientAccount().getId());
-
         // Initialize the database
         insertedProduct = productRepository.saveAndFlush(product);
 
@@ -1087,10 +1083,8 @@ class ProductResourceIT {
     @Test
     @Transactional
     void getLowStockProducts() throws Exception {
-        ClientAccount clientAccount = clientAccountRepository.saveAndFlush(ClientAccountResourceIT.createEntity());
+        setSecurityContextWithClientAccountId(clientAccount.getId());
         product.setClientAccount(clientAccount);
-        setSecurityContextWithClientAccountId(product.getClientAccount().getId());
-
         // Initialize the database with a product that has low stock
         insertedProduct = productRepository.saveAndFlush(product);
 
@@ -1115,10 +1109,8 @@ class ProductResourceIT {
     @Test
     @Transactional
     void countProducts() throws Exception {
-        ClientAccount clientAccount = clientAccountRepository.saveAndFlush(ClientAccountResourceIT.createEntity());
+        setSecurityContextWithClientAccountId(clientAccount.getId());
         product.setClientAccount(clientAccount);
-        setSecurityContextWithClientAccountId(product.getClientAccount().getId());
-
         // Initialize the database
         insertedProduct = productRepository.saveAndFlush(product);
 

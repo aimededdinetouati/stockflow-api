@@ -11,12 +11,15 @@ import org.mapstruct.*;
 /**
  * Mapper for the entity {@link Product} and its DTO {@link ProductDTO}.
  */
-@Mapper(componentModel = "spring", uses = { InventoryMapper.class })
+@Mapper(componentModel = "spring", uses = { InventoryMapper.class, ClientAccountMapper.class })
 public interface ProductMapper extends EntityMapper<ProductDTO, Product> {
     @Mapping(target = "clientAccountId", source = "clientAccount.id")
     @Mapping(target = "productFamily", source = "productFamily", qualifiedByName = "productFamilyId")
     @Mapping(target = "inventories", source = "inventories")
     ProductDTO toDto(Product s);
+
+    @Mapping(target = "clientAccount", source = "clientAccountId")
+    Product toEntity(ProductDTO productDTO);
 
     @Named("productFamilyId")
     @BeanMapping(ignoreByDefault = true)

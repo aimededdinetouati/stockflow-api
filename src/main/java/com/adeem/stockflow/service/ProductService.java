@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -71,6 +72,7 @@ public class ProductService {
         return productMapper.toDto(product);
     }
 
+    @CacheEvict(value = "inventoryStats", key = "#productDTO.clientAccountId")
     public ProductDTO create(ProductDTO productDTO, InventoryDTO inventoryDTO, List<MultipartFile> images) throws IOException {
         LOG.debug("Request to create Product : {}", productDTO);
         checkFields(productDTO);
@@ -80,7 +82,8 @@ public class ProductService {
         ProductDTO savedProduct = save(newProduct);
 
         if (inventoryDTO != null) {
-            inventoryDTO.setProductId(savedProduct.getId());
+            inventoryDTO.setClientAccountId(productDTO.getClientAccountId());
+            inventoryDTO.setProduct(savedProduct);
             inventoryDTO.setQuantity(inventoryDTO.getQuantity() == null ? BigDecimal.ZERO : inventoryDTO.getQuantity());
             inventoryService.create(inventoryDTO);
         }
@@ -100,6 +103,7 @@ public class ProductService {
      * @param images the product images to add (optional)
      * @return the updated entity
      */
+    @CacheEvict(value = "inventoryStats", key = "#productDTO.clientAccountId")
     public ProductDTO update(ProductDTO productDTO, InventoryDTO inventoryDTO, List<MultipartFile> images) throws IOException {
         LOG.debug("Request to update Product : {}", productDTO);
 
@@ -122,7 +126,8 @@ public class ProductService {
 
         // Update the inventory if provided
         if (inventoryDTO != null && inventoryDTO.getId() != null) {
-            inventoryDTO.setProductId(updated.getId());
+            inventoryDTO.setClientAccountId(productDTO.getClientAccountId());
+            inventoryDTO.setProduct(productMapper.toDto(updated));
             inventoryService.update(inventoryDTO);
         }
 
