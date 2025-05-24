@@ -51,6 +51,10 @@ public class Inventory extends AbstractAuditingEntity<Long> implements Serializa
     private boolean isPersisted;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnoreProperties(value = { "address", "quota", "subscriptions" }, allowSetters = true)
+    private ClientAccount clientAccount;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "images", "inventories", "clientAccount", "productFamily" }, allowSetters = true)
     private Product product;
 
@@ -147,6 +151,19 @@ public class Inventory extends AbstractAuditingEntity<Long> implements Serializa
 
     public Inventory setIsPersisted() {
         this.isPersisted = true;
+        return this;
+    }
+
+    public ClientAccount getClientAccount() {
+        return this.clientAccount;
+    }
+
+    public void setClientAccount(ClientAccount clientAccount) {
+        this.clientAccount = clientAccount;
+    }
+
+    public Inventory clientAccount(ClientAccount clientAccount) {
+        this.setClientAccount(clientAccount);
         return this;
     }
 

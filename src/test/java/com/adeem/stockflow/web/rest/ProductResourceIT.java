@@ -837,7 +837,7 @@ class ProductResourceIT {
         updatedInventory.setQuantity(new BigDecimal("20.0"));
         updatedInventory.setAvailableQuantity(new BigDecimal("15.0"));
         updatedInventory.setStatus(InventoryStatus.AVAILABLE);
-        updatedInventory.setProductId(insertedProduct.getId());
+        updatedInventory.setProduct(productMapper.toDto(insertedProduct));
 
         ProductWithInventoryDTO productWithInventoryDTO = createProductWithInventoryDTO(productDTO, updatedInventory);
 
@@ -926,7 +926,7 @@ class ProductResourceIT {
         updatedInventory.setQuantity(new BigDecimal("20.0"));
         updatedInventory.setAvailableQuantity(new BigDecimal("15.0"));
         updatedInventory.setStatus(InventoryStatus.AVAILABLE);
-        updatedInventory.setProductId(insertedProduct.getId());
+        updatedInventory.setProduct(productMapper.toDto(insertedProduct));
 
         ProductWithInventoryDTO productWithInventoryDTO = createProductWithInventoryDTO(productDTO, updatedInventory);
 

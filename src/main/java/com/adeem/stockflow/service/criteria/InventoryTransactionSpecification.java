@@ -70,45 +70,6 @@ public class InventoryTransactionSpecification {
     }
 
     /**
-     * Filter by return order item ID.
-     */
-    public static Specification<InventoryTransaction> withReturnOrderItemId(Long returnOrderItemId) {
-        return (root, query, criteriaBuilder) -> {
-            if (returnOrderItemId == null) {
-                return criteriaBuilder.conjunction();
-            }
-            var join = root.join("returnOrderItem", jakarta.persistence.criteria.JoinType.LEFT);
-            return criteriaBuilder.equal(join.get("id"), returnOrderItemId);
-        };
-    }
-
-    /**
-     * Filter by sale order ID.
-     */
-    public static Specification<InventoryTransaction> withSaleOrderId(Long saleOrderId) {
-        return (root, query, criteriaBuilder) -> {
-            if (saleOrderId == null) {
-                return criteriaBuilder.conjunction();
-            }
-            var join = root.join("saleOrderItem", jakarta.persistence.criteria.JoinType.LEFT);
-            return criteriaBuilder.equal(join.get("id"), saleOrderId);
-        };
-    }
-
-    /**
-     * Filter by purchase order ID.
-     */
-    public static Specification<InventoryTransaction> withPurchaseOrderId(Long purchaseOrderId) {
-        return (root, query, criteriaBuilder) -> {
-            if (purchaseOrderId == null) {
-                return criteriaBuilder.conjunction();
-            }
-            var join = root.join("purchaseOrderItem", jakarta.persistence.criteria.JoinType.LEFT);
-            return criteriaBuilder.equal(join.get("id"), purchaseOrderId);
-        };
-    }
-
-    /**
      * Filter by product ID across all related entities.
      */
     public static Specification<InventoryTransaction> withProductId(Long productId) {
@@ -117,39 +78,8 @@ public class InventoryTransactionSpecification {
                 return criteriaBuilder.conjunction();
             }
 
-            // Create disjunction to check for product in all possible paths
-            Predicate result = criteriaBuilder.disjunction();
-
-            // Check return order item's product
-            try {
-                var returnItemJoin = root.join("returnOrderItem", jakarta.persistence.criteria.JoinType.LEFT);
-                var productJoin1 = returnItemJoin.join("product", jakarta.persistence.criteria.JoinType.LEFT);
-                result = criteriaBuilder.or(result, criteriaBuilder.equal(productJoin1.get("id"), productId));
-            } catch (IllegalArgumentException e) {
-                // Path might not exist, continue with other checks
-            }
-
-            // Check sale order's products
-            try {
-                var saleOrderJoin = root.join("saleOrderItem", jakarta.persistence.criteria.JoinType.LEFT);
-                var orderItemsJoin1 = saleOrderJoin.join("orderItems", jakarta.persistence.criteria.JoinType.LEFT);
-                var productJoin2 = orderItemsJoin1.join("product", jakarta.persistence.criteria.JoinType.LEFT);
-                result = criteriaBuilder.or(result, criteriaBuilder.equal(productJoin2.get("id"), productId));
-            } catch (IllegalArgumentException e) {
-                // Path might not exist, continue with other checks
-            }
-
-            // Check purchase order's products
-            try {
-                var purchaseOrderJoin = root.join("purchaseOrderItem", jakarta.persistence.criteria.JoinType.LEFT);
-                var orderItemsJoin2 = purchaseOrderJoin.join("orderItems", jakarta.persistence.criteria.JoinType.LEFT);
-                var productJoin3 = orderItemsJoin2.join("product", jakarta.persistence.criteria.JoinType.LEFT);
-                result = criteriaBuilder.or(result, criteriaBuilder.equal(productJoin3.get("id"), productId));
-            } catch (IllegalArgumentException e) {
-                // Path might not exist
-            }
-
-            return result;
+            var join = root.join("product", jakarta.persistence.criteria.JoinType.LEFT);
+            return criteriaBuilder.equal(join.get("id"), productId);
         };
     }
 

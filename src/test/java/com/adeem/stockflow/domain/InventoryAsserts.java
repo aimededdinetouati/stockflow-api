@@ -71,6 +71,7 @@ public class InventoryAsserts {
     public static void assertInventoryUpdatableRelationshipsEquals(Inventory expected, Inventory actual) {
         assertThat(actual)
             .as("Verify Inventory relationships")
+            .satisfies(a -> assertThat(a.getClientAccount()).as("check clientAccount").isEqualTo(expected.getClientAccount()))
             .satisfies(a -> assertThat(a.getProduct()).as("check product").isEqualTo(expected.getProduct()));
     }
 }
