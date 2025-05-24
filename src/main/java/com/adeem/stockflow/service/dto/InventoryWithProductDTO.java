@@ -23,8 +23,6 @@ public class InventoryWithProductDTO implements Serializable {
     @NotNull
     private InventoryStatus status;
 
-    private String location;
-
     private Instant lastUpdated;
 
     private ProductDTO product;
@@ -124,14 +122,6 @@ public class InventoryWithProductDTO implements Serializable {
         this.status = status;
     }
 
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
     public Instant getLastUpdated() {
         return lastUpdated;
     }
@@ -228,9 +218,6 @@ public class InventoryWithProductDTO implements Serializable {
             getAvailableQuantity() +
             ", status='" +
             getStatus() +
-            "'" +
-            ", location='" +
-            getLocation() +
             "'" +
             ", lastUpdated='" +
             getLastUpdated() +

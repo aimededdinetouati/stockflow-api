@@ -79,7 +79,11 @@ public class InventoryService {
         InventoryDTO savedInventory = save(inventoryDTO);
 
         // Record the initial inventory transaction
-        inventoryTransactionService.save(savedInventory.getProductId(), savedInventory.getQuantity(), TransactionType.INITIAL);
+        inventoryTransactionService.save(
+            productMapper.toEntity(savedInventory.getProduct()),
+            savedInventory.getQuantity(),
+            TransactionType.INITIAL
+        );
 
         return savedInventory;
     }
@@ -103,7 +107,11 @@ public class InventoryService {
         inventory = inventoryRepository.save(inventory);
 
         // Record inventory transaction
-        inventoryTransactionService.save(inventoryDTO.getProductId(), inventoryDTO.getQuantity(), TransactionType.ADJUSTMENT);
+        inventoryTransactionService.save(
+            productMapper.toEntity(inventoryDTO.getProduct()),
+            inventoryDTO.getQuantity(),
+            TransactionType.ADJUSTMENT
+        );
 
         return inventoryMapper.toDto(inventory);
     }
@@ -119,26 +127,6 @@ public class InventoryService {
         if (availableQuantity != null && availableQuantity.compareTo(BigDecimal.ZERO) < 0) {
             throw new BadRequestAlertException("Quantity cannot be null or negative", "inventory", "quantityinvalid");
         }
-    }
-
-    /**
-     * Partially update a inventory.
-     *
-     * @param inventoryDTO the entity to update partially.
-     * @return the persisted entity.
-     */
-    public Optional<InventoryDTO> partialUpdate(InventoryDTO inventoryDTO) {
-        LOG.debug("Request to partially update Inventory : {}", inventoryDTO);
-
-        return inventoryRepository
-            .findById(inventoryDTO.getId())
-            .map(existingInventory -> {
-                inventoryMapper.partialUpdate(existingInventory, inventoryDTO);
-
-                return existingInventory;
-            })
-            .map(inventoryRepository::save)
-            .map(inventoryMapper::toDto);
     }
 
     /**
@@ -239,6 +227,8 @@ public class InventoryService {
     @Transactional(readOnly = true)
     public Optional<InventoryDTO> findOneForClientAccount(Long id, Long clientAccountId) {
         LOG.debug("Request to get Inventory : {} for client account: {}", id, clientAccountId);
+
+        var x = inventoryRepository.findAll();
 
         Specification<Inventory> spec = InventorySpecification.withId(id).and(InventorySpecification.withClientAccountId(clientAccountId));
 
@@ -443,7 +433,7 @@ public class InventoryService {
         Inventory savedInventory = inventoryRepository.save(inventory);
 
         BigDecimal quantityChange = newQuantity.subtract(oldQuantity);
-        inventoryTransactionService.save(inventory.getProduct().getId(), quantityChange, TransactionType.ADJUSTMENT);
+        inventoryTransactionService.save(inventory.getProduct(), quantityChange, TransactionType.ADJUSTMENT);
 
         return inventoryMapper.toDto(savedInventory);
     }

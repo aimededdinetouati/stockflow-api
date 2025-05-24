@@ -20,6 +20,7 @@ import com.adeem.stockflow.service.dto.InventoryDTO;
 import com.adeem.stockflow.service.dto.InventoryStatsDTO;
 import com.adeem.stockflow.service.dto.InventoryWithProductDTO;
 import com.adeem.stockflow.service.mapper.InventoryMapper;
+import com.adeem.stockflow.service.mapper.ProductMapper;
 import com.adeem.stockflow.web.rest.InventoryResource.InventoryAdjustmentRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
@@ -79,6 +80,9 @@ class InventoryResourceIT {
 
     @Autowired
     private InventoryMapper inventoryMapper;
+
+    @Autowired
+    private ProductMapper productMapper;
 
     @Autowired
     private EntityManager em;
@@ -147,7 +151,7 @@ class InventoryResourceIT {
 
         // Create the Inventory
         InventoryDTO inventoryDTO = inventoryMapper.toDto(inventory);
-        inventoryDTO.setProductId(product.getId());
+        inventoryDTO.setProduct(productMapper.toDto(product));
 
         restInventoryMockMvc
             .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(inventoryDTO)))
@@ -167,7 +171,7 @@ class InventoryResourceIT {
     void createInventoryWithExistingId() throws Exception {
         inventory.setId(1L);
         InventoryDTO inventoryDTO = inventoryMapper.toDto(inventory);
-        inventoryDTO.setProductId(product.getId());
+        inventoryDTO.setProduct(productMapper.toDto(product));
 
         long databaseSizeBeforeCreate = getRepositoryCount();
 
@@ -186,6 +190,7 @@ class InventoryResourceIT {
         setSecurityContextWithClientAccountId(clientAccount.getId());
 
         // Initialize the database
+        inventory.setClientAccount(clientAccount);
         insertedInventory = inventoryRepository.saveAndFlush(inventory);
 
         // Get all the inventory list
@@ -205,6 +210,7 @@ class InventoryResourceIT {
         setSecurityContextWithClientAccountId(clientAccount.getId());
 
         // Initialize the database
+        inventory.setClientAccount(clientAccount);
         insertedInventory = inventoryRepository.saveAndFlush(inventory);
 
         // Get the inventory
@@ -230,9 +236,10 @@ class InventoryResourceIT {
 
     @Test
     @Transactional
-    @WithMockClientAccount
     void putExistingInventory() throws Exception {
+        setSecurityContextWithClientAccountId(clientAccount.getId());
         // Initialize the database
+        inventory.setClientAccount(clientAccount);
         insertedInventory = inventoryRepository.saveAndFlush(inventory);
 
         long databaseSizeBeforeUpdate = getRepositoryCount();
@@ -243,7 +250,7 @@ class InventoryResourceIT {
         em.detach(updatedInventory);
         updatedInventory.quantity(UPDATED_QUANTITY).availableQuantity(UPDATED_AVAILABLE_QUANTITY).status(UPDATED_STATUS);
         InventoryDTO inventoryDTO = inventoryMapper.toDto(updatedInventory);
-        inventoryDTO.setProductId(product.getId());
+        inventoryDTO.setProduct(productMapper.toDto(product));
 
         restInventoryMockMvc
             .perform(
@@ -260,9 +267,10 @@ class InventoryResourceIT {
 
     @Test
     @Transactional
-    @WithMockClientAccount
     void deleteInventory() throws Exception {
+        setSecurityContextWithClientAccountId(clientAccount.getId());
         // Initialize the database
+        inventory.setClientAccount(clientAccount);
         insertedInventory = inventoryRepository.saveAndFlush(inventory);
 
         long databaseSizeBeforeDelete = getRepositoryCount();
@@ -280,6 +288,7 @@ class InventoryResourceIT {
         setSecurityContextWithClientAccountId(clientAccount.getId());
 
         // Initialize the database with multiple inventory records
+        inventory.setClientAccount(clientAccount);
         insertedInventory = inventoryRepository.saveAndFlush(inventory);
 
         // Create additional inventory for stats calculation
@@ -293,15 +302,30 @@ class InventoryResourceIT {
         inventory2.setProduct(product2);
         inventory2.setQuantity(new BigDecimal("2")); // Below minimum stock
         inventory2.setAvailableQuantity(new BigDecimal("2"));
+        inventory2.setClientAccount(clientAccount);
         inventoryRepository.saveAndFlush(inventory2);
+
+        // Healthy stock item
+        Product healthyProduct = ProductResourceIT.createEntity();
+        healthyProduct.setCode("PRODUCT_HEALTHY");
+        healthyProduct.setClientAccount(clientAccount);
+        healthyProduct.setMinimumStockLevel(new BigDecimal("5"));
+        healthyProduct = productRepository.saveAndFlush(healthyProduct);
+
+        Inventory healthyInventory = createEntity(em);
+        healthyInventory.setProduct(healthyProduct);
+        healthyInventory.setQuantity(new BigDecimal("10"));
+        healthyInventory.setAvailableQuantity(new BigDecimal("10"));
+        healthyInventory.setClientAccount(clientAccount);
+        inventoryRepository.saveAndFlush(healthyInventory);
 
         // Get the inventory stats
         restInventoryMockMvc
             .perform(get(ENTITY_API_URL + "/stats"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.totalProducts").value(2))
-            .andExpect(jsonPath("$.totalUnits").value(sameNumber(new BigDecimal("12.00"))))
+            .andExpect(jsonPath("$.totalProducts").value(3))
+            .andExpect(jsonPath("$.totalUnits").value(sameNumber(new BigDecimal("22.00"))))
             .andExpect(jsonPath("$.lowStockItems").value(1))
             .andExpect(jsonPath("$.healthyStockItems").value(1));
     }
@@ -315,6 +339,7 @@ class InventoryResourceIT {
         product.setMinimumStockLevel(new BigDecimal("15")); // Higher than current quantity
         productRepository.saveAndFlush(product);
 
+        inventory.setClientAccount(clientAccount);
         insertedInventory = inventoryRepository.saveAndFlush(inventory);
 
         // Get low stock items
@@ -333,6 +358,7 @@ class InventoryResourceIT {
         setSecurityContextWithClientAccountId(clientAccount.getId());
 
         // Create out of stock inventory
+        inventory.setClientAccount(clientAccount);
         inventory.setQuantity(BigDecimal.ZERO);
         inventory.setAvailableQuantity(BigDecimal.ZERO);
         insertedInventory = inventoryRepository.saveAndFlush(inventory);
@@ -349,9 +375,10 @@ class InventoryResourceIT {
 
     @Test
     @Transactional
-    @WithMockClientAccount
     void adjustInventory() throws Exception {
+        setSecurityContextWithClientAccountId(clientAccount.getId());
         // Initialize the database
+        inventory.setClientAccount(clientAccount);
         insertedInventory = inventoryRepository.saveAndFlush(inventory);
 
         InventoryAdjustmentRequest request = new InventoryAdjustmentRequest();
@@ -379,10 +406,101 @@ class InventoryResourceIT {
 
     @Test
     @Transactional
+    void adjustInventoryWithDecrease() throws Exception {
+        setSecurityContextWithClientAccountId(clientAccount.getId());
+
+        inventory.setClientAccount(clientAccount);
+        inventory.setQuantity(new BigDecimal("15"));
+        inventory.setAvailableQuantity(new BigDecimal("13"));
+        insertedInventory = inventoryRepository.saveAndFlush(inventory);
+
+        InventoryAdjustmentRequest request = new InventoryAdjustmentRequest();
+        request.setType(AdjustmentType.DECREASE);
+        request.setQuantity(new BigDecimal("5"));
+        request.setReason("Stock loss");
+        request.setNotes("Damaged items removed");
+
+        restInventoryMockMvc
+            .perform(
+                post(ENTITY_API_URL + "/{id}/adjust", inventory.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(om.writeValueAsBytes(request))
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.quantity").value(sameNumber(new BigDecimal("10.00"))))
+            .andExpect(jsonPath("$.availableQuantity").value(sameNumber(new BigDecimal("8.00"))));
+
+        List<InventoryTransaction> transactions = inventoryTransactionRepository.findByProductId(product.getId());
+        assertThat(transactions).hasSize(1);
+        assertThat(transactions.get(0).getTransactionType()).isEqualTo(TransactionType.ADJUSTMENT);
+        assertThat(transactions.get(0).getQuantity()).isEqualByComparingTo(new BigDecimal("-5"));
+    }
+
+    @Test
+    @Transactional
+    void adjustInventoryWithSetExact() throws Exception {
+        setSecurityContextWithClientAccountId(clientAccount.getId());
+
+        inventory.setClientAccount(clientAccount);
+        inventory.setQuantity(new BigDecimal("20"));
+        inventory.setAvailableQuantity(new BigDecimal("15")); // 5 reserved
+        insertedInventory = inventoryRepository.saveAndFlush(inventory);
+
+        InventoryAdjustmentRequest request = new InventoryAdjustmentRequest();
+        request.setType(AdjustmentType.SET_EXACT);
+        request.setQuantity(new BigDecimal("12")); // New total, 5 reserved => 7 available
+        request.setReason("Stock reconciliation");
+        request.setNotes("Rechecked count");
+
+        restInventoryMockMvc
+            .perform(
+                post(ENTITY_API_URL + "/{id}/adjust", inventory.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(om.writeValueAsBytes(request))
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.quantity").value(sameNumber(new BigDecimal("12.00"))))
+            .andExpect(jsonPath("$.availableQuantity").value(sameNumber(new BigDecimal("7.00"))));
+
+        List<InventoryTransaction> transactions = inventoryTransactionRepository.findByProductId(product.getId());
+        assertThat(transactions).hasSize(1);
+        assertThat(transactions.get(0).getTransactionType()).isEqualTo(TransactionType.ADJUSTMENT);
+        assertThat(transactions.get(0).getQuantity()).isEqualByComparingTo(new BigDecimal("-8")); // 12 - 20
+    }
+
+    @Test
+    @Transactional
+    void adjustInventoryWithNegativeQuantityShouldFail() throws Exception {
+        setSecurityContextWithClientAccountId(clientAccount.getId());
+
+        inventory.setClientAccount(clientAccount);
+        inventory.setQuantity(new BigDecimal("3"));
+        inventory.setAvailableQuantity(new BigDecimal("3"));
+        insertedInventory = inventoryRepository.saveAndFlush(inventory);
+
+        InventoryAdjustmentRequest request = new InventoryAdjustmentRequest();
+        request.setType(AdjustmentType.DECREASE);
+        request.setQuantity(new BigDecimal("5"));
+        request.setReason("Shrinkage");
+        request.setNotes("Lost items");
+
+        restInventoryMockMvc
+            .perform(
+                post(ENTITY_API_URL + "/{id}/adjust", inventory.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(om.writeValueAsBytes(request))
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("error.invalidquantity"));
+    }
+
+    @Test
+    @Transactional
     void getInventoryByProduct() throws Exception {
         setSecurityContextWithClientAccountId(clientAccount.getId());
 
         // Initialize the database
+        inventory.setClientAccount(clientAccount);
         insertedInventory = inventoryRepository.saveAndFlush(inventory);
 
         // Get inventory by product ID
@@ -391,7 +509,7 @@ class InventoryResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(inventory.getId().intValue()))
-            .andExpect(jsonPath("$.productId").value(product.getId().intValue()));
+            .andExpect(jsonPath("$.product.id").value(product.getId().intValue()));
     }
 
     @Test
@@ -400,6 +518,7 @@ class InventoryResourceIT {
         setSecurityContextWithClientAccountId(clientAccount.getId());
 
         // Initialize the database
+        inventory.setClientAccount(clientAccount);
         insertedInventory = inventoryRepository.saveAndFlush(inventory);
 
         // Create some transaction history
@@ -429,6 +548,7 @@ class InventoryResourceIT {
         setSecurityContextWithClientAccountId(clientAccount.getId());
 
         // Initialize the database
+        inventory.setClientAccount(clientAccount);
         insertedInventory = inventoryRepository.saveAndFlush(inventory);
 
         // Get the count

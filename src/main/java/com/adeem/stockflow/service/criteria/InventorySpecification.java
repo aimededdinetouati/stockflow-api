@@ -251,8 +251,8 @@ public class InventorySpecification extends QueryService<Inventory> {
             if (clientAccountId == null) {
                 return criteriaBuilder.conjunction();
             }
-            Join<Inventory, Product> productJoin = root.join(Inventory_.product, JoinType.LEFT);
-            Join<Product, ClientAccount> clientAccountJoin = productJoin.join(Product_.clientAccount, JoinType.LEFT);
+
+            Join<Inventory, ClientAccount> clientAccountJoin = root.join(Inventory_.clientAccount, JoinType.LEFT);
             return criteriaBuilder.equal(clientAccountJoin.get(ClientAccount_.id), clientAccountId);
         };
     }

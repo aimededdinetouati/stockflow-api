@@ -42,11 +42,8 @@ public class InventoryTransactionService {
      * Save a inventoryTransaction.
      *
      */
-    public void save(Long productId, BigDecimal quantity, TransactionType transactionType) {
+    public void save(Product product, BigDecimal quantity, TransactionType transactionType) {
         LOG.debug("Request to save InventoryTransaction");
-
-        Product product = new Product();
-        product.setId(productId);
 
         InventoryTransaction inventoryTransaction = new InventoryTransaction();
         inventoryTransaction.setQuantity(quantity);

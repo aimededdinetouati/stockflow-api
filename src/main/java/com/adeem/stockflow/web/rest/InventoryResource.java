@@ -108,7 +108,7 @@ public class InventoryResource {
             throw new BadRequestAlertException("Inventory not found or access denied", ENTITY_NAME, "notfound");
         }
 
-        //inventoryDTO.setClientAccountId(clientAccountId);
+        inventoryDTO.setClientAccountId(clientAccountId);
         InventoryDTO result = inventoryService.update(inventoryDTO);
 
         return ResponseEntity.ok()

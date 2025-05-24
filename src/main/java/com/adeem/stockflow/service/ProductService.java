@@ -80,7 +80,7 @@ public class ProductService {
         ProductDTO savedProduct = save(newProduct);
 
         if (inventoryDTO != null) {
-            inventoryDTO.setProductId(savedProduct.getId());
+            inventoryDTO.setProduct(savedProduct);
             inventoryDTO.setQuantity(inventoryDTO.getQuantity() == null ? BigDecimal.ZERO : inventoryDTO.getQuantity());
             inventoryService.create(inventoryDTO);
         }
@@ -122,7 +122,7 @@ public class ProductService {
 
         // Update the inventory if provided
         if (inventoryDTO != null && inventoryDTO.getId() != null) {
-            inventoryDTO.setProductId(updated.getId());
+            inventoryDTO.setProduct(productMapper.toDto(updated));
             inventoryService.update(inventoryDTO);
         }
 
