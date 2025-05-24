@@ -1,12 +1,11 @@
 package com.adeem.stockflow.service;
 
 import com.adeem.stockflow.domain.Inventory;
-import com.adeem.stockflow.domain.InventoryTransaction;
-import com.adeem.stockflow.domain.Product;
-import com.adeem.stockflow.domain.enumeration.InventoryStatus;
 import com.adeem.stockflow.domain.enumeration.TransactionType;
 import com.adeem.stockflow.repository.InventoryRepository;
 import com.adeem.stockflow.repository.InventoryTransactionRepository;
+import com.adeem.stockflow.repository.projection.InventoryFinancialStatsDTO;
+import com.adeem.stockflow.repository.projection.InventoryStockLevelStatsDTO;
 import com.adeem.stockflow.service.criteria.InventorySpecification;
 import com.adeem.stockflow.service.criteria.InventoryTransactionSpecification;
 import com.adeem.stockflow.service.dto.*;
@@ -14,13 +13,13 @@ import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
 import com.adeem.stockflow.service.mapper.InventoryMapper;
 import com.adeem.stockflow.service.mapper.InventoryTransactionMapper;
 import com.adeem.stockflow.service.mapper.ProductMapper;
-import com.adeem.stockflow.service.util.DateTimeUtils;
-import com.adeem.stockflow.web.rest.InventoryResource;
 import java.math.BigDecimal;
-import java.util.List;
+import java.math.RoundingMode;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -72,6 +71,7 @@ public class InventoryService {
         return inventoryMapper.toDto(inventory);
     }
 
+    @CacheEvict(value = "inventoryStats", key = "#inventoryDTO.clientAccountId")
     public InventoryDTO create(InventoryDTO inventoryDTO) {
         LOG.debug("Request to create Inventory : {}", inventoryDTO);
 
@@ -94,6 +94,7 @@ public class InventoryService {
      * @param inventoryDTO the entity to save.
      * @return the persisted entity.
      */
+    @CacheEvict(value = "inventoryStats", key = "#inventoryDTO.clientAccountId")
     public InventoryDTO update(InventoryDTO inventoryDTO) {
         LOG.debug("Request to update Inventory : {}", inventoryDTO);
 
@@ -295,77 +296,43 @@ public class InventoryService {
      * @param clientAccountId the client account ID
      * @return inventory statistics
      */
+    @Cacheable(value = "inventoryStats", key = "#clientAccountId")
     @Transactional(readOnly = true)
     public InventoryStatsDTO getInventoryStats(Long clientAccountId) {
         LOG.debug("Request to get Inventory stats for client account: {}", clientAccountId);
 
+        // Single query for financial data
+        InventoryFinancialStatsDTO financialStats = inventoryRepository.getFinancialStats(clientAccountId);
+
+        // Single query for stock level analysis
+        InventoryStockLevelStatsDTO stockLevelStats = inventoryRepository.getStockLevelStats(clientAccountId);
+
+        // Combine results
         InventoryStatsDTO stats = new InventoryStatsDTO();
+        stats.setTotalProducts(stockLevelStats.totalProducts());
+        stats.setTotalUnits(financialStats.totalUnits());
+        stats.setTotalValue(financialStats.totalValue());
+        stats.setTotalAvailableQuantity(financialStats.totalAvailable());
+        stats.setTotalReservedQuantity(financialStats.totalReserved());
 
-        // Basic counts
-        Specification<Inventory> baseSpec = InventorySpecification.withClientAccountId(clientAccountId);
+        stats.setOutOfStockItems(stockLevelStats.outOfStockCount());
+        stats.setLowStockItems(stockLevelStats.lowStockCount());
+        stats.setHealthyStockItems(stockLevelStats.healthyStockCount());
+        stats.setOverstockItems(stockLevelStats.overstockCount());
 
-        long totalProducts = inventoryRepository.count(baseSpec);
-        stats.setTotalProducts(totalProducts);
-
-        // Get all inventories for calculations
-        List<Inventory> allInventories = inventoryRepository.findAll(baseSpec);
-
-        BigDecimal totalUnits = BigDecimal.ZERO;
-        BigDecimal totalValue = BigDecimal.ZERO;
-        BigDecimal totalAvailable = BigDecimal.ZERO;
-        BigDecimal totalReserved = BigDecimal.ZERO;
-
-        long lowStockCount = 0;
-        long outOfStockCount = 0;
-        long healthyStockCount = 0;
-        long overstockCount = 0;
-
-        for (Inventory inventory : allInventories) {
-            totalUnits = totalUnits.add(inventory.getQuantity());
-            totalAvailable = totalAvailable.add(inventory.getAvailableQuantity());
-            totalReserved = totalReserved.add(inventory.getQuantity().subtract(inventory.getAvailableQuantity()));
-
-            // Calculate value (cost price * available quantity)
-            if (inventory.getProduct().getCostPrice() != null) {
-                BigDecimal itemValue = inventory.getAvailableQuantity().multiply(inventory.getProduct().getCostPrice());
-                totalValue = totalValue.add(itemValue);
-            }
-
-            // Stock level analysis
-            BigDecimal availableQty = inventory.getAvailableQuantity();
-            BigDecimal minLevel = inventory.getProduct().getMinimumStockLevel();
-
-            if (availableQty.compareTo(BigDecimal.ZERO) == 0) {
-                outOfStockCount++;
-            } else if (minLevel != null && availableQty.compareTo(minLevel) <= 0) {
-                lowStockCount++;
-            } else if (minLevel != null && availableQty.compareTo(minLevel.multiply(BigDecimal.valueOf(3))) > 0) {
-                overstockCount++;
-            } else {
-                healthyStockCount++;
-            }
+        // Calculate derived values
+        if (stockLevelStats.totalProducts() > 0) {
+            stats.setAverageStockLevel(
+                financialStats.totalUnits().divide(BigDecimal.valueOf(stockLevelStats.totalProducts()), 2, RoundingMode.HALF_UP)
+            );
         }
 
-        stats.setTotalUnits(totalUnits);
-        stats.setTotalValue(totalValue);
-        stats.setTotalAvailableQuantity(totalAvailable);
-        stats.setTotalReservedQuantity(totalReserved);
-        stats.setLowStockItems(lowStockCount);
-        stats.setOutOfStockItems(outOfStockCount);
-        stats.setHealthyStockItems(healthyStockCount);
-        stats.setOverstockItems(overstockCount);
-
-        // Calculate average stock level
-        if (totalProducts > 0) {
-            stats.setAverageStockLevel(totalUnits.divide(BigDecimal.valueOf(totalProducts), 2, java.math.RoundingMode.HALF_UP));
-        }
-
-        // Set inventory accuracy (placeholder - would need transaction data for real calculation)
+        // Set fixed accuracy (could be calculated separately if needed)
         stats.setInventoryAccuracy(BigDecimal.valueOf(98.5));
 
         // Alert counts
-        stats.setCriticalAlerts(outOfStockCount);
-        stats.setWarningAlerts(lowStockCount);
+        stats.setCriticalAlerts(stockLevelStats.outOfStockCount());
+        stats.setWarningAlerts(stockLevelStats.lowStockCount());
 
         return stats;
     }
@@ -387,7 +354,7 @@ public class InventoryService {
      * @param adjustmentRequest the adjustment details
      * @return the updated inventory DTO
      */
-    public InventoryDTO adjustInventory(Long id, InventoryResource.InventoryAdjustmentRequest adjustmentRequest) {
+    public InventoryDTO adjustInventory(Long id, InventoryAdjustmentRequest adjustmentRequest) {
         LOG.debug("Request to adjust Inventory : {} with request: {}", id, adjustmentRequest);
 
         Inventory inventory = inventoryRepository

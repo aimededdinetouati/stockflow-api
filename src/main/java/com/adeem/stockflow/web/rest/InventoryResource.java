@@ -8,10 +8,7 @@ import com.adeem.stockflow.service.InventoryService;
 import com.adeem.stockflow.service.criteria.InventorySpecification;
 import com.adeem.stockflow.service.criteria.ProductSpecification;
 import com.adeem.stockflow.service.criteria.filter.InventoryCriteria;
-import com.adeem.stockflow.service.dto.InventoryDTO;
-import com.adeem.stockflow.service.dto.InventoryStatsDTO;
-import com.adeem.stockflow.service.dto.InventoryTransactionDTO;
-import com.adeem.stockflow.service.dto.InventoryWithProductDTO;
+import com.adeem.stockflow.service.dto.*;
 import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -343,52 +340,5 @@ public class InventoryResource {
         Page<InventoryTransactionDTO> page = inventoryService.getInventoryHistory(id, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
-    }
-
-    public static class InventoryAdjustmentRequest {
-
-        @NotNull
-        private AdjustmentType type;
-
-        @NotNull
-        private BigDecimal quantity;
-
-        @NotNull
-        private String reason;
-
-        private String notes;
-
-        // Getters and setters
-        public AdjustmentType getType() {
-            return type;
-        }
-
-        public void setType(AdjustmentType type) {
-            this.type = type;
-        }
-
-        public BigDecimal getQuantity() {
-            return quantity;
-        }
-
-        public void setQuantity(BigDecimal quantity) {
-            this.quantity = quantity;
-        }
-
-        public String getReason() {
-            return reason;
-        }
-
-        public void setReason(String reason) {
-            this.reason = reason;
-        }
-
-        public String getNotes() {
-            return notes;
-        }
-
-        public void setNotes(String notes) {
-            this.notes = notes;
-        }
     }
 }
