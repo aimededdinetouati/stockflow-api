@@ -23,6 +23,15 @@
             <column name="email" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
+            <column name="fax" type="varchar(50)"/>
+            <column name="website" type="varchar(255)"/>
+            <column name="tax_identifier" type="varchar(100)"/>
+            <column name="registration_article" type="varchar(100)"/>
+            <column name="statistical_id" type="varchar(100)"/>
+            <column name="commercial_registry" type="varchar(100)"/>
+            <column name="bank_account" type="varchar(100)"/>
+            <column name="bank_name" type="varchar(255)"/>
+            <column name="social_capital" type="bigint"/>
             <column name="status" type="varchar(255)">
                 <constraints nullable="false" />
             </column>

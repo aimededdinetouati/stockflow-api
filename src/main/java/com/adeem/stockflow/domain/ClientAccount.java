@@ -42,6 +42,33 @@ public class ClientAccount extends AbstractAuditingEntity<Long> implements Seria
     @Column(name = "email", nullable = false)
     private String email;
 
+    @Column(name = "fax")
+    private String fax;
+
+    @Column(name = "website")
+    private String website;
+
+    @Column(name = "tax_identifier") // IF - Identifiant Fiscal
+    private String taxIdentifier;
+
+    @Column(name = "registration_article") // AI - Article d'Immatriculation
+    private String registrationArticle;
+
+    @Column(name = "statistical_id") // NIS - Numéro d'Identification Statistique
+    private String statisticalId;
+
+    @Column(name = "commercial_registry") // RC - Registre de Commerce
+    private String commercialRegistry;
+
+    @Column(name = "bank_account")
+    private String bankAccount;
+
+    @Column(name = "bank_name")
+    private String bankName;
+
+    @Column(name = "social_capital")
+    private Long socialCapital;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -135,6 +162,78 @@ public class ClientAccount extends AbstractAuditingEntity<Long> implements Seria
 
     public void setStatus(AccountStatus status) {
         this.status = status;
+    }
+
+    public String getFax() {
+        return fax;
+    }
+
+    public void setFax(String fax) {
+        this.fax = fax;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
+    }
+
+    public String getTaxIdentifier() {
+        return taxIdentifier;
+    }
+
+    public void setTaxIdentifier(String taxIdentifier) {
+        this.taxIdentifier = taxIdentifier;
+    }
+
+    public String getRegistrationArticle() {
+        return registrationArticle;
+    }
+
+    public void setRegistrationArticle(String registrationArticle) {
+        this.registrationArticle = registrationArticle;
+    }
+
+    public String getStatisticalId() {
+        return statisticalId;
+    }
+
+    public void setStatisticalId(String statisticalId) {
+        this.statisticalId = statisticalId;
+    }
+
+    public String getCommercialRegistry() {
+        return commercialRegistry;
+    }
+
+    public void setCommercialRegistry(String commercialRegistry) {
+        this.commercialRegistry = commercialRegistry;
+    }
+
+    public String getBankAccount() {
+        return bankAccount;
+    }
+
+    public void setBankAccount(String bankAccount) {
+        this.bankAccount = bankAccount;
+    }
+
+    public String getBankName() {
+        return bankName;
+    }
+
+    public void setBankName(String bankName) {
+        this.bankName = bankName;
+    }
+
+    public Long getSocialCapital() {
+        return socialCapital;
+    }
+
+    public void setSocialCapital(Long socialCapital) {
+        this.socialCapital = socialCapital;
     }
 
     // Inherited createdBy methods

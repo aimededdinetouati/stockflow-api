@@ -21,9 +21,27 @@ public class ClientAccountDTO implements Serializable {
     private String phone;
 
     @NotNull
+    @Email
     private String email;
 
-    @NotNull
+    private String fax;
+
+    private String website;
+
+    private String taxIdentifier;
+
+    private String registrationArticle;
+
+    private String statisticalId;
+
+    private String commercialRegistry;
+
+    private String bankAccount;
+
+    private String bankName;
+
+    private Long socialCapital;
+
     private AccountStatus status;
 
     private String createdBy;
@@ -72,6 +90,78 @@ public class ClientAccountDTO implements Serializable {
 
     public AccountStatus getStatus() {
         return status;
+    }
+
+    public String getFax() {
+        return fax;
+    }
+
+    public void setFax(String fax) {
+        this.fax = fax;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
+    }
+
+    public String getTaxIdentifier() {
+        return taxIdentifier;
+    }
+
+    public void setTaxIdentifier(String taxIdentifier) {
+        this.taxIdentifier = taxIdentifier;
+    }
+
+    public String getRegistrationArticle() {
+        return registrationArticle;
+    }
+
+    public void setRegistrationArticle(String registrationArticle) {
+        this.registrationArticle = registrationArticle;
+    }
+
+    public String getStatisticalId() {
+        return statisticalId;
+    }
+
+    public void setStatisticalId(String statisticalId) {
+        this.statisticalId = statisticalId;
+    }
+
+    public String getCommercialRegistry() {
+        return commercialRegistry;
+    }
+
+    public void setCommercialRegistry(String commercialRegistry) {
+        this.commercialRegistry = commercialRegistry;
+    }
+
+    public String getBankAccount() {
+        return bankAccount;
+    }
+
+    public void setBankAccount(String bankAccount) {
+        this.bankAccount = bankAccount;
+    }
+
+    public String getBankName() {
+        return bankName;
+    }
+
+    public void setBankName(String bankName) {
+        this.bankName = bankName;
+    }
+
+    public Long getSocialCapital() {
+        return socialCapital;
+    }
+
+    public void setSocialCapital(Long socialCapital) {
+        this.socialCapital = socialCapital;
     }
 
     public void setStatus(AccountStatus status) {
