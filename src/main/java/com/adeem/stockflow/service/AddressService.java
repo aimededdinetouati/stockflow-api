@@ -61,6 +61,20 @@ public class AddressService {
         return addressMapper.toDto(address);
     }
 
+    public Address save(Address address, AddressDTO addressDTO) {
+        LOG.debug("Request to update Address : {}", addressDTO);
+        address.setAddressType(addressDTO.getAddressType());
+        address.setStreetAddress(addressDTO.getStreetAddress());
+        address.setCity(addressDTO.getCity());
+        address.setState(addressDTO.getState());
+        address.setPostalCode(addressDTO.getPostalCode());
+        address.setCountry(addressDTO.getCountry());
+        address.setIsDefault(addressDTO.getIsDefault());
+        address.setPhoneNumber(addressDTO.getPhoneNumber());
+        address.setIsPersisted();
+        return addressRepository.save(address);
+    }
+
     /**
      * Partially update a address.
      *

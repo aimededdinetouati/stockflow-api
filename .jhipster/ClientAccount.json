@@ -22,6 +22,42 @@
       "fieldValidateRules": ["required"]
     },
     {
+      "fieldName": "fax",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "website",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "taxIdentifier",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "registrationArticle",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "statisticalId",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "commercialRegistry",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "bankAccount",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "bankName",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "socialCapital",
+      "fieldType": "Long"
+    },
+    {
       "fieldName": "status",
       "fieldType": "AccountStatus",
       "fieldValidateRules": ["required"],

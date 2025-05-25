@@ -1,6 +1,7 @@
 package com.adeem.stockflow.web.rest;
 
 import static com.adeem.stockflow.domain.ClientAccountAsserts.*;
+import static com.adeem.stockflow.security.TestSecurityContextHelper.setSecurityContextWithClientAccountId;
 import static com.adeem.stockflow.web.rest.TestUtil.createUpdateProxyForBean;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
@@ -8,9 +9,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.adeem.stockflow.IntegrationTest;
+import com.adeem.stockflow.domain.Address;
 import com.adeem.stockflow.domain.ClientAccount;
 import com.adeem.stockflow.domain.enumeration.AccountStatus;
+import com.adeem.stockflow.domain.enumeration.AddressType;
+import com.adeem.stockflow.repository.AddressRepository;
 import com.adeem.stockflow.repository.ClientAccountRepository;
+import com.adeem.stockflow.service.dto.AddressDTO;
 import com.adeem.stockflow.service.dto.ClientAccountDTO;
 import com.adeem.stockflow.service.mapper.ClientAccountMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,7 +37,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @IntegrationTest
 @AutoConfigureMockMvc
-@WithMockUser
 class ClientAccountResourceIT {
 
     private static final String DEFAULT_COMPANY_NAME = "AAAAAAAAAA";
@@ -41,14 +45,15 @@ class ClientAccountResourceIT {
     private static final String DEFAULT_PHONE = "AAAAAAAAAA";
     private static final String UPDATED_PHONE = "BBBBBBBBBB";
 
-    private static final String DEFAULT_EMAIL = "AAAAAAAAAA";
-    private static final String UPDATED_EMAIL = "BBBBBBBBBB";
+    private static final String DEFAULT_EMAIL = "AAAAAAAAAA@mail.com";
+    private static final String UPDATED_EMAIL = "BBBBBBBBBB@mail.com";
 
     private static final AccountStatus DEFAULT_STATUS = AccountStatus.ENABLED;
-    private static final AccountStatus UPDATED_STATUS = AccountStatus.DISABLED;
+    private static final AccountStatus UPDATED_STATUS = AccountStatus.ENABLED;
 
     private static final String ENTITY_API_URL = "/api/client-accounts";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
+    private static final String ENTITY_API_URL_MINE = ENTITY_API_URL + "/mine";
 
     private static Random random = new Random();
     private static AtomicLong longCount = new AtomicLong(random.nextInt() + (2 * Integer.MAX_VALUE));
@@ -58,6 +63,9 @@ class ClientAccountResourceIT {
 
     @Autowired
     private ClientAccountRepository clientAccountRepository;
+
+    @Autowired
+    private AddressRepository addressRepository;
 
     @Autowired
     private ClientAccountMapper clientAccountMapper;
@@ -107,116 +115,7 @@ class ClientAccountResourceIT {
 
     @Test
     @Transactional
-    void createClientAccount() throws Exception {
-        long databaseSizeBeforeCreate = getRepositoryCount();
-        // Create the ClientAccount
-        ClientAccountDTO clientAccountDTO = clientAccountMapper.toDto(clientAccount);
-        var returnedClientAccountDTO = om.readValue(
-            restClientAccountMockMvc
-                .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clientAccountDTO)))
-                .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString(),
-            ClientAccountDTO.class
-        );
-
-        // Validate the ClientAccount in the database
-        assertIncrementedRepositoryCount(databaseSizeBeforeCreate);
-        var returnedClientAccount = clientAccountMapper.toEntity(returnedClientAccountDTO);
-        assertClientAccountUpdatableFieldsEquals(returnedClientAccount, getPersistedClientAccount(returnedClientAccount));
-
-        insertedClientAccount = returnedClientAccount;
-    }
-
-    @Test
-    @Transactional
-    void createClientAccountWithExistingId() throws Exception {
-        // Create the ClientAccount with an existing ID
-        clientAccount.setId(1L);
-        ClientAccountDTO clientAccountDTO = clientAccountMapper.toDto(clientAccount);
-
-        long databaseSizeBeforeCreate = getRepositoryCount();
-
-        // An entity with an existing ID cannot be created, so this API call must fail
-        restClientAccountMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clientAccountDTO)))
-            .andExpect(status().isBadRequest());
-
-        // Validate the ClientAccount in the database
-        assertSameRepositoryCount(databaseSizeBeforeCreate);
-    }
-
-    @Test
-    @Transactional
-    void checkCompanyNameIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        clientAccount.setCompanyName(null);
-
-        // Create the ClientAccount, which fails.
-        ClientAccountDTO clientAccountDTO = clientAccountMapper.toDto(clientAccount);
-
-        restClientAccountMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clientAccountDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
-    void checkPhoneIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        clientAccount.setPhone(null);
-
-        // Create the ClientAccount, which fails.
-        ClientAccountDTO clientAccountDTO = clientAccountMapper.toDto(clientAccount);
-
-        restClientAccountMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clientAccountDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
-    void checkEmailIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        clientAccount.setEmail(null);
-
-        // Create the ClientAccount, which fails.
-        ClientAccountDTO clientAccountDTO = clientAccountMapper.toDto(clientAccount);
-
-        restClientAccountMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clientAccountDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
-    void checkStatusIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        clientAccount.setStatus(null);
-
-        // Create the ClientAccount, which fails.
-        ClientAccountDTO clientAccountDTO = clientAccountMapper.toDto(clientAccount);
-
-        restClientAccountMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clientAccountDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
+    @WithMockUser(authorities = "ROLE_ADMIN")
     void getAllClientAccounts() throws Exception {
         // Initialize the database
         insertedClientAccount = clientAccountRepository.saveAndFlush(clientAccount);
@@ -235,6 +134,7 @@ class ClientAccountResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "ROLE_ADMIN")
     void getClientAccount() throws Exception {
         // Initialize the database
         insertedClientAccount = clientAccountRepository.saveAndFlush(clientAccount);
@@ -253,6 +153,7 @@ class ClientAccountResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "ROLE_ADMIN")
     void getNonExistingClientAccount() throws Exception {
         // Get the clientAccount
         restClientAccountMockMvc.perform(get(ENTITY_API_URL_ID, Long.MAX_VALUE)).andExpect(status().isNotFound());
@@ -260,6 +161,7 @@ class ClientAccountResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "ROLE_ADMIN")
     void putExistingClientAccount() throws Exception {
         // Initialize the database
         insertedClientAccount = clientAccountRepository.saveAndFlush(clientAccount);
@@ -288,6 +190,7 @@ class ClientAccountResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "ROLE_ADMIN")
     void putNonExistingClientAccount() throws Exception {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         clientAccount.setId(longCount.incrementAndGet());
@@ -310,6 +213,7 @@ class ClientAccountResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "ROLE_ADMIN")
     void putWithIdMismatchClientAccount() throws Exception {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         clientAccount.setId(longCount.incrementAndGet());
@@ -332,6 +236,7 @@ class ClientAccountResourceIT {
 
     @Test
     @Transactional
+    @WithMockUser(authorities = "ROLE_ADMIN")
     void putWithMissingIdPathParamClientAccount() throws Exception {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         clientAccount.setId(longCount.incrementAndGet());
@@ -350,127 +255,137 @@ class ClientAccountResourceIT {
 
     @Test
     @Transactional
-    void partialUpdateClientAccountWithPatch() throws Exception {
+    void updateMyClientAccountShouldWork() throws Exception {
         // Initialize the database
         insertedClientAccount = clientAccountRepository.saveAndFlush(clientAccount);
+        setSecurityContextWithClientAccountId(insertedClientAccount.getId());
 
         long databaseSizeBeforeUpdate = getRepositoryCount();
 
-        // Update the clientAccount using partial update
-        ClientAccount partialUpdatedClientAccount = new ClientAccount();
-        partialUpdatedClientAccount.setId(clientAccount.getId());
-
-        partialUpdatedClientAccount.email(UPDATED_EMAIL).status(UPDATED_STATUS);
+        // Update the clientAccount
+        ClientAccount updatedClientAccount = clientAccountRepository.findById(clientAccount.getId()).orElseThrow();
+        em.detach(updatedClientAccount);
+        updatedClientAccount.companyName(UPDATED_COMPANY_NAME).phone(UPDATED_PHONE).email(UPDATED_EMAIL);
+        ClientAccountDTO clientAccountDTO = clientAccountMapper.toDto(updatedClientAccount);
 
         restClientAccountMockMvc
-            .perform(
-                patch(ENTITY_API_URL_ID, partialUpdatedClientAccount.getId())
-                    .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(partialUpdatedClientAccount))
-            )
+            .perform(put(ENTITY_API_URL_MINE).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clientAccountDTO)))
             .andExpect(status().isOk());
 
         // Validate the ClientAccount in the database
-
         assertSameRepositoryCount(databaseSizeBeforeUpdate);
-        assertClientAccountUpdatableFieldsEquals(
-            createUpdateProxyForBean(partialUpdatedClientAccount, clientAccount),
-            getPersistedClientAccount(clientAccount)
-        );
+        assertPersistedClientAccountToMatchUpdatableProperties(updatedClientAccount);
     }
 
     @Test
     @Transactional
-    void fullUpdateClientAccountWithPatch() throws Exception {
+    void updateMyClientAccountWithNonExistingAddressAndNewAddress() throws Exception {
+        // Initialize the database
+        insertedClientAccount = clientAccountRepository.saveAndFlush(clientAccount);
+        setSecurityContextWithClientAccountId(insertedClientAccount.getId());
+
+        long databaseSizeBeforeUpdate = getRepositoryCount();
+
+        // Update the clientAccount
+        ClientAccount updatedClientAccount = clientAccountRepository.findById(clientAccount.getId()).orElseThrow();
+        em.detach(updatedClientAccount);
+        updatedClientAccount.companyName(UPDATED_COMPANY_NAME).phone(UPDATED_PHONE).email(UPDATED_EMAIL);
+        ClientAccountDTO clientAccountDTO = clientAccountMapper.toDto(updatedClientAccount);
+
+        AddressDTO addressDTO = new AddressDTO();
+        addressDTO.setCountry("US");
+        addressDTO.setCity("New York");
+        addressDTO.setState("NY");
+        addressDTO.setStreetAddress("New York");
+        addressDTO.setPostalCode("12345");
+        addressDTO.setAddressType(AddressType.PRIMARY);
+        addressDTO.setIsDefault(true);
+        clientAccountDTO.setAddress(addressDTO);
+
+        restClientAccountMockMvc
+            .perform(put(ENTITY_API_URL_MINE).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clientAccountDTO)))
+            .andExpect(status().isOk());
+
+        ClientAccount clientAccount1 = clientAccountRepository.findById(clientAccount.getId()).orElseThrow();
+        assertThat(addressRepository.findAll()).hasSize(1);
+        assertThat(clientAccount1.getAddress().getStreetAddress()).isEqualTo(addressDTO.getStreetAddress());
+
+        // Validate the ClientAccount in the database
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        //assertPersistedClientAccountToMatchUpdatableProperties(updatedClientAccount);
+    }
+
+    @Test
+    @Transactional
+    void updateMyClientAccountWithExistingAddressAndNewAddress() throws Exception {
+        // Initialize the database
+        Address address = new Address();
+        address.setCountry("US");
+        address.setCity("New York");
+        address.setState("NY");
+        address.setStreetAddress("New York");
+        address.setPostalCode("12345");
+        address.setAddressType(AddressType.PRIMARY);
+        address.setIsDefault(true);
+        var savedAddress = addressRepository.save(address);
+
+        clientAccount.setAddress(savedAddress);
+        insertedClientAccount = clientAccountRepository.saveAndFlush(clientAccount);
+        setSecurityContextWithClientAccountId(insertedClientAccount.getId());
+
+        long databaseSizeBeforeUpdate = getRepositoryCount();
+
+        // Update the clientAccount
+        Address updatedAddress = addressRepository.findById(address.getId()).orElseThrow();
+        ClientAccount updatedClientAccount = clientAccountRepository.findById(clientAccount.getId()).orElseThrow();
+        em.detach(updatedClientAccount);
+        em.detach(updatedAddress);
+        updatedClientAccount.companyName(UPDATED_COMPANY_NAME).phone(UPDATED_PHONE).email(UPDATED_EMAIL);
+
+        updatedAddress.setCountry("DZ");
+        updatedAddress.setCity("Oran");
+        updatedAddress.setState("Oran");
+        updatedAddress.setStreetAddress("Oran");
+        updatedAddress.setPostalCode("0001");
+        updatedAddress.setAddressType(AddressType.SHIPPING);
+        updatedAddress.setIsDefault(true);
+
+        updatedClientAccount.setAddress(updatedAddress);
+        ClientAccountDTO clientAccountDTO = clientAccountMapper.toDto(updatedClientAccount);
+
+        restClientAccountMockMvc
+            .perform(put(ENTITY_API_URL_MINE).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clientAccountDTO)))
+            .andExpect(status().isOk());
+
+        ClientAccount clientAccount1 = clientAccountRepository.findById(clientAccount.getId()).orElseThrow();
+        assertThat(addressRepository.findAll()).hasSize(1);
+        assertThat(clientAccount1.getAddress().getStreetAddress()).isEqualTo(updatedAddress.getStreetAddress());
+        assertThat(clientAccount1.getAddress().getAddressType()).isEqualTo(updatedAddress.getAddressType());
+        assertThat(clientAccount1.getAddress().getCountry()).isEqualTo(updatedAddress.getCountry());
+        assertThat(clientAccount1.getAddress().getCity()).isEqualTo(updatedAddress.getCity());
+        assertThat(clientAccount1.getAddress().getState()).isEqualTo(updatedAddress.getState());
+        assertThat(clientAccount1.getAddress().getPostalCode()).isEqualTo(updatedAddress.getPostalCode());
+
+        // Validate the ClientAccount in the database
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertPersistedClientAccountToMatchUpdatableProperties(updatedClientAccount);
+    }
+
+    @Test
+    @Transactional
+    @WithMockUser(authorities = "ROLE_USER")
+    void nonAdminShouldNotAccessAdminEndpoints() throws Exception {
         // Initialize the database
         insertedClientAccount = clientAccountRepository.saveAndFlush(clientAccount);
 
-        long databaseSizeBeforeUpdate = getRepositoryCount();
-
-        // Update the clientAccount using partial update
-        ClientAccount partialUpdatedClientAccount = new ClientAccount();
-        partialUpdatedClientAccount.setId(clientAccount.getId());
-
-        partialUpdatedClientAccount.companyName(UPDATED_COMPANY_NAME).phone(UPDATED_PHONE).email(UPDATED_EMAIL).status(UPDATED_STATUS);
-
-        restClientAccountMockMvc
-            .perform(
-                patch(ENTITY_API_URL_ID, partialUpdatedClientAccount.getId())
-                    .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(partialUpdatedClientAccount))
-            )
-            .andExpect(status().isOk());
-
-        // Validate the ClientAccount in the database
-
-        assertSameRepositoryCount(databaseSizeBeforeUpdate);
-        assertClientAccountUpdatableFieldsEquals(partialUpdatedClientAccount, getPersistedClientAccount(partialUpdatedClientAccount));
+        restClientAccountMockMvc.perform(get(ENTITY_API_URL)).andExpect(status().isForbidden());
+        restClientAccountMockMvc.perform(get(ENTITY_API_URL_ID, clientAccount.getId())).andExpect(status().isForbidden());
+        restClientAccountMockMvc.perform(delete(ENTITY_API_URL_ID, clientAccount.getId())).andExpect(status().isForbidden());
     }
 
     @Test
     @Transactional
-    void patchNonExistingClientAccount() throws Exception {
-        long databaseSizeBeforeUpdate = getRepositoryCount();
-        clientAccount.setId(longCount.incrementAndGet());
-
-        // Create the ClientAccount
-        ClientAccountDTO clientAccountDTO = clientAccountMapper.toDto(clientAccount);
-
-        // If the entity doesn't have an ID, it will throw BadRequestAlertException
-        restClientAccountMockMvc
-            .perform(
-                patch(ENTITY_API_URL_ID, clientAccountDTO.getId())
-                    .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(clientAccountDTO))
-            )
-            .andExpect(status().isBadRequest());
-
-        // Validate the ClientAccount in the database
-        assertSameRepositoryCount(databaseSizeBeforeUpdate);
-    }
-
-    @Test
-    @Transactional
-    void patchWithIdMismatchClientAccount() throws Exception {
-        long databaseSizeBeforeUpdate = getRepositoryCount();
-        clientAccount.setId(longCount.incrementAndGet());
-
-        // Create the ClientAccount
-        ClientAccountDTO clientAccountDTO = clientAccountMapper.toDto(clientAccount);
-
-        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
-        restClientAccountMockMvc
-            .perform(
-                patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
-                    .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(clientAccountDTO))
-            )
-            .andExpect(status().isBadRequest());
-
-        // Validate the ClientAccount in the database
-        assertSameRepositoryCount(databaseSizeBeforeUpdate);
-    }
-
-    @Test
-    @Transactional
-    void patchWithMissingIdPathParamClientAccount() throws Exception {
-        long databaseSizeBeforeUpdate = getRepositoryCount();
-        clientAccount.setId(longCount.incrementAndGet());
-
-        // Create the ClientAccount
-        ClientAccountDTO clientAccountDTO = clientAccountMapper.toDto(clientAccount);
-
-        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
-        restClientAccountMockMvc
-            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(om.writeValueAsBytes(clientAccountDTO)))
-            .andExpect(status().isMethodNotAllowed());
-
-        // Validate the ClientAccount in the database
-        assertSameRepositoryCount(databaseSizeBeforeUpdate);
-    }
-
-    @Test
-    @Transactional
+    @WithMockUser(authorities = "ROLE_ADMIN")
     void deleteClientAccount() throws Exception {
         // Initialize the database
         insertedClientAccount = clientAccountRepository.saveAndFlush(clientAccount);

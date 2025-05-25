@@ -1,6 +1,7 @@
 package com.adeem.stockflow.web.rest;
 
 import com.adeem.stockflow.repository.ClientAccountRepository;
+import com.adeem.stockflow.security.SecurityUtils;
 import com.adeem.stockflow.service.ClientAccountService;
 import com.adeem.stockflow.service.dto.ClientAccountDTO;
 import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -48,26 +50,6 @@ public class ClientAccountResource {
     }
 
     /**
-     * {@code POST  /client-accounts} : Create a new clientAccount.
-     *
-     * @param clientAccountDTO the clientAccountDTO to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new clientAccountDTO, or with status {@code 400 (Bad Request)} if the clientAccount has already an ID.
-     * @throws URISyntaxException if the Location URI syntax is incorrect.
-     */
-    @PostMapping("")
-    public ResponseEntity<ClientAccountDTO> createClientAccount(@Valid @RequestBody ClientAccountDTO clientAccountDTO)
-        throws URISyntaxException {
-        LOG.debug("REST request to save ClientAccount : {}", clientAccountDTO);
-        if (clientAccountDTO.getId() != null) {
-            throw new BadRequestAlertException("A new clientAccount cannot already have an ID", ENTITY_NAME, "idexists");
-        }
-        clientAccountDTO = clientAccountService.save(clientAccountDTO);
-        return ResponseEntity.created(new URI("/api/client-accounts/" + clientAccountDTO.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, clientAccountDTO.getId().toString()))
-            .body(clientAccountDTO);
-    }
-
-    /**
      * {@code PUT  /client-accounts/:id} : Updates an existing clientAccount.
      *
      * @param id the id of the clientAccountDTO to save.
@@ -78,6 +60,7 @@ public class ClientAccountResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public ResponseEntity<ClientAccountDTO> updateClientAccount(
         @PathVariable(value = "id", required = false) final Long id,
         @Valid @RequestBody ClientAccountDTO clientAccountDTO
@@ -101,39 +84,28 @@ public class ClientAccountResource {
     }
 
     /**
-     * {@code PATCH  /client-accounts/:id} : Partial updates given fields of an existing clientAccount, field will ignore if it is null
+     * {@code PUT  /client-accounts/:id} : Updates an existing clientAccount.
      *
-     * @param id the id of the clientAccountDTO to save.
      * @param clientAccountDTO the clientAccountDTO to update.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated clientAccountDTO,
      * or with status {@code 400 (Bad Request)} if the clientAccountDTO is not valid,
-     * or with status {@code 404 (Not Found)} if the clientAccountDTO is not found,
      * or with status {@code 500 (Internal Server Error)} if the clientAccountDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
-    @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
-    public ResponseEntity<ClientAccountDTO> partialUpdateClientAccount(
-        @PathVariable(value = "id", required = false) final Long id,
-        @NotNull @RequestBody ClientAccountDTO clientAccountDTO
-    ) throws URISyntaxException {
-        LOG.debug("REST request to partial update ClientAccount partially : {}, {}", id, clientAccountDTO);
+    @PutMapping("/mine")
+    public ResponseEntity<ClientAccountDTO> updateMyClientAccount(@Valid @RequestBody ClientAccountDTO clientAccountDTO) {
+        LOG.debug("REST request to update ClientAccount : {}", clientAccountDTO);
         if (clientAccountDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!Objects.equals(id, clientAccountDTO.getId())) {
-            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
-        }
 
-        if (!clientAccountRepository.existsById(id)) {
-            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
-        }
+        Long clientAccountId = SecurityUtils.getCurrentClientAccountId();
+        clientAccountDTO.setId(clientAccountId);
 
-        Optional<ClientAccountDTO> result = clientAccountService.partialUpdate(clientAccountDTO);
-
-        return ResponseUtil.wrapOrNotFound(
-            result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, clientAccountDTO.getId().toString())
-        );
+        clientAccountDTO = clientAccountService.update(clientAccountDTO);
+        return ResponseEntity.ok()
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, clientAccountDTO.getId().toString()))
+            .body(clientAccountDTO);
     }
 
     /**
@@ -143,6 +115,7 @@ public class ClientAccountResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of clientAccounts in body.
      */
     @GetMapping("")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<ClientAccountDTO>> getAllClientAccounts(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
         LOG.debug("REST request to get a page of ClientAccounts");
         Page<ClientAccountDTO> page = clientAccountService.findAll(pageable);
@@ -157,6 +130,7 @@ public class ClientAccountResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the clientAccountDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public ResponseEntity<ClientAccountDTO> getClientAccount(@PathVariable("id") Long id) {
         LOG.debug("REST request to get ClientAccount : {}", id);
         Optional<ClientAccountDTO> clientAccountDTO = clientAccountService.findOne(id);
@@ -170,6 +144,7 @@ public class ClientAccountResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteClientAccount(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete ClientAccount : {}", id);
         clientAccountService.delete(id);
