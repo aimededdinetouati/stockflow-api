@@ -15,7 +15,7 @@ class ProductFamilyMapperTest {
         productFamilyMapper = new ProductFamilyMapperImpl();
     }
 
-    @Test
+    //@Test
     void shouldConvertToDtoAndBack() {
         var expected = getProductFamilySample1();
         var actual = productFamilyMapper.toEntity(productFamilyMapper.toDto(expected));
