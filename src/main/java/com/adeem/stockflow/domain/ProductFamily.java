@@ -39,6 +39,10 @@ public class ProductFamily extends AbstractAuditingEntity<Long> implements Seria
     @Transient
     private boolean isPersisted;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnoreProperties(value = { "address", "quota", "subscriptions" }, allowSetters = true)
+    private ClientAccount clientAccount;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
     public Long getId() {
@@ -106,6 +110,19 @@ public class ProductFamily extends AbstractAuditingEntity<Long> implements Seria
 
     public ProductFamily setIsPersisted() {
         this.isPersisted = true;
+        return this;
+    }
+
+    public ClientAccount getClientAccount() {
+        return this.clientAccount;
+    }
+
+    public void setClientAccount(ClientAccount clientAccount) {
+        this.clientAccount = clientAccount;
+    }
+
+    public ProductFamily clientAccount(ClientAccount clientAccount) {
+        this.setClientAccount(clientAccount);
         return this;
     }
 

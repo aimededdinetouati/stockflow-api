@@ -48,7 +48,14 @@
   ],
   "name": "ProductFamily",
   "pagination": "pagination",
-  "relationships": [],
+  "relationships": [
+    {
+      "otherEntityName": "clientAccount",
+      "relationshipName": "clientAccount",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    }
+  ],
   "searchEngine": "no",
   "service": "serviceClass"
 }

@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockFlow - Product & Inventory Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Navigation */
+        .nav {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0;
+        }
+
+        .nav-tab {
+            padding: 1rem 2rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #64748b;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tab:hover {
+            background-color: #f1f5f9;
+            color: #334155;
+        }
+
+        .nav-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background-color: #f8fafc;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .page-actions {
+            display: flex;
+            gap: 1rem;
+            margin-left: auto;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        /* Filters */
+        .filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .filters-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+
+        .form-control {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            background: #fafbfc;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid;
+        }
+
+        .stat-card.total {
+            border-left-color: #3b82f6;
+        }
+
+        .stat-card.low-stock {
+            border-left-color: #f59e0b;
+        }
+
+        .stat-card.out-of-stock {
+            border-left-color: #ef4444;
+        }
+
+        .stat-card.value {
+            border-left-color: #10b981;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        /* Table */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: #f8fafc;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .table td {
+            padding: 1rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .table tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Badges */
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .badge-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: end;
+            gap: 1rem;
+        }
+
+        /* Form Layout */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        /* Product Image */
+        .product-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .pagination button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e5e7eb;
+            background: white;
+            color: #374151;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .pagination button:hover {
+            background: #f3f4f6;
+        }
+
+        .pagination button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .filters-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .page-actions {
+                margin-left: 0;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .table-container {
+                overflow-x: auto;
+            }
+        }
+
+        /* Icons */
+        .icon {
+            width: 1rem;
+            height: 1rem;
+            fill: currentColor;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #f59e0b;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">StockFlow</div>
+                <div class="user-info">
+                    <span>Welcome, John Doe</span>
+                    <button class="btn btn-secondary btn-sm">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showView('products')">Products</button>
+                <button class="nav-tab" onclick="showView('inventory')">Inventory</button>
+                <button class="nav-tab" onclick="showView('low-stock')">Low Stock</button>
+                <button class="nav-tab" onclick="showView('transactions')">Transactions</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+
+            <!-- Products View -->
+            <div id="products" class="view active">
+                <div class="page-header">
+                    <h1 class="page-title">Product Management</h1>
+                    <div class="page-actions">
+                        <button class="btn btn-secondary" onclick="showModal('importModal')">
+                            <svg class="icon" viewBox="0 0 20 20"><path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z"/></svg>
+                            Import
+                        </button>
+                        <button class="btn btn-primary" onclick="showModal('productModal')">
+                            <svg class="icon" viewBox="0 0 20 20"><path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"/></svg>
+                            Add Product
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card total">
+                        <div class="stat-value">1,247</div>
+                        <div class="stat-label">Total Products</div>
+                    </div>
+                    <div class="stat-card low-stock">
+                        <div class="stat-value">23</div>
+                        <div class="stat-label">Low Stock Items</div>
+                    </div>
+                    <div class="stat-card out-of-stock">
+                        <div class="stat-value">5</div>
+                        <div class="stat-label">Out of Stock</div>
+                    </div>
+                    <div class="stat-card value">
+                        <div class="stat-value">$234,567</div>
+                        <div class="stat-label">Total Inventory Value</div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filters">
+                    <div class="filters-row">
+                        <div class="form-group">
+                            <label class="form-label">Search</label>
+                            <input type="text" class="form-control" placeholder="Product name or code...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Category</label>
+                            <select class="form-control">
+                                <option>All Categories</option>
+                                <option>Electronics</option>
+                                <option>Computers</option>
+                                <option>Furniture</option>
+                                <option>Books</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Price Range</label>
+                            <select class="form-control">
+                                <option>All Prices</option>
+                                <option>$0 - $50</option>
+                                <option>$50 - $200</option>
+                                <option>$200 - $500</option>
+                                <option>$500+</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Stock Status</label>
+                            <select class="form-control">
+                                <option>All Stock</option>
+                                <option>In Stock</option>
+                                <option>Low Stock</option>
+                                <option>Out of Stock</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-primary">Filter</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Table -->
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Code</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                        <img src="https://via.placeholder.com/60x60/667eea/white?text=P1" alt="Product" class="product-image">
+                                        <div>
+                                            <div style="font-weight: 500;">MacBook Pro 16"</div>
+                                            <div style="color: #64748b; font-size: 0.85rem;">Apple MacBook Pro with M2 chip</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>MBP-16-001</td>
+                                <td>Computers</td>
+                                <td>$2,499.00</td>
+                                <td>15 units</td>
+                                <td><span class="badge badge-success">In Stock</span></td>
+                                <td>
+                                    <button class="btn btn-secondary btn-sm" onclick="showModal('productModal')">Edit</button>
+                                    <button class="btn btn-warning btn-sm">Adjust Stock</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                        <img src="https://via.placeholder.com/60x60/f59e0b/white?text=P2" alt="Product" class="product-image">
+                                        <div>
+                                            <div style="font-weight: 500;">iPhone 15 Pro</div>
+                                            <div style="color: #64748b; font-size: 0.85rem;">Latest iPhone with titanium design</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>IP15-PRO-001</td>
+                                <td>Electronics</td>
+                                <td>$999.00</td>
+                                <td>3 units</td>
+                                <td><span class="badge badge-warning">Low Stock</span></td>
+                                <td>
+                                    <button class="btn btn-secondary btn-sm">Edit</button>
+                                    <button class="btn btn-warning btn-sm">Adjust Stock</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                        <img src="https://via.placeholder.com/60x60/10b981/white?text=P3" alt="Product" class="product-image">
+                                        <div>
+                                            <div style="font-weight: 500;">Office Chair Pro</div>
+                                            <div style="color: #64748b; font-size: 0.85rem;">Ergonomic office chair with lumbar support</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>OFC-CHR-001</td>
+                                <td>Furniture</td>
+                                <td>$299.00</td>
+                                <td>25 units</td>
+                                <td><span class="badge badge-success">In Stock</span></td>
+                                <td>
+                                    <button class="btn btn-secondary btn-sm">Edit</button>
+                                    <button class="btn btn-warning btn-sm">Adjust Stock</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                        <img src="https://via.placeholder.com/60x60/ef4444/white?text=P4" alt="Product" class="product-image">
+                                        <div>
+                                            <div style="font-weight: 500;">Programming Book Set</div>
+                                            <div style="color: #64748b; font-size: 0.85rem;">Complete programming guide collection</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>BK-PROG-001</td>
+                                <td>Books</td>
+                                <td>$89.99</td>
+                                <td>0 units</td>
+                                <td><span class="badge badge-danger">Out of Stock</span></td>
+                                <td>
+                                    <button class="btn btn-secondary btn-sm">Edit</button>
+                                    <button class="btn btn-danger btn-sm">Restock</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <button>← Previous</button>
+                    <button class="active">1</button>
+                    <button>2</button>
+                    <button>3</button>
+                    <button>...</button>
+                    <button>12</button>
+                    <button>Next →</button>
+                </div>
+            </div>
+
+            <!-- Inventory View -->
+            <div id="inventory" class="view">
+                <div class="page-header">
+                    <h1 class="page-title">Inventory Management</h1>
+                    <div class="page-actions">
+                        <button class="btn btn-secondary">Export</button>
+                        <button class="btn btn-primary" onclick="showModal('adjustModal')">Bulk Adjustment</button>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card total">
+                        <div class="stat-value">12,456</div>
+                        <div class="stat-label">Total Units in Stock</div>
+                    </div>
+                    <div class="stat-card low-stock">
+                        <div class="stat-value">$2.1M</div>
+                        <div class="stat-label">Total Inventory Value</div>
+                    </div>
+                    <div class="stat-card out-of-stock">
+                        <div class="stat-value">234</div>
+                        <div class="stat-label">Items Need Reorder</div>
+                    </div>
+                    <div class="stat-card value">
+                        <div class="stat-value">98.5%</div>
+                        <div class="stat-label">Inventory Accuracy</div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filters">
+                    <div class="filters-row">
+                        <div class="form-group">
+                            <label class="form-label">Search Product</label>
+                            <input type="text" class="form-control" placeholder="Product name or code...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <select class="form-control">
+                                <option>All Status</option>
+                                <option>Available</option>
+                                <option>Reserved</option>
+                                <option>Damaged</option>
+                                <option>Expired</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Stock Level</label>
+                            <select class="form-control">
+                                <option>All Levels</option>
+                                <option>Low Stock</option>
+                                <option>Normal Stock</option>
+                                <option>Overstock</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Last Updated</label>
+                            <select class="form-control">
+                                <option>All Time</option>
+                                <option>Today</option>
+                                <option>This Week</option>
+                                <option>This Month</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-primary">Filter</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventory Table -->
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Current Stock</th>
+                                <th>Available</th>
+                                <th>Reserved</th>
+                                <th>Min Level</th>
+                                <th>Status</th>
+                                <th>Last Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                        <img src="https://via.placeholder.com/40x40/667eea/white?text=M" alt="Product" class="product-image" style="width: 40px; height: 40px;">
+                                        <div>
+                                            <div style="font-weight: 500;">MacBook Pro 16"</div>
+                                            <div style="color: #64748b; font-size: 0.8rem;">MBP-16-001</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong>15</strong></td>
+                                <td>12</td>
+                                <td>3</td>
+                                <td>5</td>
+                                <td><span class="badge badge-success">Available</span></td>
+                                <td>2 hours ago</td>
+                                <td>
+                                    <button class="btn btn-secondary btn-sm" onclick="showModal('adjustModal')">Adjust</button>
+                                    <button class="btn btn-info btn-sm" onclick="showModal('historyModal')">History</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                        <img src="https://via.placeholder.com/40x40/f59e0b/white?text=I" alt="Product" class="product-image" style="width: 40px; height: 40px;">
+                                        <div>
+                                            <div style="font-weight: 500;">iPhone 15 Pro</div>
+                                            <div style="color: #64748b; font-size: 0.8rem;">IP15-PRO-001</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong style="color: #f59e0b;">3</strong></td>
+                                <td>2</td>
+                                <td>1</td>
+                                <td>10</td>
+                                <td><span class="badge badge-warning">Low Stock</span></td>
+                                <td>1 day ago</td>
+                                <td>
+                                    <button class="btn btn-secondary btn-sm">Adjust</button>
+                                    <button class="btn btn-info btn-sm">History</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                        <img src="https://via.placeholder.com/40x40/10b981/white?text=O" alt="Product" class="product-image" style="width: 40px; height: 40px;">
+                                        <div>
+                                            <div style="font-weight: 500;">Office Chair Pro</div>
+                                            <div style="color: #64748b; font-size: 0.8rem;">OFC-CHR-001</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong>25</strong></td>
+                                <td>20</td>
+                                <td>5</td>
+                                <td>3</td>
+                                <td><span class="badge badge-success">Available</span></td>
+                                <td>3 hours ago</td>
+                                <td>
+                                    <button class="btn btn-secondary btn-sm">Adjust</button>
+                                    <button class="btn btn-info btn-sm">History</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                        <img src="https://via.placeholder.com/40x40/ef4444/white?text=B" alt="Product" class="product-image" style="width: 40px; height: 40px;">
+                                        <div>
+                                            <div style="font-weight: 500;">Programming Book Set</div>
+                                            <div style="color: #64748b; font-size: 0.8rem;">BK-PROG-001</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong style="color: #ef4444;">0</strong></td>
+                                <td>0</td>
+                                <td>0</td>
+                                <td>5</td>
+                                <td><span class="badge badge-danger">Out of Stock</span></td>
+                                <td>1 week ago</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">Restock</button>
+                                    <button class="btn btn-info btn-sm">History</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Low Stock View -->
+            <div id="low-stock" class="view">
+                <div class="page-header">
+                    <h1 class="page-title">Low Stock Alert</h1>
+                    <div class="page-actions">
+                        <button class="btn btn-secondary">Export Report</button>
+                        <button class="btn btn-primary">Create Purchase Orders</button>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <strong>Warning!</strong> You have 23 products below minimum stock levels. Consider restocking soon to avoid stockouts.
+                </div>
+
+                <!-- Low Stock Table -->
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Current Stock</th>
+                                <th>Min Level</th>
+                                <th>Shortage</th>
+                                <th>Days Until Stockout</th>
+                                <th>Suggested Order</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background-color: #fef3c7;">
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                        <img src="https://via.placeholder.com/40x40/f59e0b/white?text=I" alt="Product" class="product-image" style="width: 40px; height: 40px;">
+                                        <div>
+                                            <div style="font-weight: 500;">iPhone 15 Pro</div>
+                                            <div style="color: #64748b; font-size: 0.8rem;">IP15-PRO-001</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong style="color: #f59e0b;">3</strong></td>
+                                <td>10</td>
+                                <td style="color: #ef4444;">-7</td>
+                                <td style="color: #ef4444;">5 days</td>
+                                <td>20 units</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">Create PO</button>
+                                    <button class="btn btn-secondary btn-sm">Adjust Min</button>
+                                </td>
+                            </tr>
+                            <tr style="background-color: #fee2e2;">
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                        <img src="https://via.placeholder.com/40x40/ef4444/white?text=B" alt="Product" class="product-image" style="width: 40px; height: 40px;">
+                                        <div>
+                                            <div style="font-weight: 500;">Programming Book Set</div>
+                                            <div style="color: #64748b; font-size: 0.8rem;">BK-PROG-001</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><strong style="color: #ef4444;">0</strong></td>
+                                <td>5</td>
+                                <td style="color: #ef4444;">-5</td>
+                                <td style="color: #ef4444;">Out of stock</td>
+                                <td>15 units</td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm">Urgent PO</button>
+                                    <button class="btn btn-secondary btn-sm">Adjust Min</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Transactions View -->
+            <div id="transactions" class="view">
+                <div class="page-header">
+                    <h1 class="page-title">Inventory Transactions</h1>
+                    <div class="page-actions">
+                        <button class="btn btn-secondary">Export</button>
+                        <button class="btn btn-primary">Manual Entry</button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filters">
+                    <div class="filters-row">
+                        <div class="form-group">
+                            <label class="form-label">Date Range</label>
+                            <input type="date" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Transaction Type</label>
+                            <select class="form-control">
+                                <option>All Types</option>
+                                <option>Purchase</option>
+                                <option>Sale</option>
+                                <option>Adjustment</option>
+                                <option>Return</option>
+                                <option>Transfer</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Product</label>
+                            <input type="text" class="form-control" placeholder="Product name or code...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-primary">Filter</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transactions Table -->
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date/Time</th>
+                                <th>Product</th>
+                                <th>Type</th>
+                                <th>Quantity</th>
+                                <th>Reference</th>
+                                <th>Notes</th>
+                                <th>User</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div>Jan 15, 2024</div>
+                                    <div style="color: #64748b; font-size: 0.8rem;">10:30 AM</div>
+                                </td>
+                                <td>
+                                    <div style="font-weight: 500;">MacBook Pro 16"</div>
+                                    <div style="color: #64748b; font-size: 0.8rem;">MBP-16-001</div>
+                                </td>
+                                <td><span class="badge badge-success">Purchase</span></td>
+                                <td style="color: #10b981;">+10</td>
+                                <td>PO-2024-001</td>
+                                <td>New stock arrival from Apple</td>
+                                <td>John Doe</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div>Jan 14, 2024</div>
+                                    <div style="color: #64748b; font-size: 0.8rem;">3:45 PM</div>
+                                </td>
+                                <td>
+                                    <div style="font-weight: 500;">iPhone 15 Pro</div>
+                                    <div style="color: #64748b; font-size: 0.8rem;">IP15-PRO-001</div>
+                                </td>
+                                <td><span class="badge badge-danger">Sale</span></td>
+                                <td style="color: #ef4444;">-2</td>
+                                <td>SO-2024-156</td>
+                                <td>Customer order fulfillment</td>
+                                <td>Jane Smith</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div>Jan 13, 2024</div>
+                                    <div style="color: #64748b; font-size: 0.8rem;">11:20 AM</div>
+                                </td>
+                                <td>
+                                    <div style="font-weight: 500;">Office Chair Pro</div>
+                                    <div style="color: #64748b; font-size: 0.8rem;">OFC-CHR-001</div>
+                                </td>
+                                <td><span class="badge badge-warning">Adjustment</span></td>
+                                <td style="color: #f59e0b;">+1</td>
+                                <td>ADJ-2024-003</td>
+                                <td>Found during physical count</td>
+                                <td>Mike Johnson</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Product Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Product</h2>
+                <button class="modal-close" onclick="closeModal('productModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Product Name *</label>
+                        <input type="text" class="form-control" placeholder="Enter product name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Product Code *</label>
+                        <input type="text" class="form-control" placeholder="Enter product code">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Category *</label>
+                        <select class="form-control">
+                            <option>Select category</option>
+                            <option>Electronics</option>
+                            <option>Computers</option>
+                            <option>Furniture</option>
+                            <option>Books</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Manufacturer Code</label>
+                        <input type="text" class="form-control" placeholder="Enter manufacturer code">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Selling Price *</label>
+                        <input type="number" class="form-control" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cost Price</label>
+                        <input type="number" class="form-control" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Minimum Stock Level</label>
+                        <input type="number" class="form-control" placeholder="0" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Initial Stock</label>
+                        <input type="number" class="form-control" placeholder="0" min="0">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" rows="3" placeholder="Enter product description"></textarea>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Product Images</label>
+                        <input type="file" class="form-control" multiple accept="image/*">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('productModal')">Cancel</button>
+                <button class="btn btn-primary">Save Product</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Adjust Modal -->
+    <div id="adjustModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Adjust Inventory</h2>
+                <button class="modal-close" onclick="closeModal('adjustModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label class="form-label">Product</label>
+                        <select class="form-control">
+                            <option>MacBook Pro 16" (MBP-16-001)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Current Stock</label>
+                        <input type="text" class="form-control" value="15" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Adjustment Type</label>
+                        <select class="form-control">
+                            <option>Increase Stock</option>
+                            <option>Decrease Stock</option>
+                            <option>Set Exact Quantity</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" class="form-control" placeholder="Enter quantity" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Reason *</label>
+                        <select class="form-control">
+                            <option>Stock Count Correction</option>
+                            <option>Damaged Goods</option>
+                            <option>Expired Items</option>
+                            <option>Theft/Loss</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" rows="3" placeholder="Enter additional notes..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('adjustModal')">Cancel</button>
+                <button class="btn btn-primary">Save Adjustment</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="historyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Inventory History - MacBook Pro 16"</h2>
+                <button class="modal-close" onclick="closeModal('historyModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Quantity</th>
+                                <th>Reference</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Jan 15, 2024</td>
+                                <td><span class="badge badge-success">Purchase</span></td>
+                                <td style="color: #10b981;">+10</td>
+                                <td>PO-2024-001</td>
+                                <td>New stock from supplier</td>
+                            </tr>
+                            <tr>
+                                <td>Jan 10, 2024</td>
+                                <td><span class="badge badge-danger">Sale</span></td>
+                                <td style="color: #ef4444;">-3</td>
+                                <td>SO-2024-145</td>
+                                <td>Customer order</td>
+                            </tr>
+                            <tr>
+                                <td>Jan 5, 2024</td>
+                                <td><span class="badge badge-warning">Adjustment</span></td>
+                                <td style="color: #f59e0b;">+1</td>
+                                <td>ADJ-2024-001</td>
+                                <td>Physical count correction</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('historyModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="importModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Import Products</h2>
+                <button class="modal-close" onclick="closeModal('importModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; padding: 2rem;">
+                    <div style="border: 2px dashed #d1d5db; border-radius: 8px; padding: 2rem; margin-bottom: 1rem;">
+                        <svg style="width: 3rem; height: 3rem; color: #9ca3af; margin-bottom: 1rem;" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"/>
+                        </svg>
+                        <p>Drop your CSV file here or click to browse</p>
+                        <input type="file" accept=".csv" style="display: none;">
+                    </div>
+                    <p style="color: #64748b; font-size: 0.9rem;">
+                        Supported format: CSV with columns: name, code, category, price, stock
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('importModal')">Cancel</button>
+                <button class="btn btn-primary">Import Products</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showView(viewId) {
+            // Hide all views
+            document.querySelectorAll('.view').forEach(view => {
+                view.classList.remove('active');
+            });
+            
+            // Show selected view
+            document.getElementById(viewId).classList.add('active');
+            
+            // Update nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Close modal when clicking outside
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+
+        // Simulate some interactive features
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click handlers for filter buttons
+            document.querySelectorAll('.filters .btn-primary').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Simulate filtering
+                    this.textContent = 'Filtering...';
+                    setTimeout(() => {
+                        this.textContent = 'Filter';
+                    }, 1000);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

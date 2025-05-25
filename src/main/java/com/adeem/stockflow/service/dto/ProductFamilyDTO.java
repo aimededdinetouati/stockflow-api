@@ -24,6 +24,8 @@ public class ProductFamilyDTO implements Serializable {
 
     private Instant lastModifiedDate;
 
+    private ClientAccountDTO clientAccount;
+
     public Long getId() {
         return id;
     }
@@ -72,6 +74,14 @@ public class ProductFamilyDTO implements Serializable {
         this.lastModifiedDate = lastModifiedDate;
     }
 
+    public ClientAccountDTO getClientAccount() {
+        return clientAccount;
+    }
+
+    public void setClientAccount(ClientAccountDTO clientAccount) {
+        this.clientAccount = clientAccount;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -103,6 +113,7 @@ public class ProductFamilyDTO implements Serializable {
             ", createdDate='" + getCreatedDate() + "'" +
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +
             ", lastModifiedDate='" + getLastModifiedDate() + "'" +
+            ", clientAccount=" + getClientAccount() +
             "}";
     }
 }

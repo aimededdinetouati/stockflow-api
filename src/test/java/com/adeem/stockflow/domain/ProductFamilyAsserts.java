@@ -59,6 +59,8 @@ public class ProductFamilyAsserts {
      * @param actual the actual entity
      */
     public static void assertProductFamilyUpdatableRelationshipsEquals(ProductFamily expected, ProductFamily actual) {
-        // empty method
+        assertThat(actual)
+            .as("Verify ProductFamily relationships")
+            .satisfies(a -> assertThat(a.getClientAccount()).as("check clientAccount").isEqualTo(expected.getClientAccount()));
     }
 }

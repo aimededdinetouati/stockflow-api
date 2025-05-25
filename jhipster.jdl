@@ -573,6 +573,7 @@ relationship ManyToOne {
   Supplier{clientAccount} to ClientAccount,
   Customer{clientAccount} to ClientAccount,
   Admin{clientAccount} to ClientAccount
+  ProductFamily{clientAccount} to ClientAccount
 }
 
 // Role-Based Security relationships
