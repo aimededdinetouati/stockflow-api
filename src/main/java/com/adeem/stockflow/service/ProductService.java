@@ -349,6 +349,12 @@ public class ProductService {
             .map(productMapper::toDto);
     }
 
+    @Transactional(readOnly = true)
+    public Optional<Product> findEntityForClientAccount(Long id, Long clientAccountId) {
+        LOG.debug("Request to get ProductDTO for client account : {}, {}", id, clientAccountId);
+        return productRepository.findOne(ProductSpecification.withId(id).and(ProductSpecification.withClientAccountId(clientAccountId)));
+    }
+
     /**
      * Find products with inventory below minimum stock level.
      *
