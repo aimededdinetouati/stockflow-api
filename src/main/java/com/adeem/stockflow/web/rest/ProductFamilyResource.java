@@ -14,6 +14,7 @@ import com.adeem.stockflow.service.criteria.filter.ProductFamilyCriteria;
 import com.adeem.stockflow.service.dto.ProductDTO;
 import com.adeem.stockflow.service.dto.ProductFamilyDTO;
 import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
+import com.adeem.stockflow.service.exceptions.ErrorConstants;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.net.URI;
@@ -80,7 +81,7 @@ public class ProductFamilyResource {
         LOG.debug("REST request to save ProductFamily : {}", productFamilyDTO);
 
         if (productFamilyDTO.getId() != null) {
-            throw new BadRequestAlertException("A new productFamily cannot already have an ID", ENTITY_NAME, "idexists");
+            throw new BadRequestAlertException("A new productFamily cannot already have an ID", ENTITY_NAME, ErrorConstants.ID_EXISTS);
         }
 
         // Set client account from security context
@@ -89,7 +90,11 @@ public class ProductFamilyResource {
 
         // Validate family name uniqueness for this client account
         if (productFamilyService.existsByNameAndClientAccount(productFamilyDTO.getName(), clientAccountId)) {
-            throw new BadRequestAlertException("A product family with this name already exists", ENTITY_NAME, "nameexists");
+            throw new BadRequestAlertException(
+                "A product family with this name already exists",
+                ENTITY_NAME,
+                ErrorConstants.PRODUCT_FAMILY_NAME_EXISTS
+            );
         }
 
         ProductFamilyDTO result = productFamilyService.save(productFamilyDTO);
@@ -116,10 +121,10 @@ public class ProductFamilyResource {
         LOG.debug("REST request to update ProductFamily : {}, {}", id, productFamilyDTO);
 
         if (productFamilyDTO.getId() == null) {
-            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
+            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, ErrorConstants.ID_NULL);
         }
         if (!Objects.equals(id, productFamilyDTO.getId())) {
-            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
+            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, ErrorConstants.ID_INVALID);
         }
 
         // Get current client account
@@ -135,7 +140,11 @@ public class ProductFamilyResource {
 
         // Validate family name uniqueness (excluding current family)
         if (productFamilyService.existsByNameAndClientAccountExcluding(productFamilyDTO.getName(), clientAccountId, id)) {
-            throw new BadRequestAlertException("A product family with this name already exists", ENTITY_NAME, "nameexists");
+            throw new BadRequestAlertException(
+                "A product family with this name already exists",
+                ENTITY_NAME,
+                ErrorConstants.PRODUCT_FAMILY_NAME_EXISTS
+            );
         }
 
         ProductFamilyDTO result = productFamilyService.update(productFamilyDTO);
@@ -296,7 +305,7 @@ public class ProductFamilyResource {
      * @param productIds the id of the product to remove.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated productDTO.
      */
-    @DeleteMapping("/{id}/unassing")
+    @DeleteMapping("/{id}/unassign")
     public ResponseEntity<Map<String, Integer>> removeProductFromFamily(
         @PathVariable("id") Long id,
         @RequestParam("productIds") List<Long> productIds
@@ -334,7 +343,7 @@ public class ProductFamilyResource {
         // Verify the family belongs to the current client account
         Optional<ProductFamilyDTO> family = productFamilyService.findOneForClientAccount(id, clientAccountId);
         if (family.isEmpty()) {
-            throw new BadRequestAlertException("ProductFamily not found or access denied", ENTITY_NAME, "notfound");
+            throw new BadRequestAlertException("ProductFamily not found or access denied", ENTITY_NAME, ErrorConstants.NOT_FOUND);
         }
 
         // Check if family has products
@@ -342,7 +351,7 @@ public class ProductFamilyResource {
             throw new BadRequestAlertException(
                 "Cannot delete product family that contains products. Please reassign or remove all products first.",
                 ENTITY_NAME,
-                "familyhasproducts"
+                ErrorConstants.PRODUCT_FAMILY_HAS_PRODUCTS
             );
         }
 

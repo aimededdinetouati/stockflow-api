@@ -26,7 +26,7 @@ public class BadRequestAlertException extends ErrorResponseException {
                 .withStatus(HttpStatus.BAD_REQUEST.value())
                 .withType(type)
                 .withTitle(defaultMessage)
-                .withProperty("message", "error." + errorKey)
+                .withProperty("message", errorKey)
                 .withProperty("params", entityName)
                 .build(),
             null

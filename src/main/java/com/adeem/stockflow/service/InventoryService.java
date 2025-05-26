@@ -10,6 +10,7 @@ import com.adeem.stockflow.service.criteria.InventorySpecification;
 import com.adeem.stockflow.service.criteria.InventoryTransactionSpecification;
 import com.adeem.stockflow.service.dto.*;
 import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
+import com.adeem.stockflow.service.exceptions.ErrorConstants;
 import com.adeem.stockflow.service.mapper.InventoryMapper;
 import com.adeem.stockflow.service.mapper.InventoryTransactionMapper;
 import com.adeem.stockflow.service.mapper.ProductMapper;
@@ -99,7 +100,7 @@ public class InventoryService {
         LOG.debug("Request to update Inventory : {}", inventoryDTO);
 
         if (!inventoryRepository.existsById(inventoryDTO.getId())) {
-            throw new BadRequestAlertException("Entity not found", "", "idnotfound");
+            throw new BadRequestAlertException("Entity not found", "", ErrorConstants.ID_NOT_FOUND);
         }
         checkFields(inventoryDTO);
 
@@ -122,11 +123,11 @@ public class InventoryService {
         BigDecimal availableQuantity = inventoryDTO.getAvailableQuantity();
 
         if (quantity == null || quantity.compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestAlertException("Quantity cannot be null or negative", "inventory", "quantityinvalid");
+            throw new BadRequestAlertException("Quantity cannot be null or negative", "inventory", ErrorConstants.QUANTITY_INVALID);
         }
 
         if (availableQuantity != null && availableQuantity.compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestAlertException("Quantity cannot be null or negative", "inventory", "quantityinvalid");
+            throw new BadRequestAlertException("Quantity cannot be null or negative", "inventory", ErrorConstants.QUANTITY_INVALID);
         }
     }
 
@@ -359,7 +360,7 @@ public class InventoryService {
 
         Inventory inventory = inventoryRepository
             .findById(id)
-            .orElseThrow(() -> new BadRequestAlertException("Inventory not found", "inventory", "idnotfound"));
+            .orElseThrow(() -> new BadRequestAlertException("Inventory not found", "inventory", ErrorConstants.ID_NOT_FOUND));
 
         BigDecimal oldQuantity = inventory.getQuantity();
         BigDecimal oldAvailable = inventory.getAvailableQuantity();
@@ -375,10 +376,14 @@ public class InventoryService {
                 newQuantity = oldQuantity.subtract(adjustmentRequest.getQuantity());
                 newAvailable = oldAvailable.subtract(adjustmentRequest.getQuantity());
                 if (newQuantity.compareTo(BigDecimal.ZERO) < 0) {
-                    throw new BadRequestAlertException("Quantity cannot be negative", "inventory", "invalidquantity");
+                    throw new BadRequestAlertException("Quantity cannot be negative", "inventory", ErrorConstants.QUANTITY_INVALID);
                 }
                 if (newAvailable.compareTo(BigDecimal.ZERO) < 0) {
-                    throw new BadRequestAlertException("Available quantity cannot be negative", "inventory", "invalidavailable");
+                    throw new BadRequestAlertException(
+                        "Available quantity cannot be negative",
+                        "inventory",
+                        ErrorConstants.INVALID_AVAILABLE_QUANTITY
+                    );
                 }
                 break;
             case SET_EXACT:
@@ -390,7 +395,7 @@ public class InventoryService {
                 }
                 break;
             default:
-                throw new BadRequestAlertException("Invalid adjustment type", "inventory", "invalidtype");
+                throw new BadRequestAlertException("Invalid adjustment type", "inventory", ErrorConstants.INVALID_TYPE);
         }
 
         inventory.setQuantity(newQuantity);
@@ -419,7 +424,7 @@ public class InventoryService {
         // Get the product ID from inventory
         Inventory inventory = inventoryRepository
             .findById(inventoryId)
-            .orElseThrow(() -> new BadRequestAlertException("Inventory not found", "inventory", "idnotfound"));
+            .orElseThrow(() -> new BadRequestAlertException("Inventory not found", "inventory", ErrorConstants.ID_NOT_FOUND));
 
         var specification = InventoryTransactionSpecification.withProductId(inventory.getProduct().getId());
         // Get transactions for this product

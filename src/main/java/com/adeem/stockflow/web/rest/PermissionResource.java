@@ -4,6 +4,7 @@ import com.adeem.stockflow.repository.PermissionRepository;
 import com.adeem.stockflow.service.PermissionService;
 import com.adeem.stockflow.service.dto.PermissionDTO;
 import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
+import com.adeem.stockflow.service.exceptions.ErrorConstants;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.net.URI;
@@ -83,14 +84,14 @@ public class PermissionResource {
     ) throws URISyntaxException {
         LOG.debug("REST request to update Permission : {}, {}", id, permissionDTO);
         if (permissionDTO.getId() == null) {
-            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
+            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, ErrorConstants.ID_NULL);
         }
         if (!Objects.equals(id, permissionDTO.getId())) {
-            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
+            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, ErrorConstants.ID_INVALID);
         }
 
         if (!permissionRepository.existsById(id)) {
-            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, ErrorConstants.ID_NOT_FOUND);
         }
 
         permissionDTO = permissionService.update(permissionDTO);

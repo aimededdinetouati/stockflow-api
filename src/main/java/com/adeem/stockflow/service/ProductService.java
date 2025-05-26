@@ -109,7 +109,7 @@ public class ProductService {
 
         Product existing = productRepository
             .findById(productDTO.getId())
-            .orElseThrow(() -> new BadRequestAlertException("Entity not found", "", "idnotfound"));
+            .orElseThrow(() -> new BadRequestAlertException("Entity not found", "", ErrorConstants.ID_NOT_FOUND));
 
         // Validate the product fields
         checkFields(productDTO);
@@ -185,7 +185,7 @@ public class ProductService {
 
         // Check if a product with the same code already exists in the database to ensure uniqueness
         productRepository
-            .findOne(ProductSpecification.withCode(productDTO.getCode()))
+            .findByCodeAndClientAccountId(productDTO.getCode(), productDTO.getClientAccountId())
             .ifPresent(existing -> {
                 if (!existing.getCode().equals(productDTO.getCode())) {
                     throw new BadRequestAlertException("Product code already exists", "product", ErrorConstants.PRODUCT_CODE_EXISTS);
@@ -203,15 +203,15 @@ public class ProductService {
         }
 
         if (productDTO.getApplyTva() == null) {
-            throw new BadRequestAlertException("Apply TVA cannot be null", "product", "applytva");
+            throw new BadRequestAlertException("Apply TVA cannot be null", "product", ErrorConstants.APPLY_TVA);
         }
 
         if (productDTO.getName() == null) {
-            throw new BadRequestAlertException("Name cannot be null", "product", "name");
+            throw new BadRequestAlertException("Name cannot be null", "product", ErrorConstants.NAME_NULL);
         }
 
         if (productDTO.getCode() == null) {
-            throw new BadRequestAlertException("Code cannot be null", "product", "code");
+            throw new BadRequestAlertException("Code cannot be null", "product", ErrorConstants.CODE_NULL);
         }
     }
 

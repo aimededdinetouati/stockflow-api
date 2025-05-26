@@ -159,7 +159,7 @@ class ProductFamilyResourceIT {
         ResultActions resultActions = restProductFamilyMockMvc
             .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(duplicateFamilyDTO)))
             .andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.message").value("error.nameexists"));
+        resultActions.andExpect(jsonPath("$.message").value("E012"));
     }
 
     @Test
@@ -308,7 +308,7 @@ class ProductFamilyResourceIT {
         restProductFamilyMockMvc
             .perform(delete(ENTITY_API_URL_ID, productFamily.getId()))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value("error.familyhasproducts"));
+            .andExpect(jsonPath("$.message").value("E013"));
 
         // Cleanup
         productRepository.delete(savedProduct);
@@ -371,7 +371,7 @@ class ProductFamilyResourceIT {
 
         // Remove product from family
         restProductFamilyMockMvc
-            .perform(delete(ENTITY_API_URL_ID + "/unassing", productFamily.getId()).param("productIds", savedProduct.getId().toString()))
+            .perform(delete(ENTITY_API_URL_ID + "/unassign", productFamily.getId()).param("productIds", savedProduct.getId().toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.productFamily").doesNotExist());
 

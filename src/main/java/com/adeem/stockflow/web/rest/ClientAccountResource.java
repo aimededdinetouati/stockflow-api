@@ -5,6 +5,7 @@ import com.adeem.stockflow.security.SecurityUtils;
 import com.adeem.stockflow.service.ClientAccountService;
 import com.adeem.stockflow.service.dto.ClientAccountDTO;
 import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
+import com.adeem.stockflow.service.exceptions.ErrorConstants;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.net.URI;
@@ -67,14 +68,14 @@ public class ClientAccountResource {
     ) throws URISyntaxException {
         LOG.debug("REST request to update ClientAccount : {}, {}", id, clientAccountDTO);
         if (clientAccountDTO.getId() == null) {
-            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
+            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, ErrorConstants.ID_NULL);
         }
         if (!Objects.equals(id, clientAccountDTO.getId())) {
-            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
+            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, ErrorConstants.ID_INVALID);
         }
 
         if (!clientAccountRepository.existsById(id)) {
-            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, ErrorConstants.ID_NOT_FOUND);
         }
 
         clientAccountDTO = clientAccountService.update(clientAccountDTO);

@@ -45,6 +45,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
      */
     Optional<Product> findByIdAndClientAccountId(Long id, Long clientAccountId);
 
+    Optional<Product> findByCodeAndClientAccountId(String code, Long clientAccountId);
+
     /**
      * Find products with inventory below minimum stock level for a client account.
      *

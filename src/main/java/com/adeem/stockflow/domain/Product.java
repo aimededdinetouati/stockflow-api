@@ -18,7 +18,7 @@ import org.springframework.data.domain.Persistable;
  * A Product.
  */
 @Entity
-@Table(name = "product")
+@Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "code", "client_account_id" }) })
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @JsonIgnoreProperties(value = { "new" })
 @SuppressWarnings("common-java:DuplicatedBlocks")

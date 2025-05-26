@@ -9,6 +9,7 @@ import com.adeem.stockflow.service.UserService;
 import com.adeem.stockflow.service.dto.AdminUserDTO;
 import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
 import com.adeem.stockflow.service.exceptions.EmailAlreadyUsedException;
+import com.adeem.stockflow.service.exceptions.ErrorConstants;
 import com.adeem.stockflow.service.exceptions.LoginAlreadyUsedException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
@@ -110,7 +111,7 @@ public class UserResource {
         LOG.debug("REST request to save User : {}", userDTO);
 
         if (userDTO.getId() != null) {
-            throw new BadRequestAlertException("A new user cannot already have an ID", "userManagement", "idexists");
+            throw new BadRequestAlertException("A new user cannot already have an ID", "userManagement", ErrorConstants.ID_EXISTS);
             // Lowercase the user login before comparing with database
         } else if (userRepository.findOneByLogin(userDTO.getLogin().toLowerCase()).isPresent()) {
             throw new LoginAlreadyUsedException();
