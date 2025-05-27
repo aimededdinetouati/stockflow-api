@@ -20,31 +20,6 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
-    /**
-     * Find one product with a specific code.
-     *
-     * @param code the product code.
-     * @return the product.
-     */
-    Optional<Product> findByCode(String code);
-
-    /**
-     * Find products by client account ID.
-     *
-     * @param clientAccountId the client account ID.
-     * @return the products.
-     */
-    List<Product> findByClientAccountId(Long clientAccountId);
-
-    /**
-     * Find product by ID and client account ID.
-     *
-     * @param id the product ID.
-     * @param clientAccountId the client account ID.
-     * @return the product.
-     */
-    Optional<Product> findByIdAndClientAccountId(Long id, Long clientAccountId);
-
     Optional<Product> findByCodeAndClientAccountId(String code, Long clientAccountId);
 
     /**
@@ -61,92 +36,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
         "AND i.quantity <= p.minimumStockLevel"
     )
     Page<Object[]> findProductsWithLowStock(@Param("clientAccountId") Long clientAccountId, Pageable pageable);
-
-    /**
-     * Find products with zero inventory for a client account.
-     *
-     * @param clientAccountId the client account ID.
-     * @param pageable the pagination information.
-     * @return the products with zero stock.
-     */
-    @Query(
-        "SELECT p, i FROM Product p " + "LEFT JOIN p.inventories i " + "WHERE p.clientAccount.id = :clientAccountId " + "AND i.quantity = 0"
-    )
-    Page<Object[]> findProductsWithZeroStock(@Param("clientAccountId") Long clientAccountId, Pageable pageable);
-
-    // Additional methods to add to the existing ProductRepository interface
-
-    /**
-     * Additional repository methods for Product Family integration.
-     * These should be added to the existing ProductRepository interface.
-     */
-
-    // Basic family relationship queries
-
-    boolean existsByProductFamilyId(Long productFamilyId);
-
-    Long countByProductFamilyIdAndClientAccountId(Long productFamilyId, Long clientAccountId);
-
-    Page<Product> findByProductFamilyIdAndClientAccountId(Long productFamilyId, Long clientAccountId, Pageable pageable);
-
-    List<Product> findByProductFamilyIdAndClientAccountId(Long productFamilyId, Long clientAccountId);
-
-    // Statistics queries for product family analytics
-
-    @Query(
-        """
-        SELECT COALESCE(SUM(p.sellingPrice * i.availableQuantity), 0)
-        FROM Product p
-        INNER JOIN Inventory i ON i.product.id = p.id
-        WHERE p.clientAccount.id = :clientAccountId
-        """
-    )
-    BigDecimal calculateTotalInventoryValueByClientAccount(@Param("clientAccountId") Long clientAccountId);
-
-    @Query(
-        """
-        SELECT COALESCE(SUM(p.sellingPrice * i.availableQuantity), 0)
-        FROM Product p
-        INNER JOIN Inventory i ON i.product.id = p.id
-        WHERE p.productFamily.id = :productFamilyId
-        """
-    )
-    BigDecimal calculateTotalValueByProductFamily(@Param("productFamilyId") Long productFamilyId);
-
-    @Query(
-        """
-        SELECT COALESCE(SUM(i.availableQuantity), 0)
-        FROM Product p
-        INNER JOIN Inventory i ON i.product.id = p.id
-        WHERE p.productFamily.id = :productFamilyId
-        """
-    )
-    BigDecimal calculateTotalQuantityByProductFamily(@Param("productFamilyId") Long productFamilyId);
-
-    // Stock status queries by family
-
-    @Query(
-        """
-        SELECT COUNT(p.id)
-        FROM Product p
-        INNER JOIN Inventory i ON i.product.id = p.id
-        WHERE p.productFamily.id = :productFamilyId
-        AND i.availableQuantity <= p.minimumStockLevel
-        AND i.availableQuantity > 0
-        """
-    )
-    Long countLowStockProductsByFamily(@Param("productFamilyId") Long productFamilyId);
-
-    @Query(
-        """
-        SELECT COUNT(p.id)
-        FROM Product p
-        INNER JOIN Inventory i ON i.product.id = p.id
-        WHERE p.productFamily.id = :productFamilyId
-        AND i.availableQuantity = 0
-        """
-    )
-    Long countOutOfStockProductsByFamily(@Param("productFamilyId") Long productFamilyId);
 
     @Query(
         value = """
