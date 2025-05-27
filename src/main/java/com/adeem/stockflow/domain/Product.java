@@ -61,7 +61,6 @@ public class Product extends AbstractAuditingEntity<Long> implements Serializabl
     @Column(name = "minimum_stock_level", precision = 21, scale = 2)
     private BigDecimal minimumStockLevel;
 
-    @NotNull
     @Column(name = "category", nullable = false)
     @Enumerated(EnumType.STRING)
     private ProductCategory category;
