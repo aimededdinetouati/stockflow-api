@@ -10,9 +10,9 @@ import org.springframework.stereotype.Service;
  * Service for intelligent detection of Excel headers in multiple languages.
  */
 @Service
-public class HeaderDetectionService {
+public class HeaderDetecterService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(HeaderDetectionService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(HeaderDetecterService.class);
 
     // Maximum number of rows to check for headers
     private static final int MAX_HEADER_ROWS = 10;

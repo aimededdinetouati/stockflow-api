@@ -1,6 +1,6 @@
 package com.adeem.stockflow.batch.reader;
 
-import com.adeem.stockflow.service.batch.HeaderDetectionService;
+import com.adeem.stockflow.service.batch.HeaderDetecterService;
 import com.adeem.stockflow.service.dto.batch.ProductImportRow;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -11,9 +11,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
@@ -25,19 +23,19 @@ public class ExcelProductItemReader extends AbstractItemCountingItemStreamItemRe
 
     private static final Logger LOG = LoggerFactory.getLogger(ExcelProductItemReader.class);
 
-    private final HeaderDetectionService headerDetectionService;
+    private final HeaderDetecterService headerDetecterService;
 
     private Resource resource;
     private Workbook workbook;
     private Sheet sheet;
     private Iterator<Row> rowIterator;
-    private HeaderDetectionService.HeaderDetectionResult headerResult;
+    private HeaderDetecterService.HeaderDetectionResult headerResult;
     private int currentRowNumber = 0;
     private int dataRowNumber = 0;
     private Long clientAccountId;
 
-    public ExcelProductItemReader(HeaderDetectionService headerDetectionService) {
-        this.headerDetectionService = headerDetectionService;
+    public ExcelProductItemReader(HeaderDetecterService headerDetecterService) {
+        this.headerDetecterService = headerDetecterService;
         setName("excelProductItemReader");
     }
 
@@ -76,7 +74,7 @@ public class ExcelProductItemReader extends AbstractItemCountingItemStreamItemRe
         }
 
         // Detect headers
-        headerResult = headerDetectionService.detectHeaders(sheet);
+        headerResult = headerDetecterService.detectHeaders(sheet);
         if (!headerResult.isSuccessful()) {
             throw new IllegalStateException("Failed to detect headers: " + headerResult.getErrorMessage());
         }
@@ -353,7 +351,7 @@ public class ExcelProductItemReader extends AbstractItemCountingItemStreamItemRe
     /**
      * Get the header detection result.
      */
-    public HeaderDetectionService.HeaderDetectionResult getHeaderResult() {
+    public HeaderDetecterService.HeaderDetectionResult getHeaderResult() {
         return headerResult;
     }
 
