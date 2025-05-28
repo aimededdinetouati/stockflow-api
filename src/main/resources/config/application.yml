@@ -112,6 +112,20 @@ spring:
         - api-docs
         # Uncomment to activate TLS for the dev profile
         #- tls
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 50MB
+      file-size-threshold: 2KB
+
+  # Batch configuration
+  batch:
+    jdbc:
+      initialize-schema: always # Create batch tables automatically
+    job:
+      enabled: false # Don't auto-start jobs on application startup
   jmx:
     enabled: false
   data:
@@ -228,4 +242,18 @@ jhipster:
 # https://www.jhipster.tech/common-application-properties/
 # ===================================================================
 
-# application:
+application:
+  import:
+    chunk-size: 100
+    max-file-size: 52428800 # 50MB in bytes
+    temp-file-retention-hours: 24
+    supported-formats: [xlsx, xls]
+    default-inventory-status: AVAILABLE
+    header-detection:
+      max-rows-to-check: 10
+      min-mandatory-fields: 3
+    progress-tracking:
+      update-interval-seconds: 5
+    file-storage:
+      temp-directory: ${java.io.tmpdir}/stockflow-imports
+      cleanup-enabled: true
