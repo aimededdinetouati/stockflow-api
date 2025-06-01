@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+  <!--
+      Added the ProductImportJob and ProductImportError entities.
+  -->
+
+  <!-- Product Import Job Table -->
+  <changeSet id="20241128000001-1" author="aimed">
+    <createTable tableName="product_import_job">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="job_execution_id" type="bigint">
+        <constraints nullable="true" />
+      </column>
+      <column name="file_name" type="varchar(255)">
+        <constraints nullable="true" />
+      </column>
+      <column name="file_size" type="bigint">
+        <constraints nullable="true" />
+      </column>
+      <column name="status" type="varchar(50)">
+        <constraints nullable="false" />
+      </column>
+      <column name="total_rows" type="integer">
+        <constraints nullable="true" />
+      </column>
+      <column name="successful_rows" type="integer">
+        <constraints nullable="true" />
+      </column>
+      <column name="failed_rows" type="integer">
+        <constraints nullable="true" />
+      </column>
+      <column name="header_row_number" type="integer">
+        <constraints nullable="true" />
+      </column>
+      <column name="start_time" type="${datetimeType}">
+        <constraints nullable="true" />
+      </column>
+      <column name="end_time" type="${datetimeType}">
+        <constraints nullable="true" />
+      </column>
+      <column name="current_phase" type="varchar(255)">
+        <constraints nullable="true" />
+      </column>
+      <column name="client_account_id" type="bigint">
+        <constraints nullable="false" />
+      </column>
+      <column name="created_by" type="varchar(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="created_date" type="${datetimeType}" defaultValueDate="${now}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="last_modified_by" type="varchar(50)"/>
+      <column name="last_modified_date" type="${datetimeType}"/>
+    </createTable>
+  </changeSet>
+
+  <!-- Product Import Error Table -->
+  <changeSet id="20241128000002-1" author="aimed">
+    <createTable tableName="product_import_error">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="import_job_id" type="bigint">
+        <constraints nullable="false" />
+      </column>
+      <column name="row_number" type="integer">
+        <constraints nullable="true" />
+      </column>
+      <column name="data_row_number" type="integer">
+        <constraints nullable="true" />
+      </column>
+      <column name="field_name" type="varchar(100)">
+        <constraints nullable="true" />
+      </column>
+      <column name="field_value" type="${clobType}">
+        <constraints nullable="true" />
+      </column>
+      <column name="error_type" type="varchar(50)">
+        <constraints nullable="false" />
+      </column>
+      <column name="error_message" type="${clobType}">
+        <constraints nullable="true" />
+      </column>
+      <column name="suggestion" type="${clobType}">
+        <constraints nullable="true" />
+      </column>
+      <column name="created_by" type="varchar(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="created_date" type="${datetimeType}" defaultValueDate="${now}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="last_modified_by" type="varchar(50)"/>
+      <column name="last_modified_date" type="${datetimeType}"/>
+    </createTable>
+  </changeSet>
+
+  <!-- Add Foreign Key Constraints -->
+  <changeSet id="20241128000003-1" author="aimed">
+    <addForeignKeyConstraint
+      baseColumnNames="client_account_id"
+      baseTableName="product_import_job"
+      constraintName="fk_product_import_job_client_account_id"
+      referencedColumnNames="id"
+      referencedTableName="client_account"/>
+  </changeSet>
+
+  <changeSet id="20241128000004-1" author="aimed">
+    <addForeignKeyConstraint
+      baseColumnNames="import_job_id"
+      baseTableName="product_import_error"
+      constraintName="fk_product_import_error_import_job_id"
+      referencedColumnNames="id"
+      referencedTableName="product_import_job"/>
+  </changeSet>
+
+  <!-- Add Indexes for Performance -->
+  <changeSet id="20241128000005-1" author="aimed">
+    <createIndex indexName="idx_product_import_job_client_account" tableName="product_import_job">
+      <column name="client_account_id"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet id="20241128000006-1" author="aimed">
+    <createIndex indexName="idx_product_import_job_execution_id" tableName="product_import_job">
+      <column name="job_execution_id"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet id="20241128000007-1" author="aimed">
+    <createIndex indexName="idx_product_import_job_status" tableName="product_import_job">
+      <column name="status"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet id="20241128000008-1" author="aimed">
+    <createIndex indexName="idx_product_import_job_start_time" tableName="product_import_job">
+      <column name="start_time"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet id="20241128000009-1" author="aimed">
+    <createIndex indexName="idx_product_import_error_import_job" tableName="product_import_error">
+      <column name="import_job_id"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet id="20241128000010-1" author="aimed">
+    <createIndex indexName="idx_product_import_error_row_number" tableName="product_import_error">
+      <column name="row_number"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet id="20241128000011-1" author="aimed">
+    <createIndex indexName="idx_product_import_error_type" tableName="product_import_error">
+      <column name="error_type"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet id="20241128000012-1" author="aimed">
+    <createIndex indexName="idx_product_import_error_field_name" tableName="product_import_error">
+      <column name="field_name"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- Add Composite Indexes for Common Queries -->
+  <changeSet id="20241128000013-1" author="aimed">
+    <createIndex indexName="idx_product_import_job_client_status" tableName="product_import_job">
+      <column name="client_account_id"/>
+      <column name="status"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet id="20241128000014-1" author="aimed">
+    <createIndex indexName="idx_product_import_job_client_start_time" tableName="product_import_job">
+      <column name="client_account_id"/>
+      <column name="start_time"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet id="20241128000015-1" author="aimed">
+    <createIndex indexName="idx_product_import_error_job_type" tableName="product_import_error">
+      <column name="import_job_id"/>
+      <column name="error_type"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- Add Comments for Documentation -->
+  <changeSet id="20241128000016-1" author="aimed">
+    <setTableRemarks tableName="product_import_job"
+                     remarks="Tracks Excel product import jobs with progress and status information"/>
+  </changeSet>
+
+  <changeSet id="20241128000017-1" author="aimed">
+    <setTableRemarks tableName="product_import_error"
+                     remarks="Stores detailed error information for each failed row in product import jobs"/>
+  </changeSet>
+
+  <!-- Add Column Comments -->
+  <changeSet id="20241128000018-1" author="aimed">
+    <setColumnRemarks tableName="product_import_job" columnName="job_execution_id"
+                      remarks="Spring Batch job execution ID for correlation"/>
+    <setColumnRemarks tableName="product_import_job" columnName="file_name"
+                      remarks="Original uploaded file name"/>
+    <setColumnRemarks tableName="product_import_job" columnName="file_size"
+                      remarks="File size in bytes"/>
+    <setColumnRemarks tableName="product_import_job" columnName="status"
+                      remarks="Current job status: STARTED, PROCESSING, COMPLETED, FAILED, CANCELLED"/>
+    <setColumnRemarks tableName="product_import_job" columnName="total_rows"
+                      remarks="Total number of data rows to process (excluding header)"/>
+    <setColumnRemarks tableName="product_import_job" columnName="successful_rows"
+                      remarks="Number of rows successfully processed"/>
+    <setColumnRemarks tableName="product_import_job" columnName="failed_rows"
+                      remarks="Number of rows that failed processing"/>
+    <setColumnRemarks tableName="product_import_job" columnName="header_row_number"
+                      remarks="Row number where headers were detected (0-based)"/>
+    <setColumnRemarks tableName="product_import_job" columnName="current_phase"
+                      remarks="Current processing phase description"/>
+  </changeSet>
+
+  <changeSet id="20241128000019-1" author="aimed">
+    <setColumnRemarks tableName="product_import_error" columnName="row_number"
+                      remarks="Excel row number (1-based, including header)"/>
+    <setColumnRemarks tableName="product_import_error" columnName="data_row_number"
+                      remarks="Data row number (1-based, excluding header)"/>
+    <setColumnRemarks tableName="product_import_error" columnName="field_name"
+                      remarks="Name of the field that caused the error"/>
+    <setColumnRemarks tableName="product_import_error" columnName="field_value"
+                      remarks="Original field value that caused the error"/>
+    <setColumnRemarks tableName="product_import_error" columnName="error_type"
+                      remarks="Type of error: VALIDATION, DUPLICATE, BUSINESS_RULE, SYSTEM"/>
+    <setColumnRemarks tableName="product_import_error" columnName="error_message"
+                      remarks="Detailed error message"/>
+    <setColumnRemarks tableName="product_import_error" columnName="suggestion"
+                      remarks="Suggested fix for the error"/>
+  </changeSet>
+
+  <!-- Add Check Constraints for Data Integrity -->
+  <changeSet id="20241128000020-1" author="aimed">
+    <sql>
+      ALTER TABLE product_import_job
+        ADD CONSTRAINT chk_product_import_job_status
+          CHECK (status IN ('STARTED', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED'));
+    </sql>
+  </changeSet>
+
+  <changeSet id="20241128000021-1" author="aimed">
+    <sql>
+      ALTER TABLE product_import_job
+        ADD CONSTRAINT chk_product_import_job_rows
+          CHECK (total_rows IS NULL OR total_rows >= 0);
+    </sql>
+  </changeSet>
+
+  <changeSet id="20241128000022-1" author="aimed">
+    <sql>
+      ALTER TABLE product_import_job
+        ADD CONSTRAINT chk_product_import_job_successful_rows
+          CHECK (successful_rows IS NULL OR successful_rows >= 0);
+    </sql>
+  </changeSet>
+
+  <changeSet id="20241128000023-1" author="aimed">
+    <sql>
+      ALTER TABLE product_import_job
+        ADD CONSTRAINT chk_product_import_job_failed_rows
+          CHECK (failed_rows IS NULL OR failed_rows >= 0);
+    </sql>
+  </changeSet>
+
+  <changeSet id="20241128000024-1" author="aimed">
+    <sql>
+      ALTER TABLE product_import_job
+        ADD CONSTRAINT chk_product_import_job_file_size
+          CHECK (file_size IS NULL OR file_size > 0);
+    </sql>
+  </changeSet>
+
+  <changeSet id="20241128000025-1" author="aimed">
+    <sql>
+      ALTER TABLE product_import_error
+        ADD CONSTRAINT chk_product_import_error_type
+          CHECK (error_type IN ('VALIDATION', 'DUPLICATE', 'BUSINESS_RULE', 'SYSTEM',
+                                'MISSING_MANDATORY', 'INVALID_FORMAT', 'FAMILY_ERROR', 'CATEGORY_ERROR'));
+    </sql>
+  </changeSet>
+
+  <changeSet id="20241128000026-1" author="aimed">
+    <sql>
+      ALTER TABLE product_import_error
+        ADD CONSTRAINT chk_product_import_error_row_number
+          CHECK (row_number IS NULL OR row_number > 0);
+    </sql>
+  </changeSet>
+
+  <changeSet id="20241128000027-1" author="aimed">
+    <sql>
+      ALTER TABLE product_import_error
+        ADD CONSTRAINT chk_product_import_error_data_row_number
+          CHECK (data_row_number IS NULL OR data_row_number > 0);
+    </sql>
+  </changeSet>
+
+</databaseChangeLog>

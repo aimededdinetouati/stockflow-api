@@ -64,4 +64,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
         nativeQuery = true
     )
     List<CategoryStatsProjection> getCategoryStatsOptimized(@Param("clientAccountId") Long clientAccountId);
+
+    boolean existsByProductFamilyId(Long familyId);
 }
