@@ -7,6 +7,9 @@ import com.adeem.stockflow.domain.Supplier;
 import com.adeem.stockflow.domain.enumeration.AddressType;
 import com.adeem.stockflow.repository.ClientAccountRepository;
 import com.adeem.stockflow.repository.SupplierRepository;
+import com.adeem.stockflow.repository.projection.SupplierActivityProjection;
+import com.adeem.stockflow.repository.projection.SupplierStatsProjection;
+import com.adeem.stockflow.repository.projection.TopSuppliersProjection;
 import com.adeem.stockflow.service.dto.*;
 import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
 import com.adeem.stockflow.service.exceptions.ErrorConstants;
@@ -258,6 +261,7 @@ public class SupplierService {
 
     /**
      * Get comprehensive supplier statistics.
+     * OPTIMIZED VERSION - Uses only 3 efficient queries instead of 14+ separate calls.
      *
      * @param clientAccountId the client account ID
      * @return the supplier statistics
@@ -269,86 +273,73 @@ public class SupplierService {
 
         SupplierStatsDTO stats = new SupplierStatsDTO();
 
-        // Basic counts
-        stats.setTotalSuppliers(supplierRepository.countByClientAccountId(clientAccountId));
-        stats.setActiveSuppliers(supplierRepository.countByClientAccountIdAndActiveTrue(clientAccountId));
-        stats.setInactiveSuppliers(supplierRepository.countByClientAccountIdAndActiveFalse(clientAccountId));
+        // Query 1: Get comprehensive supplier overview statistics in one query
+        Optional<SupplierStatsProjection> projectionOpt = supplierRepository.getComprehensiveSupplierStats(clientAccountId);
+        if (projectionOpt.isPresent()) {
+            SupplierStatsProjection projection = projectionOpt.get();
 
-        // Address statistics
-        stats.setSuppliersWithAddresses(supplierRepository.countSuppliersWithAddresses(clientAccountId));
-        stats.setSuppliersWithoutAddresses(supplierRepository.countSuppliersWithoutAddresses(clientAccountId));
-
-        // Time-based statistics
-        Instant now = Instant.now();
-        Instant weekAgo = now.minus(7, ChronoUnit.DAYS);
-        Instant monthAgo = now.minus(30, ChronoUnit.DAYS);
-
-        stats.setSuppliersAddedThisWeek(supplierRepository.countByClientAccountIdAndCreatedDateBetween(clientAccountId, weekAgo, now));
-        stats.setSuppliersAddedThisMonth(supplierRepository.countByClientAccountIdAndCreatedDateBetween(clientAccountId, monthAgo, now));
-
-        // Purchase order statistics
-        stats.setSuppliersWithPurchaseOrders(supplierRepository.countSuppliersWithPurchaseOrders(clientAccountId));
-        stats.setTotalPurchaseOrderValue(supplierRepository.getTotalPurchaseOrderValue(clientAccountId));
-
-        // Latest activity
-        List<Supplier> latestCreated = supplierRepository.findLatestCreated(clientAccountId, PageRequest.of(0, 1));
-        if (!latestCreated.isEmpty()) {
-            stats.setLastSupplierCreated(latestCreated.get(0).getCreatedDate());
+            // Set all basic statistics from single query
+            stats.setTotalSuppliers(projection.getTotalSuppliers());
+            stats.setActiveSuppliers(projection.getActiveSuppliers());
+            stats.setInactiveSuppliers(projection.getInactiveSuppliers());
+            stats.setSuppliersWithAddresses(projection.getSuppliersWithAddresses());
+            stats.setSuppliersWithoutAddresses(projection.getSuppliersWithoutAddresses());
+            stats.setSuppliersAddedThisWeek(projection.getSuppliersAddedThisWeek());
+            stats.setSuppliersAddedThisMonth(projection.getSuppliersAddedThisMonth());
+            stats.setSuppliersWithPurchaseOrders(projection.getSuppliersWithPurchaseOrders());
+            stats.setTotalPurchaseOrderValue(projection.getTotalPurchaseOrderValue());
+            stats.setLastSupplierCreated(projection.getLastSupplierCreated());
+            stats.setLastSupplierModified(projection.getLastSupplierModified());
+        } else {
+            // Set default values if no data found
+            stats.setTotalSuppliers(0L);
+            stats.setActiveSuppliers(0L);
+            stats.setInactiveSuppliers(0L);
+            stats.setSuppliersWithAddresses(0L);
+            stats.setSuppliersWithoutAddresses(0L);
+            stats.setSuppliersAddedThisWeek(0L);
+            stats.setSuppliersAddedThisMonth(0L);
+            stats.setSuppliersWithPurchaseOrders(0L);
+            stats.setTotalPurchaseOrderValue(BigDecimal.ZERO);
         }
 
-        List<Supplier> latestModified = supplierRepository.findLatestModified(clientAccountId, PageRequest.of(0, 1));
-        if (!latestModified.isEmpty()) {
-            stats.setLastSupplierModified(latestModified.get(0).getLastModifiedDate());
-        }
+        // Query 2: Get top suppliers data for both rankings in one query
+        List<TopSuppliersProjection> topSuppliersProjections = supplierRepository.getTopSuppliersStats(clientAccountId, 5);
 
-        // Recent activities
-        List<Object[]> recentActivities = supplierRepository.findRecentActivities(clientAccountId, PageRequest.of(0, 10));
-        stats.setRecentActivities(
-            recentActivities
-                .stream()
-                .map(row ->
-                    new SupplierStatsDTO.SupplierActivityDTO(
-                        (String) row[1], // action
-                        (String) row[2], // displayName
-                        (Instant) row[3], // activityDate
-                        (String) row[4] // notes
-                    )
-                )
-                .collect(Collectors.toList())
-        );
+        // Convert to DTOs and sort by order count (descending) for top by purchase orders
+        List<SupplierStatsDTO.TopSupplierDTO> topSuppliersByOrders = topSuppliersProjections
+            .stream()
+            .sorted((a, b) -> b.getOrderCount().compareTo(a.getOrderCount()))
+            .limit(5)
+            .map(proj ->
+                new SupplierStatsDTO.TopSupplierDTO(proj.getSupplierId(), proj.getDisplayName(), proj.getOrderCount(), proj.getTotalValue())
+            )
+            .collect(Collectors.toList());
+        stats.setTopSuppliersByPurchaseOrders(topSuppliersByOrders);
 
-        // Top suppliers by order count
-        List<Object[]> topByOrders = supplierRepository.findTopSuppliersByOrderCount(clientAccountId, PageRequest.of(0, 5));
-        stats.setTopSuppliersByPurchaseOrders(
-            topByOrders
-                .stream()
-                .map(row ->
-                    new SupplierStatsDTO.TopSupplierDTO(
-                        (Long) row[0], // id
-                        (String) row[1], // displayName
-                        (Long) row[2], // orderCount
-                        (BigDecimal) row[3] // totalValue
-                    )
-                )
-                .collect(Collectors.toList())
-        );
+        // Convert to DTOs and sort by value (descending) for top by value
+        List<SupplierStatsDTO.TopSupplierDTO> topSuppliersByValue = topSuppliersProjections
+            .stream()
+            .sorted((a, b) -> b.getTotalValue().compareTo(a.getTotalValue()))
+            .limit(5)
+            .map(proj ->
+                new SupplierStatsDTO.TopSupplierDTO(proj.getSupplierId(), proj.getDisplayName(), proj.getOrderCount(), proj.getTotalValue())
+            )
+            .collect(Collectors.toList());
+        stats.setTopSuppliersByValue(topSuppliersByValue);
 
-        // Top suppliers by value
-        List<Object[]> topByValue = supplierRepository.findTopSuppliersByValue(clientAccountId, PageRequest.of(0, 5));
-        stats.setTopSuppliersByValue(
-            topByValue
-                .stream()
-                .map(row ->
-                    new SupplierStatsDTO.TopSupplierDTO(
-                        (Long) row[0], // id
-                        (String) row[1], // displayName
-                        (Long) row[2], // orderCount
-                        (BigDecimal) row[3] // totalValue
-                    )
-                )
-                .collect(Collectors.toList())
-        );
+        // Query 3: Get recent activities efficiently
+        List<SupplierActivityProjection> recentActivitiesProjections = supplierRepository.getRecentActivitiesOptimized(clientAccountId, 10);
 
+        List<SupplierStatsDTO.SupplierActivityDTO> recentActivities = recentActivitiesProjections
+            .stream()
+            .map(proj ->
+                new SupplierStatsDTO.SupplierActivityDTO(proj.getAction(), proj.getDisplayName(), proj.getActivityDate(), proj.getNotes())
+            )
+            .collect(Collectors.toList());
+        stats.setRecentActivities(recentActivities);
+
+        LOG.debug("Successfully retrieved supplier statistics for client account: {}", clientAccountId);
         return stats;
     }
 
