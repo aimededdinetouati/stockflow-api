@@ -35,9 +35,16 @@ public class Supplier extends AbstractAuditingEntity<Long> implements Serializab
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
+    @Column(name = "company_name")
+    private String companyName;
+
     @NotNull
     @Column(name = "phone", nullable = false)
     private String phone;
+
+    @Email
+    @Column(name = "email")
+    private String email;
 
     @Column(name = "fax")
     private String fax;
@@ -54,6 +61,13 @@ public class Supplier extends AbstractAuditingEntity<Long> implements Serializab
     @Column(name = "rc")
     private String rc;
 
+    @NotNull
+    @Column(name = "active", columnDefinition = "boolean default true", nullable = false)
+    private Boolean active = true;
+
+    @Column(name = "notes")
+    private String notes;
+
     // Inherited createdBy definition
     // Inherited createdDate definition
     // Inherited lastModifiedBy definition
@@ -62,9 +76,9 @@ public class Supplier extends AbstractAuditingEntity<Long> implements Serializab
     @Transient
     private boolean isPersisted;
 
-    @JsonIgnoreProperties(value = { "customer", "clientAccount", "supplier" }, allowSetters = true)
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(unique = true)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "address_id")
+    @JsonIgnoreProperties(value = { "customer", "supplier" }, allowSetters = true)
     private Address address;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -112,6 +126,19 @@ public class Supplier extends AbstractAuditingEntity<Long> implements Serializab
         this.lastName = lastName;
     }
 
+    public String getCompanyName() {
+        return this.companyName;
+    }
+
+    public Supplier companyName(String companyName) {
+        this.setCompanyName(companyName);
+        return this;
+    }
+
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
+    }
+
     public String getPhone() {
         return this.phone;
     }
@@ -123,6 +150,19 @@ public class Supplier extends AbstractAuditingEntity<Long> implements Serializab
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getEmail() {
+        return this.email;
+    }
+
+    public Supplier email(String email) {
+        this.setEmail(email);
+        return this;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getFax() {
@@ -188,6 +228,32 @@ public class Supplier extends AbstractAuditingEntity<Long> implements Serializab
 
     public void setRc(String rc) {
         this.rc = rc;
+    }
+
+    public Boolean getActive() {
+        return this.active;
+    }
+
+    public Supplier active(Boolean active) {
+        this.setActive(active);
+        return this;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
+    public String getNotes() {
+        return this.notes;
+    }
+
+    public Supplier notes(String notes) {
+        this.setNotes(notes);
+        return this;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     // Inherited createdBy methods
@@ -258,6 +324,16 @@ public class Supplier extends AbstractAuditingEntity<Long> implements Serializab
         return this;
     }
 
+    /**
+     * Get display name (company name or full name)
+     */
+    public String getDisplayName() {
+        if (companyName != null && !companyName.trim().isEmpty()) {
+            return companyName;
+        }
+        return firstName + " " + lastName;
+    }
+
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
@@ -284,12 +360,16 @@ public class Supplier extends AbstractAuditingEntity<Long> implements Serializab
             "id=" + getId() +
             ", firstName='" + getFirstName() + "'" +
             ", lastName='" + getLastName() + "'" +
+            ", companyName='" + getCompanyName() + "'" +
             ", phone='" + getPhone() + "'" +
+            ", email='" + getEmail() + "'" +
             ", fax='" + getFax() + "'" +
             ", taxId='" + getTaxId() + "'" +
             ", registrationArticle='" + getRegistrationArticle() + "'" +
             ", statisticalId='" + getStatisticalId() + "'" +
             ", rc='" + getRc() + "'" +
+            ", active='" + getActive() + "'" +
+            ", notes='" + getNotes() + "'" +
             ", createdBy='" + getCreatedBy() + "'" +
             ", createdDate='" + getCreatedDate() + "'" +
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +

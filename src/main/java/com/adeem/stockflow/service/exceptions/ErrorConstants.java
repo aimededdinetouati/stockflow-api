@@ -46,8 +46,26 @@ public final class ErrorConstants {
     public static final String FILE_EMPTY = "E019";
     public static final String FILE_TOO_LARGE = "E020";
     public static final String FILE_INVALID_FORMAT = "E021";
-    public static final String IMPORT_FAILED = "E022";
-    public static final String USER_MUST_HAVE_ONE_AUTHORITY = "E023";
+
+    // Supplier Errors
+    public static final String EMAIL_ALREADY_EXISTS = "E022";
+    public static final String PHONE_ALREADY_EXISTS = "E023";
+    public static final String TAX_ID_ALREADY_EXISTS = "E024";
+    public static final String FIRST_NAME_REQUIRED = "E025";
+    public static final String LAST_NAME_REQUIRED = "E026";
+    public static final String PHONE_REQUIRED = "E027";
+    public static final String SUPPLIER_HAS_ACTIVE_ORDERS = "E028";
+
+    // Address Errors
+    public static final String STREET_ADDRESS_REQUIRED = "E029";
+    public static final String CITY_REQUIRED = "E030";
+    public static final String STATE_REQUIRED = "E031";
+    public static final String POSTAL_CODE_REQUIRED = "E032";
+    public static final String COUNTRY_REQUIRED = "E033";
+    public static final String INVALID_ADDRESS_TYPE = "E034";
+
+    public static final String IMPORT_FAILED = "E035";
+    public static final String USER_MUST_HAVE_ONE_AUTHORITY = "E036";
 
     private ErrorConstants() {}
 }
