@@ -5,6 +5,7 @@ import com.adeem.stockflow.domain.Address;
 import com.adeem.stockflow.domain.ClientAccount;
 import com.adeem.stockflow.domain.Supplier;
 import com.adeem.stockflow.domain.enumeration.AddressType;
+import com.adeem.stockflow.repository.AddressRepository;
 import com.adeem.stockflow.repository.ClientAccountRepository;
 import com.adeem.stockflow.repository.SupplierRepository;
 import com.adeem.stockflow.repository.projection.SupplierActivityProjection;
@@ -48,17 +49,20 @@ public class SupplierService {
     private final ClientAccountRepository clientAccountRepository;
     private final SupplierMapper supplierMapper;
     private final AddressMapper addressMapper;
+    private final AddressRepository addressRepository;
 
     public SupplierService(
         SupplierRepository supplierRepository,
         ClientAccountRepository clientAccountRepository,
         SupplierMapper supplierMapper,
-        AddressMapper addressMapper
+        AddressMapper addressMapper,
+        AddressRepository addressRepository
     ) {
         this.supplierRepository = supplierRepository;
         this.clientAccountRepository = clientAccountRepository;
         this.supplierMapper = supplierMapper;
         this.addressMapper = addressMapper;
+        this.addressRepository = addressRepository;
     }
 
     /**
@@ -110,24 +114,35 @@ public class SupplierService {
         );
 
         // Handle address update
-        if (addressDTO != null) {
+        Address address = null;
+        if (addressDTO != null && addressDTO.getId() == null) {
             validateAndPrepareAddress(addressDTO);
-            // If supplier had an address, update it; otherwise create new
-            if (existingSupplier.getAddress() != null) {
-                addressDTO.setId(existingSupplier.getAddress().getId());
-            }
-            supplierDTO.setAddress(addressDTO);
-        } else {
-            // Keep existing address if no address data provided
-            if (existingSupplier.getAddress() != null) {
-                supplierDTO.setAddress(addressMapper.toDto(existingSupplier.getAddress()));
-            }
+            address = addressMapper.toEntity(addressDTO);
         }
 
-        SupplierDTO updatedSupplier = save(supplierDTO);
+        //TODO think about deleting the existing address if new address is provided
 
-        LOG.info("Updated supplier {} for client account {}", updatedSupplier.getDisplayName(), updatedSupplier.getClientAccountId());
-        return updatedSupplier;
+        updateSupplierFields(existingSupplier, supplierDTO, address);
+
+        existingSupplier.setIsPersisted();
+        Supplier updatedSupplier = supplierRepository.save(existingSupplier);
+        return supplierMapper.toDto(updatedSupplier);
+    }
+
+    private void updateSupplierFields(Supplier existingSupplier, SupplierDTO supplierDTO, Address address) {
+        existingSupplier.setFirstName(supplierDTO.getFirstName());
+        existingSupplier.setLastName(supplierDTO.getLastName());
+        existingSupplier.setCompanyName(supplierDTO.getCompanyName());
+        existingSupplier.setPhone(supplierDTO.getPhone());
+        existingSupplier.setEmail(supplierDTO.getEmail());
+        existingSupplier.setFax(supplierDTO.getFax());
+        existingSupplier.setTaxId(supplierDTO.getTaxId());
+        existingSupplier.setRegistrationArticle(supplierDTO.getRegistrationArticle());
+        existingSupplier.setStatisticalId(supplierDTO.getStatisticalId());
+        existingSupplier.setRc(supplierDTO.getRc());
+        existingSupplier.setActive(supplierDTO.getActive());
+        existingSupplier.setNotes(supplierDTO.getNotes());
+        existingSupplier.setAddress(address);
     }
 
     /**

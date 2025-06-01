@@ -67,14 +67,14 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long>, JpaSp
     /**
      * Soft delete supplier by setting active to false.
      */
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE Supplier s SET s.active = false WHERE s.id = :id AND s.clientAccount.id = :clientAccountId")
     int softDeleteSupplier(@Param("id") Long id, @Param("clientAccountId") Long clientAccountId);
 
     /**
      * Reactivate supplier by setting active to true.
      */
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE Supplier s SET s.active = true WHERE s.id = :id AND s.clientAccount.id = :clientAccountId")
     int reactivateSupplier(@Param("id") Long id, @Param("clientAccountId") Long clientAccountId);
 
