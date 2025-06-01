@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -33,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Handles validation, product family resolution, and product creation.
  */
 @Component
+@StepScope
 public class ProductImportProcessor implements ItemProcessor<ProductImportRow, ProductCreationResult> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProductImportProcessor.class);
@@ -80,7 +82,7 @@ public class ProductImportProcessor implements ItemProcessor<ProductImportRow, P
             ProductDTO savedProduct = productService.save(productDTO);
 
             // Create initial inventory
-            if (item.getQuantity() != null && item.getQuantity().compareTo(BigDecimal.ZERO) > 0) {
+            if (item.getQuantity() != null && item.getQuantity().compareTo(BigDecimal.ZERO) >= 0) {
                 createInitialInventory(savedProduct, item.getQuantity());
             }
 
@@ -266,7 +268,7 @@ public class ProductImportProcessor implements ItemProcessor<ProductImportRow, P
         inventoryDTO.setProduct(product);
         inventoryDTO.setQuantity(quantity);
         inventoryDTO.setAvailableQuantity(quantity);
-        inventoryDTO.setStatus(InventoryStatus.AVAILABLE);
+        inventoryDTO.setStatus(quantity.compareTo(BigDecimal.ZERO) == 0 ? InventoryStatus.OUT_OF_STOCK : InventoryStatus.AVAILABLE);
         inventoryDTO.setClientAccountId(clientAccountId);
 
         inventoryService.create(inventoryDTO);

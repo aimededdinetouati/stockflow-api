@@ -83,6 +83,7 @@ public class UserService {
         LOG.debug("Activating user for activation key {}", key);
         User user = activateUser(key);
         if (user.hasAuthority(AuthoritiesConstants.USER_ADMIN)) {
+            LOG.debug("Creating disabled account for user {}", user);
             createDisabledAccount(user, clientAccountDTO);
         }
     }
@@ -160,7 +161,17 @@ public class UserService {
     }
 
     public User registerUser(AdminUserDTO userDTO, String password) {
+        if (userDTO.getAuthorities() == null || userDTO.getAuthorities().size() != 1) {
+            throw new BadRequestAlertException(
+                "User must have one and only one authority",
+                "",
+                ErrorConstants.USER_MUST_HAVE_ONE_AUTHORITY
+            );
+        }
         String authority = userDTO.getAuthorities().iterator().next();
+        if (!AuthoritiesConstants.USER_ADMIN.equals(authority) && !AuthoritiesConstants.USER_CUSTOMER.equals(authority)) {
+            throw new AccessDeniedException(Constants.NOT_ALLOWED);
+        }
         userRepository
             .findOneByLogin(userDTO.getLogin().toLowerCase())
             .ifPresent(existingUser -> {
@@ -194,6 +205,7 @@ public class UserService {
         // new user gets registration key
         newUser.setActivationKey(RandomUtil.generateActivationKey());
         Set<Authority> authorities = new HashSet<>();
+        var x = authorityRepository.findAll();
         authorityRepository.findByName(authority).ifPresent(authorities::add);
         newUser.setAuthorities(authorities);
         userRepository.save(newUser);

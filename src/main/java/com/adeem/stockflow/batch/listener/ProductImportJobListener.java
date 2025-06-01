@@ -21,15 +21,14 @@ public class ProductImportJobListener implements JobExecutionListener {
 
     private final ProductImportJobRepository importJobRepository;
 
-    @Value("#{jobParameters['importJobId']}")
-    private Long importJobId;
-
     public ProductImportJobListener(ProductImportJobRepository importJobRepository) {
         this.importJobRepository = importJobRepository;
     }
 
     @Override
     public void beforeJob(JobExecution jobExecution) {
+        Long importJobId = jobExecution.getJobParameters().getLong("importJobId");
+
         LOG.info("Starting product import job with ID: {}", importJobId);
 
         try {
@@ -45,6 +44,7 @@ public class ProductImportJobListener implements JobExecutionListener {
 
     @Override
     public void afterJob(JobExecution jobExecution) {
+        Long importJobId = jobExecution.getJobParameters().getLong("importJobId");
         LOG.info("Completed product import job with ID: {} - Status: {}", importJobId, jobExecution.getStatus());
 
         try {

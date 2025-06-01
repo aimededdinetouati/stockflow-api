@@ -1,4 +1,4 @@
-package com.adeem.stockflow.batch.config;
+package com.adeem.stockflow.config.batch;
 
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.launch.JobLauncher;

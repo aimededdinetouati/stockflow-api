@@ -1,7 +1,7 @@
 package com.adeem.stockflow.web.rest;
 
 import com.adeem.stockflow.security.SecurityUtils;
-import com.adeem.stockflow.service.ProductImportService;
+import com.adeem.stockflow.service.batch.ProductImportService;
 import com.adeem.stockflow.service.dto.batch.*;
 import java.util.List;
 import java.util.Optional;

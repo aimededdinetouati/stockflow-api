@@ -89,7 +89,22 @@ jhipster:
 # https://www.jhipster.tech/common-application-properties/
 # ===================================================================
 
-# application:
+application:
+  import:
+    chunk-size: 10
+    max-file-size: 1048576
+    temp-file-retention-hours: 1
+    supported-formats:
+      - xlsx
+      - xls
+    header-detection:
+      max-rows-to-check: 5
+      min-mandatory-fields: 3
+    progress-tracking:
+      update-interval-seconds: 1
+    file-storage:
+      temp-directory: ${java.io.tmpdir}/stockflow-test-imports
+      cleanup-enabled: true
 management:
   health:
     mail:

@@ -34,10 +34,7 @@ public class ProductImportWriter implements ItemWriter<ProductCreationResult> {
     private final ProductImportJobRepository importJobRepository;
     private final ProductImportErrorRepository importErrorRepository;
 
-    @Value("#{jobParameters['importJobId']}")
     private Long importJobId;
-
-    @Value("#{jobParameters['clientAccountId']}")
     private Long clientAccountId;
 
     // Counters for tracking progress
@@ -54,6 +51,8 @@ public class ProductImportWriter implements ItemWriter<ProductCreationResult> {
 
     @BeforeStep
     public void beforeStep(StepExecution stepExecution) {
+        this.importJobId = stepExecution.getJobExecution().getJobParameters().getLong("importJobId");
+        this.clientAccountId = stepExecution.getJobExecution().getJobParameters().getLong("clientAccountId");
         this.stepExecution = stepExecution;
     }
 

@@ -1,14 +1,17 @@
-package com.adeem.stockflow.service;
+package com.adeem.stockflow.service.batch;
 
-import com.adeem.stockflow.config.ImportConfigurationProperties;
+import com.adeem.stockflow.config.ApplicationProperties;
+import com.adeem.stockflow.config.Constants;
 import com.adeem.stockflow.domain.ClientAccount;
 import com.adeem.stockflow.domain.ProductImportJob;
 import com.adeem.stockflow.domain.enumeration.ImportStatus;
 import com.adeem.stockflow.repository.ClientAccountRepository;
 import com.adeem.stockflow.repository.ProductImportErrorRepository;
 import com.adeem.stockflow.repository.ProductImportJobRepository;
+import com.adeem.stockflow.service.ExcelTemplateService;
 import com.adeem.stockflow.service.dto.batch.*;
 import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
+import com.adeem.stockflow.service.exceptions.ErrorConstants;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,12 +26,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
-import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
-import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,7 +38,6 @@ import org.springframework.web.multipart.MultipartFile;
  * Service Implementation for managing Product Import operations.
  */
 @Service
-@Transactional
 public class ProductImportService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProductImportService.class);
@@ -45,30 +45,30 @@ public class ProductImportService {
     private final ProductImportJobRepository importJobRepository;
     private final ProductImportErrorRepository importErrorRepository;
     private final ClientAccountRepository clientAccountRepository;
-    private final ImportConfigurationProperties importConfig;
     private final JobLauncher asyncJobLauncher;
     private final Job productImportJob;
     private final ExcelTemplateService excelTemplateService;
     private final Path tempFileStoragePath;
+    private final ApplicationProperties applicationProperties;
 
     public ProductImportService(
         ProductImportJobRepository importJobRepository,
         ProductImportErrorRepository importErrorRepository,
         ClientAccountRepository clientAccountRepository,
-        ImportConfigurationProperties importConfig,
         JobLauncher asyncJobLauncher,
         Job productImportJob,
         ExcelTemplateService excelTemplateService,
-        Path tempFileStoragePath
+        Path tempFileStoragePath,
+        ApplicationProperties applicationProperties
     ) {
         this.importJobRepository = importJobRepository;
         this.importErrorRepository = importErrorRepository;
         this.clientAccountRepository = clientAccountRepository;
-        this.importConfig = importConfig;
         this.asyncJobLauncher = asyncJobLauncher;
         this.productImportJob = productImportJob;
         this.excelTemplateService = excelTemplateService;
         this.tempFileStoragePath = tempFileStoragePath;
+        this.applicationProperties = applicationProperties;
     }
 
     /**
@@ -76,11 +76,8 @@ public class ProductImportService {
      */
     public ImportUploadResponse uploadAndStartImport(MultipartFile file, Long clientAccountId) {
         LOG.info("Starting product import for client account: {} with file: {}", clientAccountId, file.getOriginalFilename());
-
+        validateUploadedFile(file);
         try {
-            // Validate file
-            validateUploadedFile(file);
-
             // Save file temporarily
             String tempFileName = saveTemporaryFile(file);
 
@@ -97,7 +94,7 @@ public class ProductImportService {
             return new ImportUploadResponse(importJob.getId(), ImportStatus.STARTED, "Import job started successfully");
         } catch (Exception e) {
             LOG.error("Error starting import job for client account {}: {}", clientAccountId, e.getMessage(), e);
-            throw new BadRequestAlertException("Failed to start import: " + e.getMessage(), "productImport", "import.failed");
+            throw new BadRequestAlertException("Failed to start import: " + e.getMessage(), "productImport", ErrorConstants.IMPORT_FAILED);
         }
     }
 
@@ -167,7 +164,7 @@ public class ProductImportService {
         // Verify job belongs to client account
         importJobRepository
             .findByIdAndClientAccountId(jobId, clientAccountId)
-            .orElseThrow(() -> new BadRequestAlertException("Import job not found", "productImport", "job.not.found"));
+            .orElseThrow(() -> new AccessDeniedException(Constants.NOT_ALLOWED));
 
         return importErrorRepository.findByImportJobIdOrderByRowNumberAsc(jobId, pageable).map(this::convertToErrorDTO);
     }
@@ -175,6 +172,7 @@ public class ProductImportService {
     /**
      * Generate Excel template.
      */
+    @Transactional
     public Resource generateTemplate() {
         LOG.debug("Generating Excel template");
         return excelTemplateService.generateTemplate();
@@ -193,12 +191,13 @@ public class ProductImportService {
     /**
      * Cancel import job.
      */
+    @Transactional
     public void cancelImportJob(Long jobId, Long clientAccountId) {
         LOG.debug("Cancelling import job: {} for client account: {}", jobId, clientAccountId);
 
         ProductImportJob job = importJobRepository
             .findByIdAndClientAccountId(jobId, clientAccountId)
-            .orElseThrow(() -> new BadRequestAlertException("Import job not found", "productImport", "job.not.found"));
+            .orElseThrow(() -> new AccessDeniedException(Constants.NOT_ALLOWED));
 
         if (job.getStatus() == ImportStatus.STARTED || job.getStatus() == ImportStatus.PROCESSING) {
             job.setStatus(ImportStatus.CANCELLED);
@@ -212,26 +211,26 @@ public class ProductImportService {
 
     private void validateUploadedFile(MultipartFile file) {
         if (file.isEmpty()) {
-            throw new BadRequestAlertException("File is empty", "productImport", "file.empty");
+            throw new BadRequestAlertException("File is empty", "productImport", ErrorConstants.FILE_EMPTY);
         }
 
-        if (file.getSize() > importConfig.getMaxFileSize()) {
-            throw new BadRequestAlertException("File size exceeds limit", "productImport", "file.too.large");
+        if (file.getSize() > applicationProperties.getImport().getMaxFileSize()) {
+            throw new BadRequestAlertException("File size exceeds limit", "productImport", ErrorConstants.FILE_TOO_LARGE);
         }
 
         String fileName = file.getOriginalFilename();
         if (fileName == null || !isValidFileFormat(fileName)) {
-            throw new BadRequestAlertException("Invalid file format", "productImport", "file.invalid.format");
+            throw new BadRequestAlertException("Invalid file format", "productImport", ErrorConstants.FILE_INVALID_FORMAT);
         }
     }
 
     private boolean isValidFileFormat(String fileName) {
         String extension = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
-        return Arrays.asList(importConfig.getSupportedFormats()).contains(extension);
+        return Arrays.asList(applicationProperties.getImport().getSupportedFormats()).contains(extension);
     }
 
     private String saveTemporaryFile(MultipartFile file) throws IOException {
-        String tempFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+        String tempFileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
         Path tempFilePath = tempFileStoragePath.resolve(tempFileName);
 
         Files.copy(file.getInputStream(), tempFilePath, StandardCopyOption.REPLACE_EXISTING);
@@ -243,7 +242,7 @@ public class ProductImportService {
     private ProductImportJob createImportJobRecord(MultipartFile file, Long clientAccountId, String tempFileName) {
         ClientAccount clientAccount = clientAccountRepository
             .findById(clientAccountId)
-            .orElseThrow(() -> new BadRequestAlertException("Client account not found", "productImport", "client.not.found"));
+            .orElseThrow(() -> new AccessDeniedException(Constants.NOT_ALLOWED));
 
         ProductImportJob importJob = new ProductImportJob();
         importJob.setFileName(file.getOriginalFilename());

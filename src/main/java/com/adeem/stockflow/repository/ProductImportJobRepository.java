@@ -2,6 +2,7 @@ package com.adeem.stockflow.repository;
 
 import com.adeem.stockflow.domain.ProductImportJob;
 import com.adeem.stockflow.domain.enumeration.ImportStatus;
+import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -74,6 +75,7 @@ public interface ProductImportJobRepository extends JpaRepository<ProductImportJ
     /**
      * Complete job.
      */
+    @Transactional
     @Modifying
     @Query("UPDATE ProductImportJob j SET j.status = :status, j.endTime = :endTime, j.currentPhase = :phase " + "WHERE j.id = :jobId")
     void completeJob(

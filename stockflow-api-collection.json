@@ -1,0 +1,991 @@
+{
+  "info": {
+    "name": "StockFlow API Collection",
+    "description": "Complete API collection for StockFlow inventory management system",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "client_account_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "product_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "family_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "inventory_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "import_job_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('jwt_token', response.id_token);",
+                  "    pm.test('JWT token received', function() {",
+                  "        pm.expect(response.id_token).to.be.a('string');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin\",\n  \"rememberMe\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/authenticate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "authenticate"]
+            }
+          }
+        },
+        {
+          "name": "Get Auth Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/authenticate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "authenticate"]
+            }
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"newuser\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"langKey\": \"en\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "register"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Product Management",
+      "item": [
+        {
+          "name": "Create Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('product_id', response.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "multipart/form-data"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "productWithInventoryDTO",
+                  "value": "{\n  \"product\": {\n    \"name\": \"Gaming Laptop\",\n    \"code\": \"LAPTOP001\",\n    \"description\": \"High-performance gaming laptop\",\n    \"category\": \"COMPUTERS\",\n    \"sellingPrice\": 1299.99,\n    \"costPrice\": 999.99,\n    \"minimumStockLevel\": 5,\n    \"applyTva\": false,\n    \"isVisibleToCustomers\": true,\n    \"manufacturerCode\": \"ASUS001\",\n    \"upc\": \"123456789012\"\n  },\n  \"inventory\": {\n    \"quantity\": 10,\n    \"availableQuantity\": 10,\n    \"status\": \"AVAILABLE\"\n  }\n}",
+                  "type": "text",
+                  "contentType": "application/json"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/products",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"]
+            }
+          }
+        },
+        {
+          "name": "Get All Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products?page=0&size=20&sort=id,desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,desc"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Products with Filters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products?name.contains=laptop&category.equals=COMPUTERS&sellingPrice.greaterThan=1000",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products"],
+              "query": [
+                {
+                  "key": "name.contains",
+                  "value": "laptop"
+                },
+                {
+                  "key": "category.equals",
+                  "value": "COMPUTERS"
+                },
+                {
+                  "key": "sellingPrice.greaterThan",
+                  "value": "1000"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Product by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products/{{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "{{product_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "multipart/form-data"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "productWithInventoryDTO",
+                  "value": "{\n  \"product\": {\n    \"id\": {{product_id}},\n    \"name\": \"Updated Gaming Laptop\",\n    \"code\": \"LAPTOP001\",\n    \"description\": \"Updated high-performance gaming laptop\",\n    \"category\": \"COMPUTERS\",\n    \"sellingPrice\": 1399.99,\n    \"costPrice\": 1099.99,\n    \"minimumStockLevel\": 3,\n    \"applyTva\": false,\n    \"isVisibleToCustomers\": true\n  },\n  \"inventory\": {\n    \"quantity\": 15,\n    \"availableQuantity\": 15,\n    \"status\": \"AVAILABLE\"\n  }\n}",
+                  "type": "text",
+                  "contentType": "application/json"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/products/{{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "{{product_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Count Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products/count",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "count"]
+            }
+          }
+        },
+        {
+          "name": "Get Low Stock Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products/low-stock?page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "low-stock"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products/{{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "{{product_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Product Families",
+      "item": [
+        {
+          "name": "Create Product Family",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('family_id', response.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Electronics\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/product-families",
+              "host": ["{{base_url}}"],
+              "path": ["api", "product-families"]
+            }
+          }
+        },
+        {
+          "name": "Get All Product Families",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/product-families?page=0&size=20&sort=name,asc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "product-families"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "sort",
+                  "value": "name,asc"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Product Family by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/product-families/{{family_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "product-families", "{{family_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Product Family",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": {{family_id}},\n  \"name\": \"Updated Electronics Family\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/product-families/{{family_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "product-families", "{{family_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Family Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/product-families/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["api", "product-families", "statistics"]
+            }
+          }
+        },
+        {
+          "name": "Get Family Detail Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/product-families/{{family_id}}/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["api", "product-families", "{{family_id}}", "statistics"]
+            }
+          }
+        },
+        {
+          "name": "Get Family Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/product-families/{{family_id}}/products?page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "product-families", "{{family_id}}", "products"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Assign Products to Family",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/product-families/{{family_id}}/assign?productIds={{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "product-families", "{{family_id}}", "assign"],
+              "query": [
+                {
+                  "key": "productIds",
+                  "value": "{{product_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Remove Products from Family",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/product-families/{{family_id}}/unassign?productIds={{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "product-families", "{{family_id}}", "unassign"],
+              "query": [
+                {
+                  "key": "productIds",
+                  "value": "{{product_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Product Families",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/product-families/search?q=electronics&page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "product-families", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "electronics"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Product Family",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/product-families/{{family_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "product-families", "{{family_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Inventory Management",
+      "item": [
+        {
+          "name": "Create Inventory",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('inventory_id', response.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 50,\n  \"availableQuantity\": 45,\n  \"status\": \"AVAILABLE\",\n  \"product\": {\n    \"id\": {{product_id}}\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/inventories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "inventories"]
+            }
+          }
+        },
+        {
+          "name": "Get All Inventories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/inventories?page=0&size=20&sort=id,desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "inventories"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,desc"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Inventory by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/inventories/{{inventory_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "inventories", "{{inventory_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Inventory by Product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/inventories/product/{{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "inventories", "product", "{{product_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Inventory",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": {{inventory_id}},\n  \"quantity\": 60,\n  \"availableQuantity\": 55,\n  \"status\": \"AVAILABLE\",\n  \"product\": {\n    \"id\": {{product_id}}\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/inventories/{{inventory_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "inventories", "{{inventory_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Inventory Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/inventories/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "inventories", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Get Low Stock Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/inventories/low-stock?page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "inventories", "low-stock"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Out of Stock Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/inventories/out-of-stock?page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "inventories", "out-of-stock"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Adjust Inventory - Increase",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"INCREASE\",\n  \"quantity\": 10,\n  \"reason\": \"Stock received\",\n  \"notes\": \"Received new shipment from supplier\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/inventories/{{inventory_id}}/adjust",
+              "host": ["{{base_url}}"],
+              "path": ["api", "inventories", "{{inventory_id}}", "adjust"]
+            }
+          }
+        },
+        {
+          "name": "Adjust Inventory - Decrease",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"DECREASE\",\n  \"quantity\": 5,\n  \"reason\": \"Damaged goods\",\n  \"notes\": \"Items damaged during handling\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/inventories/{{inventory_id}}/adjust",
+              "host": ["{{base_url}}"],
+              "path": ["api", "inventories", "{{inventory_id}}", "adjust"]
+            }
+          }
+        },
+        {
+          "name": "Adjust Inventory - Set Exact",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"SET_EXACT\",\n  \"quantity\": 100,\n  \"reason\": \"Physical count\",\n  \"notes\": \"Annual inventory count adjustment\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/inventories/{{inventory_id}}/adjust",
+              "host": ["{{base_url}}"],
+              "path": ["api", "inventories", "{{inventory_id}}", "adjust"]
+            }
+          }
+        },
+        {
+          "name": "Get Inventory History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/inventories/{{inventory_id}}/history?page=0&size=20&sort=transactionDate,desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "inventories", "{{inventory_id}}", "history"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "sort",
+                  "value": "transactionDate,desc"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Count Inventories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/inventories/count",
+              "host": ["{{base_url}}"],
+              "path": ["api", "inventories", "count"]
+            }
+          }
+        },
+        {
+          "name": "Delete Inventory",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/inventories/{{inventory_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "inventories", "{{inventory_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Product Import",
+      "item": [
+        {
+          "name": "Download Import Template",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products/import/template",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "import", "template"]
+            }
+          }
+        },
+        {
+          "name": "Upload Import File",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('import_job_id', response.jobId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Upload an Excel file (.xlsx or .xls) with product data"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/products/import/upload",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "import", "upload"]
+            }
+          }
+        },
+        {
+          "name": "Get Import Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products/import/status/{{import_job_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "import", "status", "{{import_job_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Import Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products/import/report/{{import_job_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "import", "report", "{{import_job_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Import Errors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products/import/report/{{import_job_id}}/errors?page=0&size=50",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "import", "report", "{{import_job_id}}", "errors"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Import Job History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products/import/jobs?page=0&size=20&sort=startTime,desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "import", "jobs"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "sort",
+                  "value": "startTime,desc"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel Import Job",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products/import/jobs/{{import_job_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "import", "jobs", "{{import_job_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "System Management",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/management/health",
+              "host": ["{{base_url}}"],
+              "path": ["management", "health"]
+            }
+          }
+        },
+        {
+          "name": "Application Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/management/info",
+              "host": ["{{base_url}}"],
+              "path": ["management", "info"]
+            }
+          }
+        },
+        {
+          "name": "Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/management/prometheus",
+              "host": ["{{base_url}}"],
+              "path": ["management", "prometheus"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

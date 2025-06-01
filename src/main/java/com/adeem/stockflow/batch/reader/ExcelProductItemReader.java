@@ -11,19 +11,29 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.support.AbstractItemCountingItemStreamItemReader;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 /**
  * Spring Batch ItemReader for reading Excel files and converting rows to ProductImportRow objects.
+ * Now properly configured as a Step-scoped component.
  */
 @Component
+@StepScope
 public class ExcelProductItemReader extends AbstractItemCountingItemStreamItemReader<ProductImportRow> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExcelProductItemReader.class);
 
     private final HeaderDetecterService headerDetecterService;
+
+    @Value("#{jobParameters['fileName']}")
+    private String fileName;
+
+    @Value("#{jobParameters['clientAccountId']}")
+    private Long clientAccountId;
 
     private Resource resource;
     private Workbook workbook;
@@ -32,39 +42,42 @@ public class ExcelProductItemReader extends AbstractItemCountingItemStreamItemRe
     private HeaderDetecterService.HeaderDetectionResult headerResult;
     private int currentRowNumber = 0;
     private int dataRowNumber = 0;
-    private Long clientAccountId;
 
     public ExcelProductItemReader(HeaderDetecterService headerDetecterService) {
         this.headerDetecterService = headerDetecterService;
         setName("excelProductItemReader");
     }
 
-    public void setResource(Resource resource) {
-        this.resource = resource;
-    }
-
-    public void setClientAccountId(Long clientAccountId) {
-        this.clientAccountId = clientAccountId;
-    }
-
     @Override
     protected void doOpen() throws Exception {
-        LOG.debug("Opening Excel file: {}", resource.getFilename());
+        LOG.debug("Opening Excel file: {}", fileName);
 
-        if (resource == null) {
-            throw new IllegalStateException("Resource not set");
+        if (fileName == null) {
+            throw new IllegalStateException("fileName not set from job parameters");
         }
 
+        // Create resource from the temp file storage path
+        String tempDir = System.getProperty("java.io.tmpdir") + "/stockflow-imports";
+        java.nio.file.Path filePath = java.nio.file.Path.of(tempDir, fileName);
+
+        if (!java.nio.file.Files.exists(filePath)) {
+            throw new IllegalStateException("File not found: " + filePath);
+        }
+
+        LOG.debug("Reading file from: {}", filePath);
+
         // Open the workbook based on file extension
-        try (FileInputStream fis = new FileInputStream(resource.getFile())) {
-            String filename = resource.getFilename();
-            if (filename != null && filename.toLowerCase().endsWith(".xlsx")) {
+        try (FileInputStream fis = new FileInputStream(filePath.toFile())) {
+            if (fileName.toLowerCase().endsWith(".xlsx")) {
                 workbook = new XSSFWorkbook(fis);
-            } else if (filename != null && filename.toLowerCase().endsWith(".xls")) {
+            } else if (fileName.toLowerCase().endsWith(".xls")) {
                 workbook = new HSSFWorkbook(fis);
             } else {
                 throw new IllegalArgumentException("Unsupported file format. Only .xlsx and .xls files are supported.");
             }
+        } catch (IOException e) {
+            LOG.error("Error opening workbook", e);
+            throw e;
         }
 
         // Get the first sheet
@@ -72,6 +85,8 @@ public class ExcelProductItemReader extends AbstractItemCountingItemStreamItemRe
         if (sheet == null) {
             throw new IllegalStateException("Excel file does not contain any sheets");
         }
+
+        LOG.debug("Sheet found with {} rows", sheet.getPhysicalNumberOfRows());
 
         // Detect headers
         headerResult = headerDetecterService.detectHeaders(sheet);
@@ -353,29 +368,5 @@ public class ExcelProductItemReader extends AbstractItemCountingItemStreamItemRe
      */
     public HeaderDetecterService.HeaderDetectionResult getHeaderResult() {
         return headerResult;
-    }
-
-    /**
-     * Get current data row number (excluding header).
-     */
-    public int getDataRowNumber() {
-        return dataRowNumber;
-    }
-
-    /**
-     * Get total number of rows in the sheet.
-     */
-    public int getTotalRows() {
-        return sheet != null ? sheet.getPhysicalNumberOfRows() : 0;
-    }
-
-    /**
-     * Get estimated data rows (total rows minus header row).
-     */
-    public int getEstimatedDataRows() {
-        if (sheet == null || headerResult == null) {
-            return 0;
-        }
-        return Math.max(0, sheet.getPhysicalNumberOfRows() - headerResult.getHeaderRowNumber() - 1);
     }
 }

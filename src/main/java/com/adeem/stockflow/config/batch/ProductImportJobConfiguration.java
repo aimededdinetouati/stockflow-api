@@ -1,16 +1,15 @@
-package com.adeem.stockflow.batch.config;
+package com.adeem.stockflow.config.batch;
 
 import com.adeem.stockflow.batch.listener.ProductImportJobListener;
 import com.adeem.stockflow.batch.listener.ProductImportStepListener;
-import com.adeem.stockflow.batch.processor.ProductImportProcessor;
 import com.adeem.stockflow.batch.reader.ExcelProductItemReader;
-import com.adeem.stockflow.batch.writer.ProductImportWriter;
-import com.adeem.stockflow.config.ImportConfigurationProperties;
+import com.adeem.stockflow.config.ApplicationProperties;
 import com.adeem.stockflow.service.dto.batch.ProductCreationResult;
 import com.adeem.stockflow.service.dto.batch.ProductImportRow;
 import java.nio.file.Path;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
@@ -26,11 +25,11 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Configuration
 public class ProductImportJobConfiguration {
 
-    private final ImportConfigurationProperties importConfig;
+    private final ApplicationProperties applicationProperties;
     private final Path tempFileStoragePath;
 
-    public ProductImportJobConfiguration(ImportConfigurationProperties importConfig, Path tempFileStoragePath) {
-        this.importConfig = importConfig;
+    public ProductImportJobConfiguration(ApplicationProperties applicationProperties, Path tempFileStoragePath) {
+        this.applicationProperties = applicationProperties;
         this.tempFileStoragePath = tempFileStoragePath;
     }
 
@@ -43,13 +42,13 @@ public class ProductImportJobConfiguration {
     public Step productImportStep(
         JobRepository jobRepository,
         PlatformTransactionManager transactionManager,
-        ItemReader<ProductImportRow> excelProductItemReader,
+        ExcelProductItemReader excelProductItemReader,
         ItemProcessor<ProductImportRow, ProductCreationResult> productImportProcessor,
         ItemWriter<ProductCreationResult> productImportWriter,
         ProductImportStepListener stepListener
     ) {
         return new StepBuilder("productImportStep", jobRepository)
-            .<ProductImportRow, ProductCreationResult>chunk(importConfig.getChunkSize(), transactionManager)
+            .<ProductImportRow, ProductCreationResult>chunk(applicationProperties.getImport().getChunkSize(), transactionManager)
             .reader(excelProductItemReader)
             .processor(productImportProcessor)
             .writer(productImportWriter)
@@ -58,16 +57,5 @@ public class ProductImportJobConfiguration {
             .skipLimit(Integer.MAX_VALUE)
             .skip(Exception.class)
             .build();
-    }
-
-    @Bean
-    public ItemReader<ProductImportRow> excelProductItemReader(
-        @Value("#{jobParameters['fileName']}") String fileName,
-        @Value("#{jobParameters['clientAccountId']}") Long clientAccountId,
-        ExcelProductItemReader reader
-    ) {
-        reader.setResource(new FileSystemResource(tempFileStoragePath.resolve(fileName)));
-        reader.setClientAccountId(clientAccountId);
-        return reader;
     }
 }

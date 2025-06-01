@@ -1,6 +1,6 @@
-package com.adeem.stockflow.batch.config;
+package com.adeem.stockflow.config.batch;
 
-import com.adeem.stockflow.config.ImportConfigurationProperties;
+import com.adeem.stockflow.config.ApplicationProperties;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,11 +12,11 @@ import org.springframework.context.annotation.Configuration;
 public class FileStorageConfiguration {
 
     @Autowired
-    private ImportConfigurationProperties importConfig;
+    private ApplicationProperties applicationProperties;
 
     @Bean
     public Path tempFileStoragePath() {
-        String tempDir = importConfig.getFileStorage().getTempDirectory();
+        String tempDir = applicationProperties.getImport().getFileStorage().getTempDirectory();
         Path path = Paths.get(tempDir);
 
         // Create directory if it doesn't exist

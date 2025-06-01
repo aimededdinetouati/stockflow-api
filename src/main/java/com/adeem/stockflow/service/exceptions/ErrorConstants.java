@@ -40,9 +40,14 @@ public final class ErrorConstants {
     public static final String INVALID_TYPE = "E015";
 
     // Product specific error keys
-    public static final String APPLY_TVA = "applytva";
-    public static final String NAME_NULL = "name";
-    public static final String CODE_NULL = "code";
+    public static final String APPLY_TVA = "E016";
+    public static final String NAME_NULL = "E017";
+    public static final String CODE_NULL = "E018";
+    public static final String FILE_EMPTY = "E019";
+    public static final String FILE_TOO_LARGE = "E020";
+    public static final String FILE_INVALID_FORMAT = "E021";
+    public static final String IMPORT_FAILED = "E022";
+    public static final String USER_MUST_HAVE_ONE_AUTHORITY = "E023";
 
     private ErrorConstants() {}
 }

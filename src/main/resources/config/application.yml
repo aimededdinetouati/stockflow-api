@@ -123,7 +123,7 @@ spring:
   # Batch configuration
   batch:
     jdbc:
-      initialize-schema: always # Create batch tables automatically
+      initialize-schema: never # Create batch tables automatically
     job:
       enabled: false # Don't auto-start jobs on application startup
   jmx:

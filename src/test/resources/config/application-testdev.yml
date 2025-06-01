@@ -9,12 +9,17 @@
 # ===================================================================
 
 spring:
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: never
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
       auto-commit: false
       poolName: Hikari
-      maximum-pool-size: 1
+      maximum-pool-size: 5
   jpa:
     open-in-view: false
     hibernate:
