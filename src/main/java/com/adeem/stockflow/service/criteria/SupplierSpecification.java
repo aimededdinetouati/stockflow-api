@@ -1,14 +1,95 @@
 package com.adeem.stockflow.service.criteria;
 
 import com.adeem.stockflow.domain.Supplier;
+import com.adeem.stockflow.domain.Supplier_;
 import com.adeem.stockflow.domain.enumeration.AddressType;
+import com.adeem.stockflow.service.criteria.filter.SupplierCriteria;
+import jakarta.persistence.criteria.JoinType;
 import java.time.Instant;
 import org.springframework.data.jpa.domain.Specification;
+import tech.jhipster.service.QueryService;
 
 /**
  * Specifications for filtering Supplier entities.
  */
-public class SupplierSpecification {
+public class SupplierSpecification extends QueryService<Supplier> {
+
+    public static Specification<Supplier> createSpecification(SupplierCriteria criteria) {
+        Specification<Supplier> specification = Specification.where(null);
+        SupplierSpecification helper = new SupplierSpecification();
+
+        if (criteria != null) {
+            if (criteria.getId() != null) {
+                specification = specification.and(helper.buildRangeSpecification(criteria.getId(), Supplier_.id));
+            }
+            if (criteria.getFirstName() != null) {
+                specification = specification.and(helper.buildStringSpecification(criteria.getFirstName(), Supplier_.firstName));
+            }
+            if (criteria.getLastName() != null) {
+                specification = specification.and(helper.buildStringSpecification(criteria.getLastName(), Supplier_.lastName));
+            }
+            if (criteria.getCompanyName() != null) {
+                specification = specification.and(helper.buildStringSpecification(criteria.getCompanyName(), Supplier_.companyName));
+            }
+            if (criteria.getPhone() != null) {
+                specification = specification.and(helper.buildStringSpecification(criteria.getPhone(), Supplier_.phone));
+            }
+            if (criteria.getEmail() != null) {
+                specification = specification.and(helper.buildStringSpecification(criteria.getEmail(), Supplier_.email));
+            }
+            if (criteria.getFax() != null) {
+                specification = specification.and(helper.buildStringSpecification(criteria.getFax(), Supplier_.fax));
+            }
+            if (criteria.getTaxId() != null) {
+                specification = specification.and(helper.buildStringSpecification(criteria.getTaxId(), Supplier_.taxId));
+            }
+            if (criteria.getRegistrationArticle() != null) {
+                specification = specification.and(
+                    helper.buildStringSpecification(criteria.getRegistrationArticle(), Supplier_.registrationArticle)
+                );
+            }
+            if (criteria.getStatisticalId() != null) {
+                specification = specification.and(helper.buildStringSpecification(criteria.getStatisticalId(), Supplier_.statisticalId));
+            }
+            if (criteria.getRc() != null) {
+                specification = specification.and(helper.buildStringSpecification(criteria.getRc(), Supplier_.rc));
+            }
+            if (criteria.getActive() != null) {
+                specification = specification.and(helper.buildSpecification(criteria.getActive(), Supplier_.active));
+            }
+            if (criteria.getNotes() != null) {
+                specification = specification.and(helper.buildStringSpecification(criteria.getNotes(), Supplier_.notes));
+            }
+            if (criteria.getCreatedBy() != null) {
+                specification = specification.and(helper.buildStringSpecification(criteria.getCreatedBy(), Supplier_.createdBy));
+            }
+            if (criteria.getCreatedDate() != null) {
+                specification = specification.and(helper.buildRangeSpecification(criteria.getCreatedDate(), Supplier_.createdDate));
+            }
+            if (criteria.getLastModifiedBy() != null) {
+                specification = specification.and(helper.buildStringSpecification(criteria.getLastModifiedBy(), Supplier_.lastModifiedBy));
+            }
+            if (criteria.getLastModifiedDate() != null) {
+                specification = specification.and(
+                    helper.buildRangeSpecification(criteria.getLastModifiedDate(), Supplier_.lastModifiedDate)
+                );
+            }
+            if (criteria.getClientAccountId() != null) {
+                specification = specification.and(
+                    helper.buildSpecification(criteria.getClientAccountId(), root ->
+                        root.join(Supplier_.clientAccount, JoinType.LEFT).get("id")
+                    )
+                );
+            }
+            if (criteria.getAddressId() != null) {
+                specification = specification.and(
+                    helper.buildSpecification(criteria.getAddressId(), root -> root.join(Supplier_.address, JoinType.LEFT).get("id"))
+                );
+            }
+        }
+
+        return specification;
+    }
 
     /**
      * Filter by supplier first name (case-insensitive, partial match).
@@ -170,5 +251,9 @@ public class SupplierSpecification {
      */
     public static Specification<Supplier> withLastModifiedDateBetween(Instant start, Instant end) {
         return BaseSpecification.between("lastModifiedDate", start, end);
+    }
+
+    public static Specification<Supplier> withActive(Boolean active) {
+        return BaseSpecification.equals("active", active);
     }
 }

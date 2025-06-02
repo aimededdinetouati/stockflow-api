@@ -19,8 +19,13 @@ public class SupplierDTO implements Serializable {
     @NotNull
     private String lastName;
 
+    private String companyName;
+
     @NotNull
     private String phone;
+
+    @Email
+    private String email;
 
     private String fax;
 
@@ -32,6 +37,11 @@ public class SupplierDTO implements Serializable {
 
     private String rc;
 
+    @NotNull
+    private Boolean active = true;
+
+    private String notes;
+
     private String createdBy;
 
     private Instant createdDate;
@@ -40,9 +50,9 @@ public class SupplierDTO implements Serializable {
 
     private Instant lastModifiedDate;
 
-    private AddressDTO address;
-
     private Long clientAccountId;
+
+    private AddressDTO address;
 
     public Long getId() {
         return id;
@@ -68,12 +78,28 @@ public class SupplierDTO implements Serializable {
         this.lastName = lastName;
     }
 
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
+    }
+
     public String getPhone() {
         return phone;
     }
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getFax() {
@@ -116,6 +142,22 @@ public class SupplierDTO implements Serializable {
         this.rc = rc;
     }
 
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
     public String getCreatedBy() {
         return createdBy;
     }
@@ -148,6 +190,14 @@ public class SupplierDTO implements Serializable {
         this.lastModifiedDate = lastModifiedDate;
     }
 
+    public Long getClientAccountId() {
+        return clientAccountId;
+    }
+
+    public void setClientAccountId(Long clientAccountId) {
+        this.clientAccountId = clientAccountId;
+    }
+
     public AddressDTO getAddress() {
         return address;
     }
@@ -156,12 +206,14 @@ public class SupplierDTO implements Serializable {
         this.address = address;
     }
 
-    public Long getClientAccountId() {
-        return clientAccountId;
-    }
-
-    public void setClientAccountId(Long clientAccountId) {
-        this.clientAccountId = clientAccountId;
+    /**
+     * Get display name (company name or full name)
+     */
+    public String getDisplayName() {
+        if (companyName != null && !companyName.trim().isEmpty()) {
+            return companyName;
+        }
+        return firstName + " " + lastName;
     }
 
     @Override
@@ -192,18 +244,22 @@ public class SupplierDTO implements Serializable {
             "id=" + getId() +
             ", firstName='" + getFirstName() + "'" +
             ", lastName='" + getLastName() + "'" +
+            ", companyName='" + getCompanyName() + "'" +
             ", phone='" + getPhone() + "'" +
+            ", email='" + getEmail() + "'" +
             ", fax='" + getFax() + "'" +
             ", taxId='" + getTaxId() + "'" +
             ", registrationArticle='" + getRegistrationArticle() + "'" +
             ", statisticalId='" + getStatisticalId() + "'" +
             ", rc='" + getRc() + "'" +
+            ", active='" + getActive() + "'" +
+            ", notes='" + getNotes() + "'" +
             ", createdBy='" + getCreatedBy() + "'" +
             ", createdDate='" + getCreatedDate() + "'" +
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +
             ", lastModifiedDate='" + getLastModifiedDate() + "'" +
+            ", clientAccountId=" + getClientAccountId() +
             ", address=" + getAddress() +
-            ", clientAccount=" + getClientAccountId() +
             "}";
     }
 }

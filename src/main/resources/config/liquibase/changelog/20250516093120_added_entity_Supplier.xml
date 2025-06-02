@@ -20,6 +20,18 @@
             <column name="last_name" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
+            <column name="company_name" type="varchar(255)">
+              <constraints nullable="true" />
+            </column>
+            <column name="email" type="varchar(255)">
+              <constraints nullable="true" />
+            </column>
+            <column name="active" type="boolean" defaultValueBoolean="true">
+              <constraints nullable="false" />
+            </column>
+            <column name="notes" type="${clobType}">
+              <constraints nullable="true" />
+            </column>
             <column name="phone" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
@@ -94,4 +106,10 @@
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here -->
         </loadData>
     </changeSet>
+  <changeSet id="20250601000002-1" author="stockflow">
+    <addUniqueConstraint
+      tableName="supplier"
+      columnNames="email, client_account_id"
+      constraintName="uk_supplier_email_client_account"/>
+  </changeSet>
 </databaseChangeLog>
