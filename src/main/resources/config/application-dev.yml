@@ -51,6 +51,15 @@ spring:
   thymeleaf:
     cache: false
 
+sentry:
+  dsn: ${SENTRY_DSN:}
+  environment: development
+  debug: true
+  traces-sample-rate: 1.0
+  enable-tracing: true
+  logging:
+    minimum-event-level: warn
+
 server:
   port: 8080
   # make sure requests the proxy uri instead of the server one

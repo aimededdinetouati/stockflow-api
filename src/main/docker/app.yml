@@ -10,6 +10,9 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresql:5432/stockflowApi
       - SPRING_LIQUIBASE_URL=jdbc:postgresql://postgresql:5432/stockflowApi
       - SPRING_THREADS_VIRTUAL_ENABLED=true
+      - SENTRY_DSN=${SENTRY_DSN}
+      - SENTRY_ENVIRONMENT=prod
+      - SENTRY_RELEASE=${SENTRY_RELEASE:-latest}
     ports:
       - 127.0.0.1:8080:8080
     healthcheck:

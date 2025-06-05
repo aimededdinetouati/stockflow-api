@@ -328,6 +328,17 @@
         <version>1.5</version>
       </dependency>
 
+      <!-- Sentry for error tracking -->
+      <dependency>
+        <groupId>io.sentry</groupId>
+        <artifactId>sentry-spring-boot-starter-jakarta</artifactId>
+        <version>7.15.0</version>
+      </dependency>
+      <dependency>
+        <groupId>io.sentry</groupId>
+        <artifactId>sentry-logback</artifactId>
+        <version>7.15.0</version>
+      </dependency>
 
     </dependencies>
 
@@ -409,6 +420,39 @@
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
             </plugin>
+
+          <plugin>
+            <groupId>io.sentry</groupId>
+            <artifactId>sentry-maven-plugin</artifactId>
+            <version>0.5.0</version>
+            <extensions>true</extensions>
+            <configuration>
+              <!-- for showing output of sentry-cli -->
+              <debugSentryCli>true</debugSentryCli>
+
+              <org>adeem</org>
+
+              <project>java-spring-boot</project>
+
+              <!-- in case you're self hosting, provide the URL here -->
+              <!--<url>http://localhost:8000/</url>-->
+
+              <!-- provide your auth token via SENTRY_AUTH_TOKEN environment variable -->
+              <authToken>${env.SENTRY_AUTH_TOKEN}</authToken>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <!--
+                  Generates a JVM (Java, Kotlin, etc.) source bundle and uploads your source code to Sentry.
+                  This enables source context, allowing you to see your source
+                  code as part of your stack traces in Sentry.
+                  -->
+                  <goal>uploadSourceBundle</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
         <pluginManagement>
             <plugins>

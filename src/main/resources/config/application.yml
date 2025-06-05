@@ -93,6 +93,19 @@ management:
     tags:
       application: ${spring.application.name}
 
+# Sentry configuration
+sentry:
+  dsn: ${SENTRY_DSN:haha}
+  environment: ${SENTRY_ENVIRONMENT:dev}
+  release: ${SENTRY_RELEASE:stockflowApi@0.0.1}
+  traces-sample-rate: 1.0 # Set between 0 and 1 (1.0 = 100% of transactions)
+  logging:
+    minimum-event-level: warn # Minimum level for events
+    minimum-breadcrumb-level: info # Minimum level for breadcrumbs
+  in-app-includes: com.adeem.stockflow # Package to consider as your application code
+  exception-resolver-order: -2147483647 # Same as DefaultErrorAttributes
+  send-default-pii: true # Send personally identifiable information
+
 spring:
   application:
     name: stockflowApi

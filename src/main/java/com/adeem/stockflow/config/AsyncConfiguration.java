@@ -5,10 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.aop.interceptor.SimpleAsyncUncaughtExceptionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.task.TaskExecutionProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.task.TaskDecorator;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -22,6 +24,9 @@ import tech.jhipster.async.ExceptionHandlingAsyncTaskExecutor;
 public class AsyncConfiguration implements AsyncConfigurer {
 
     private static final Logger LOG = LoggerFactory.getLogger(AsyncConfiguration.class);
+
+    @Autowired(required = false)
+    private TaskDecorator sentryTaskDecorator;
 
     private final TaskExecutionProperties taskExecutionProperties;
 
@@ -38,6 +43,11 @@ public class AsyncConfiguration implements AsyncConfigurer {
         executor.setMaxPoolSize(taskExecutionProperties.getPool().getMaxSize());
         executor.setQueueCapacity(taskExecutionProperties.getPool().getQueueCapacity());
         executor.setThreadNamePrefix(taskExecutionProperties.getThreadNamePrefix());
+
+        if (sentryTaskDecorator != null) {
+            executor.setTaskDecorator(sentryTaskDecorator);
+        }
+
         return new ExceptionHandlingAsyncTaskExecutor(executor);
     }
 

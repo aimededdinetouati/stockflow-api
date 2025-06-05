@@ -25,6 +25,21 @@ management:
       export:
         enabled: false
 
+sentry:
+  dsn: ${SENTRY_DSN:}
+  environment: prod
+  debug: false
+  traces-sample-rate: 0.1
+  enable-tracing: true
+  logging:
+    minimum-event-level: error
+  send-default-pii: false
+#  before-send-transaction: |
+#    if (transaction.getTransaction().getName().startsWith("/management/health")) {
+#      return null;
+#    }
+#    return transaction;
+
 spring:
   devtools:
     restart:

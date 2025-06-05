@@ -3,12 +3,18 @@ package com.adeem.stockflow.config;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 import com.adeem.stockflow.security.*;
+import com.adeem.stockflow.service.SentryService;
+import java.util.Map;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationEventPublisher;
+import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
@@ -70,5 +76,35 @@ public class SecurityConfiguration {
     @Bean
     MvcRequestMatcher.Builder mvc(HandlerMappingIntrospector introspector) {
         return new MvcRequestMatcher.Builder(introspector);
+    }
+
+    /**
+     * Configures an authentication event publisher that integrates with Sentry for monitoring authentication events.
+     * This bean overrides default authentication event handling to:
+     * - Track successful authentications by adding breadcrumbs and setting user context in Sentry
+     * - Capture authentication failures as exceptions in Sentry with relevant user information
+     *
+     * @param sentryService the Sentry service used for monitoring and error tracking
+     * @return configured AuthenticationEventPublisher that publishes events to Sentry
+     */
+    @Bean
+    public AuthenticationEventPublisher authenticationEventPublisher(SentryService sentryService) {
+        return new DefaultAuthenticationEventPublisher() {
+            @Override
+            public void publishAuthenticationSuccess(Authentication authentication) {
+                super.publishAuthenticationSuccess(authentication);
+                sentryService.addBreadcrumb("User authenticated", "auth");
+                sentryService.setUser(authentication.getName(), null, authentication.getName());
+            }
+
+            @Override
+            public void publishAuthenticationFailure(AuthenticationException exception, Authentication authentication) {
+                super.publishAuthenticationFailure(exception, authentication);
+                sentryService.captureException(
+                    exception,
+                    Map.of("username", authentication != null ? authentication.getName() : "unknown", "operation", "authentication")
+                );
+            }
+        };
     }
 }
