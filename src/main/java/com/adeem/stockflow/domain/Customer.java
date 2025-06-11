@@ -3,6 +3,7 @@ package com.adeem.stockflow.domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashSet;
@@ -12,7 +13,9 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.springframework.data.domain.Persistable;
 
 /**
- * A Customer.
+ * Supports two customer types:
+ * - Managed Customer: Created by company, no user account, can be managed by creator
+ * - Independent Customer: Has a user account, self-managed, creator cannot modify
  */
 @Entity
 @Table(name = "customer")
@@ -21,6 +24,7 @@ import org.springframework.data.domain.Persistable;
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class Customer extends AbstractAuditingEntity<Long> implements Serializable, Persistable<Long> {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @Id
@@ -56,31 +60,52 @@ public class Customer extends AbstractAuditingEntity<Long> implements Serializab
     @Column(name = "rc")
     private String rc;
 
-    // Inherited createdBy definition
-    // Inherited createdDate definition
-    // Inherited lastModifiedBy definition
-    // Inherited lastModifiedDate definition
-    @org.springframework.data.annotation.Transient
-    @Transient
-    private boolean isPersisted;
+    /**
+     * Creator company (nullable - independent customers have no creator)
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_client_account_id")
+    @JsonIgnoreProperties(value = { "address", "admin", "customers", "suppliers" }, allowSetters = true)
+    private ClientAccount createdByClientAccount;
 
+    /**
+     * Marketplace account (nullable - managed customers may not have accounts)
+     */
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(unique = true)
+    @JoinColumn(name = "user_id", unique = true)
+    @JsonIgnoreProperties(value = { "customer" }, allowSetters = true)
     private User user;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "customer")
+    /**
+     * Soft delete flag
+     */
+    @NotNull
+    @Column(name = "enabled", nullable = false)
+    private Boolean enabled = true;
+
+    /**
+     * Customer-Company associations
+     */
+    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @JsonIgnoreProperties(value = { "customer", "clientAccount" }, allowSetters = true)
+    private Set<CustomerClientAssociation> associations = new HashSet<>();
+
+    /**
+     * Customer addresses
+     */
+    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(value = { "customer", "clientAccount", "supplier" }, allowSetters = true)
-    private Set<Address> addressLists = new HashSet<>();
+    private Set<Address> addresses = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "customer")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(value = { "cartItems", "customer" }, allowSetters = true)
     private Set<Cart> carts = new HashSet<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "address", "quota", "subscriptions" }, allowSetters = true)
-    private ClientAccount clientAccount;
+    @Transient
+    private boolean isPersisted;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -201,45 +226,16 @@ public class Customer extends AbstractAuditingEntity<Long> implements Serializab
         this.rc = rc;
     }
 
-    // Inherited createdBy methods
-    public Customer createdBy(String createdBy) {
-        this.setCreatedBy(createdBy);
-        return this;
+    public ClientAccount getCreatedByClientAccount() {
+        return this.createdByClientAccount;
     }
 
-    // Inherited createdDate methods
-    public Customer createdDate(Instant createdDate) {
-        this.setCreatedDate(createdDate);
-        return this;
+    public void setCreatedByClientAccount(ClientAccount clientAccount) {
+        this.createdByClientAccount = clientAccount;
     }
 
-    // Inherited lastModifiedBy methods
-    public Customer lastModifiedBy(String lastModifiedBy) {
-        this.setLastModifiedBy(lastModifiedBy);
-        return this;
-    }
-
-    // Inherited lastModifiedDate methods
-    public Customer lastModifiedDate(Instant lastModifiedDate) {
-        this.setLastModifiedDate(lastModifiedDate);
-        return this;
-    }
-
-    @PostLoad
-    @PostPersist
-    public void updateEntityState() {
-        this.setIsPersisted();
-    }
-
-    @org.springframework.data.annotation.Transient
-    @Transient
-    @Override
-    public boolean isNew() {
-        return !this.isPersisted;
-    }
-
-    public Customer setIsPersisted() {
-        this.isPersisted = true;
+    public Customer createdByClientAccount(ClientAccount clientAccount) {
+        this.setCreatedByClientAccount(clientAccount);
         return this;
     }
 
@@ -256,33 +252,77 @@ public class Customer extends AbstractAuditingEntity<Long> implements Serializab
         return this;
     }
 
-    public Set<Address> getAddressLists() {
-        return this.addressLists;
+    public Boolean getEnabled() {
+        return this.enabled;
     }
 
-    public void setAddressLists(Set<Address> addresses) {
-        if (this.addressLists != null) {
-            this.addressLists.forEach(i -> i.setCustomer(null));
+    public Customer enabled(Boolean enabled) {
+        this.setEnabled(enabled);
+        return this;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public Set<CustomerClientAssociation> getAssociations() {
+        return this.associations;
+    }
+
+    public void setAssociations(Set<CustomerClientAssociation> customerClientAssociations) {
+        if (this.associations != null) {
+            this.associations.forEach(i -> i.setCustomer(null));
+        }
+        if (customerClientAssociations != null) {
+            customerClientAssociations.forEach(i -> i.setCustomer(this));
+        }
+        this.associations = customerClientAssociations;
+    }
+
+    public Customer associations(Set<CustomerClientAssociation> customerClientAssociations) {
+        this.setAssociations(customerClientAssociations);
+        return this;
+    }
+
+    public Customer addAssociation(CustomerClientAssociation customerClientAssociation) {
+        this.associations.add(customerClientAssociation);
+        customerClientAssociation.setCustomer(this);
+        return this;
+    }
+
+    public Customer removeAssociation(CustomerClientAssociation customerClientAssociation) {
+        this.associations.remove(customerClientAssociation);
+        customerClientAssociation.setCustomer(null);
+        return this;
+    }
+
+    public Set<Address> getAddresses() {
+        return this.addresses;
+    }
+
+    public void setAddresses(Set<Address> addresses) {
+        if (this.addresses != null) {
+            this.addresses.forEach(i -> i.setCustomer(null));
         }
         if (addresses != null) {
             addresses.forEach(i -> i.setCustomer(this));
         }
-        this.addressLists = addresses;
+        this.addresses = addresses;
     }
 
-    public Customer addressLists(Set<Address> addresses) {
-        this.setAddressLists(addresses);
+    public Customer addresses(Set<Address> addresses) {
+        this.setAddresses(addresses);
         return this;
     }
 
-    public Customer addAddressList(Address address) {
-        this.addressLists.add(address);
+    public Customer addAddress(Address address) {
+        this.addresses.add(address);
         address.setCustomer(this);
         return this;
     }
 
-    public Customer removeAddressList(Address address) {
-        this.addressLists.remove(address);
+    public Customer removeAddress(Address address) {
+        this.addresses.remove(address);
         address.setCustomer(null);
         return this;
     }
@@ -318,16 +358,13 @@ public class Customer extends AbstractAuditingEntity<Long> implements Serializab
         return this;
     }
 
-    public ClientAccount getClientAccount() {
-        return this.clientAccount;
+    @Override
+    public boolean isNew() {
+        return !this.isPersisted;
     }
 
-    public void setClientAccount(ClientAccount clientAccount) {
-        this.clientAccount = clientAccount;
-    }
-
-    public Customer clientAccount(ClientAccount clientAccount) {
-        this.setClientAccount(clientAccount);
+    public Customer setIsPersisted() {
+        this.isPersisted = true;
         return this;
     }
 
@@ -363,6 +400,7 @@ public class Customer extends AbstractAuditingEntity<Long> implements Serializab
             ", registrationArticle='" + getRegistrationArticle() + "'" +
             ", statisticalId='" + getStatisticalId() + "'" +
             ", rc='" + getRc() + "'" +
+            ", enabled='" + getEnabled() + "'" +
             ", createdBy='" + getCreatedBy() + "'" +
             ", createdDate='" + getCreatedDate() + "'" +
             ", lastModifiedBy='" + getLastModifiedBy() + "'" +

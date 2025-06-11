@@ -17,11 +17,10 @@
                                  referencedTableName="jhi_user"
                                  />
 
-        <addForeignKeyConstraint baseColumnNames="client_account_id"
-                                 baseTableName="customer"
-                                 constraintName="fk_customer__client_account_id"
-                                 referencedColumnNames="id"
-                                 referencedTableName="client_account"
-                                 />
+      <addForeignKeyConstraint baseColumnNames="created_by_client_account_id"
+                               baseTableName="customer"
+                               constraintName="fk_customer_created_by_client_account_id"
+                               referencedColumnNames="id"
+                               referencedTableName="client_account"/>
     </changeSet>
 </databaseChangeLog>

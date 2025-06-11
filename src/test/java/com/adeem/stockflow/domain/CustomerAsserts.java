@@ -70,6 +70,8 @@ public class CustomerAsserts {
     public static void assertCustomerUpdatableRelationshipsEquals(Customer expected, Customer actual) {
         assertThat(actual)
             .as("Verify Customer relationships")
-            .satisfies(a -> assertThat(a.getClientAccount()).as("check clientAccount").isEqualTo(expected.getClientAccount()));
+            .satisfies(a ->
+                assertThat(a.getCreatedByClientAccount()).as("check clientAccount").isEqualTo(expected.getCreatedByClientAccount())
+            );
     }
 }

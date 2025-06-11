@@ -160,15 +160,7 @@ public class UserService {
             });
     }
 
-    public User registerUser(AdminUserDTO userDTO, String password) {
-        if (userDTO.getAuthorities() == null || userDTO.getAuthorities().size() != 1) {
-            throw new BadRequestAlertException(
-                "User must have one and only one authority",
-                "",
-                ErrorConstants.USER_MUST_HAVE_ONE_AUTHORITY
-            );
-        }
-        String authority = userDTO.getAuthorities().iterator().next();
+    public User registerUser(AdminUserDTO userDTO, String password, String authority) {
         if (!AuthoritiesConstants.USER_ADMIN.equals(authority) && !AuthoritiesConstants.USER_CUSTOMER.equals(authority)) {
             throw new AccessDeniedException(Constants.NOT_ALLOWED);
         }
@@ -189,7 +181,7 @@ public class UserService {
                 }
             });
         User newUser = new User();
-        String encryptedPassword = passwordEncoder.encode(password);
+        String encryptedPassword = passwordEncoder.encode(password != null ? password : RandomUtil.generatePassword());
         newUser.setLogin(userDTO.getLogin().toLowerCase());
         // new user gets initially a generated password
         newUser.setPassword(encryptedPassword);
@@ -205,7 +197,6 @@ public class UserService {
         // new user gets registration key
         newUser.setActivationKey(RandomUtil.generateActivationKey());
         Set<Authority> authorities = new HashSet<>();
-        var x = authorityRepository.findAll();
         authorityRepository.findByName(authority).ifPresent(authorities::add);
         newUser.setAuthorities(authorities);
         userRepository.save(newUser);
