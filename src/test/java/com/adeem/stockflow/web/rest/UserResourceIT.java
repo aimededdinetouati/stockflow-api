@@ -36,7 +36,6 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 @WithMockUser(authorities = AuthoritiesConstants.ADMIN)
 @IntegrationTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class UserResourceIT {
 
     private static final String DEFAULT_LOGIN = "johndoe";
@@ -131,12 +130,12 @@ class UserResourceIT {
         userService.deleteUser("anotherlogin");
         assertThat(userRepository.count()).isEqualTo(numberOfUsers);
         numberOfUsers = null;
-        cacheManager
-            .getCacheNames()
-            .stream()
-            .map(cacheName -> this.cacheManager.getCache(cacheName))
-            .filter(Objects::nonNull)
-            .forEach(Cache::invalidate);
+        //        cacheManager
+        //            .getCacheNames()
+        //            .stream()
+        //            .map(cacheName -> this.cacheManager.getCache(cacheName))
+        //            .filter(Objects::nonNull)
+        //            .forEach(Cache::invalidate);
     }
 
     @Test

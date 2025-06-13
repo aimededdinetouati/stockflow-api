@@ -30,7 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 @WithMockUser(authorities = AuthoritiesConstants.ADMIN)
 @IntegrationTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class PublicUserResourceIT {
 
     @Autowired
@@ -60,12 +59,12 @@ class PublicUserResourceIT {
 
     @AfterEach
     void cleanupAndCheck() {
-        cacheManager
-            .getCacheNames()
-            .stream()
-            .map(cacheName -> this.cacheManager.getCache(cacheName))
-            .filter(Objects::nonNull)
-            .forEach(Cache::invalidate);
+        //        cacheManager
+        //            .getCacheNames()
+        //            .stream()
+        //            .map(cacheName -> this.cacheManager.getCache(cacheName))
+        //            .filter(Objects::nonNull)
+        //            .forEach(Cache::invalidate);
         userService.deleteUser(user.getLogin());
         assertThat(userRepository.count()).isEqualTo(numberOfUsers);
         numberOfUsers = null;
