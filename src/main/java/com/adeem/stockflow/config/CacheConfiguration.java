@@ -100,8 +100,12 @@ public class CacheConfiguration {
             createCache(cm, com.adeem.stockflow.domain.PaymentReceipt.class.getName());
             createCache(cm, com.adeem.stockflow.domain.PaymentConfiguration.class.getName());
             createCache(cm, com.adeem.stockflow.domain.Product.class.getName() + ".inventories");
-            createCache(cm, "inventoryStats");
-            createCache(cm, "supplierStats");
+            createCache(cm, CacheConstants.INVENTORY_STATS_CACHE);
+            createCache(cm, CacheConstants.SUPPLIER_STATS_CACHE);
+            createCache(cm, CacheConstants.CUSTOMER_STATS_CACHE);
+            createCache(cm, CacheConstants.CUSTOMER_VALIDATION_CACHE);
+            createCache(cm, CacheConstants.ASSOCIATION_STATS_CACHE);
+            createCache(cm, CacheConstants.MARKETPLACE_STATS_CACHE);
             // jhipster-needle-ehcache-add-entry
         };
     }

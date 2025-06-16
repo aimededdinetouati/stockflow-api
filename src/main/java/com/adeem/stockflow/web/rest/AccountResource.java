@@ -1,7 +1,9 @@
 package com.adeem.stockflow.web.rest;
 
+import com.adeem.stockflow.config.Constants;
 import com.adeem.stockflow.domain.User;
 import com.adeem.stockflow.repository.UserRepository;
+import com.adeem.stockflow.security.AuthoritiesConstants;
 import com.adeem.stockflow.security.SecurityUtils;
 import com.adeem.stockflow.service.MailService;
 import com.adeem.stockflow.service.UserService;
@@ -63,7 +65,7 @@ public class AccountResource {
         if (isPasswordLengthInvalid(managedUserVM.getPassword())) {
             throw new InvalidPasswordException();
         }
-        User user = userService.registerUser(managedUserVM, managedUserVM.getPassword());
+        User user = userService.registerUser(managedUserVM, managedUserVM.getPassword(), AuthoritiesConstants.USER_ADMIN);
 
         mailService.sendActivationEmail(user);
     }

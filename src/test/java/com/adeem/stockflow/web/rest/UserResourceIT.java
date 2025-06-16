@@ -26,6 +26,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -129,12 +130,12 @@ class UserResourceIT {
         userService.deleteUser("anotherlogin");
         assertThat(userRepository.count()).isEqualTo(numberOfUsers);
         numberOfUsers = null;
-        cacheManager
-            .getCacheNames()
-            .stream()
-            .map(cacheName -> this.cacheManager.getCache(cacheName))
-            .filter(Objects::nonNull)
-            .forEach(Cache::invalidate);
+        //        cacheManager
+        //            .getCacheNames()
+        //            .stream()
+        //            .map(cacheName -> this.cacheManager.getCache(cacheName))
+        //            .filter(Objects::nonNull)
+        //            .forEach(Cache::invalidate);
     }
 
     @Test

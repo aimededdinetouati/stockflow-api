@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="#{email.welcome.title}">Welcome to the Marketplace</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    .container {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    .header {
+      text-align: center;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #28a745;
+      margin-bottom: 30px;
+    }
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #28a745;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #666;
+      font-size: 16px;
+    }
+    .welcome-banner {
+      background: linear-gradient(135deg, #28a745, #20c997);
+      color: white;
+      padding: 25px;
+      border-radius: 10px;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .welcome-banner h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+    .content {
+      margin-bottom: 30px;
+    }
+    .greeting {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+    .registration-info {
+      background-color: #e8f5e8;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border-left: 4px solid #28a745;
+    }
+    .registration-info h3 {
+      margin-top: 0;
+      color: #28a745;
+    }
+    .info-item {
+      margin: 10px 0;
+    }
+    .info-item strong {
+      color: #2c3e50;
+    }
+    .activation-button {
+      text-align: center;
+      margin: 30px 0;
+    }
+    .btn {
+      display: inline-block;
+      padding: 15px 30px;
+      background-color: #28a745;
+      color: white !important;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    .btn:hover {
+      background-color: #1e7e34;
+    }
+    .next-steps {
+      margin: 30px 0;
+    }
+    .next-steps h3 {
+      color: #2c3e50;
+      margin-bottom: 15px;
+    }
+    .step-list {
+      list-style: none;
+      padding: 0;
+      counter-reset: step-counter;
+    }
+    .step-list li {
+      padding: 15px 0;
+      padding-left: 40px;
+      position: relative;
+      border-bottom: 1px solid #e9ecef;
+      counter-increment: step-counter;
+    }
+    .step-list li:last-child {
+      border-bottom: none;
+    }
+    .step-list li:before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 0;
+      top: 15px;
+      background-color: #28a745;
+      color: white;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 12px;
+    }
+    .marketplace-stats {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    .stat-item {
+      display: inline-block;
+      margin: 10px 20px;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 24px;
+      font-weight: bold;
+      color: #28a745;
+      display: block;
+    }
+    .stat-label {
+      font-size: 14px;
+      color: #6c757d;
+    }
+    .footer {
+      border-top: 1px solid #dee2e6;
+      padding-top: 20px;
+      text-align: center;
+      color: #6c757d;
+      font-size: 14px;
+    }
+    .expiry-notice {
+      background-color: #fff3cd;
+      border: 1px solid #ffeaa7;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      color: #856404;
+    }
+    .social-links {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .social-links a {
+      display: inline-block;
+      margin: 0 10px;
+      padding: 10px;
+      background-color: #e9ecef;
+      border-radius: 5px;
+      text-decoration: none;
+      color: #495057;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo" th:text="${applicationName}">StockFlow Marketplace</div>
+    <div class="subtitle" th:text="#{email.welcome.subtitle}">Your business marketplace platform</div>
+  </div>
+
+  <div class="welcome-banner">
+    <h1 th:text="#{email.welcome.banner}">🎉 Welcome to the Marketplace! 🎉</h1>
+  </div>
+
+  <div class="content">
+    <div class="greeting">
+      <span th:text="#{email.welcome.greeting}">Hello</span>
+      <strong th:text="${user.firstName + ' ' + user.lastName}">Customer Name</strong>!
+    </div>
+
+    <p th:text="#{email.welcome.text1}">
+      Thank you for registering with our marketplace! We're excited to have you join our community of businesses and customers.
+    </p>
+
+    <div class="registration-info">
+      <h3 th:text="#{email.welcome.registration.title}">Registration Successful! ✅</h3>
+      <div class="info-item">
+        <strong th:text="#{email.welcome.registration.email}">Email:</strong>
+        <span th:text="${user.email}">customer@example.com</span>
+      </div>
+      <div class="info-item">
+        <strong th:text="#{email.welcome.registration.date}">Registration Date:</strong>
+        <span th:text="${#temporals.format(user.createdDate, 'MMM dd, yyyy HH:mm')}">Dec 01, 2024 10:30</span>
+      </div>
+      <div class="info-item">
+        <strong th:text="#{email.welcome.registration.status}">Account Status:</strong>
+        <span style="color: #ffc107;" th:text="#{email.welcome.registration.pending}">Pending Activation</span>
+      </div>
+    </div>
+
+    <div class="activation-button">
+      <a th:href="${activationUrl}" class="btn" th:text="#{email.welcome.button}">
+        Activate Your Account Now
+      </a>
+    </div>
+
+    <div class="expiry-notice">
+      <strong th:text="#{email.welcome.expiry.title}">⏰ Time Sensitive:</strong>
+      <span th:text="#{email.welcome.expiry.text}">Please activate your account within 24 hours to ensure uninterrupted access to the marketplace.</span>
+    </div>
+
+    <div class="next-steps">
+      <h3 th:text="#{email.welcome.steps.title}">Your Next Steps:</h3>
+      <ol class="step-list">
+        <li th:text="#{email.welcome.steps.activate}">Click the activation button above to verify your email address</li>
+        <li th:text="#{email.welcome.steps.profile}">Complete your profile with business information</li>
+        <li th:text="#{email.welcome.steps.explore}">Explore companies and products in the marketplace</li>
+        <li th:text="#{email.welcome.steps.connect}">Connect with suppliers that match your business needs</li>
+        <li th:text="#{email.welcome.steps.orders}">Start placing orders and growing your business</li>
+      </ol>
+    </div>
+
+    <div class="marketplace-stats" th:if="${marketplaceStats}">
+      <h3 th:text="#{email.welcome.stats.title}">Join a Growing Community:</h3>
+      <div class="stat-item">
+        <span class="stat-number" th:text="${marketplaceStats.totalCompanies}">150+</span>
+        <span class="stat-label" th:text="#{email.welcome.stats.companies}">Active Companies</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number" th:text="${marketplaceStats.totalCustomers}">1,200+</span>
+        <span class="stat-label" th:text="#{email.welcome.stats.customers}">Registered Customers</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number" th:text="#{email.welcome.stats.products}">10,000+</span>
+        <span class="stat-label" th:text="#{email.welcome.stats.products.label}">Products Available</span>
+      </div>
+    </div>
+
+    <div style="background-color: #e7f3ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+      <h3 style="color: #007bff; margin-top: 0;" th:text="#{email.welcome.support.title}">Need Help Getting Started?</h3>
+      <p th:text="#{email.welcome.support.text}">
+        Our support team is here to help you make the most of your marketplace experience.
+      </p>
+      <p>
+        <strong th:text="#{email.welcome.support.email}">Email:</strong>
+        <a th:href="'mailto:' + ${supportEmail}" th:text="${supportEmail}">support@example.com</a>
+      </p>
+      <p th:if="${supportPhone}">
+        <strong th:text="#{email.welcome.support.phone}">Phone:</strong>
+        <span th:text="${supportPhone}">+1 (555) 123-4567</span>
+      </p>
+    </div>
+
+    <div class="social-links" th:if="${socialLinks}">
+      <p th:text="#{email.welcome.social.text}">Follow us for updates and marketplace news:</p>
+      <a th:if="${socialLinks.linkedin}" th:href="${socialLinks.linkedin}" th:text="#{email.welcome.social.linkedin}">LinkedIn</a>
+      <a th:if="${socialLinks.twitter}" th:href="${socialLinks.twitter}" th:text="#{email.welcome.social.twitter}">Twitter</a>
+      <a th:if="${socialLinks.facebook}" th:href="${socialLinks.facebook}" th:text="#{email.welcome.social.facebook}">Facebook</a>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p th:text="#{email.welcome.footer.thanks}">Thank you for choosing our marketplace!</p>
+    <p>
+      <span th:text="#{email.welcome.footer.signature}">Best regards,</span><br>
+      <strong th:text="#{email.welcome.footer.team(${applicationName})}">The StockFlow Team</strong>
+    </p>
+    <p style="margin-top: 20px; font-size: 12px;">
+      <span th:text="#{email.welcome.footer.automatic}">This is an automated email. Please do not reply to this message.</span>
+    </p>
+    <p style="font-size: 11px; color: #adb5bd;">
+      <span th:text="#{email.welcome.footer.privacy}">Your privacy is important to us. We will never share your information with third parties.</span>
+    </p>
+  </div>
+</div>
+</body>
+</html>

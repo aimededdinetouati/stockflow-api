@@ -165,32 +165,6 @@ class AccountResourceIT {
 
     @Test
     @Transactional
-    void testRegisterCustomerValid() throws Exception {
-        ManagedUserVM validUser = new ManagedUserVM();
-        validUser.setLogin("test-register-valid");
-        validUser.setPassword("password");
-        validUser.setFirstName("Alice");
-        validUser.setLastName("Test");
-        validUser.setEmail("test-register-valid@example.com");
-        validUser.setImageUrl("http://placehold.it/50x50");
-        validUser.setLangKey(Constants.DEFAULT_LANGUAGE);
-        validUser.setAuthorities(Collections.singleton(AuthoritiesConstants.USER_CUSTOMER));
-        assertThat(userRepository.findOneByLogin("test-register-valid")).isEmpty();
-
-        restAccountMockMvc
-            .perform(post("/api/register").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(validUser)))
-            .andExpect(status().isCreated());
-
-        var user = userRepository.findOneByLogin("test-register-valid");
-        assertThat(user).isPresent();
-        assertThat(user.get().getAuthorities()).hasSize(1);
-        assertThat(user.get().getAuthorities().iterator().next().getName()).isEqualTo(AuthoritiesConstants.USER_CUSTOMER);
-
-        userService.deleteUser("test-register-valid");
-    }
-
-    @Test
-    @Transactional
     void testRegisterInvalidLogin() throws Exception {
         ManagedUserVM invalidUser = new ManagedUserVM();
         invalidUser.setLogin("funky-log(n"); // <-- invalid
@@ -392,7 +366,6 @@ class AccountResourceIT {
         validUser.setActivated(true);
         validUser.setImageUrl("http://placehold.it/50x50");
         validUser.setLangKey(Constants.DEFAULT_LANGUAGE);
-        validUser.setAuthorities(Collections.singleton(AuthoritiesConstants.ADMIN));
 
         restAccountMockMvc
             .perform(post("/api/register").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(validUser)))
@@ -402,7 +375,7 @@ class AccountResourceIT {
         assertThat(userDup).isPresent();
         assertThat(userDup.orElseThrow().getAuthorities())
             .hasSize(1)
-            .containsExactly(authorityRepository.findById(AuthoritiesConstants.ADMIN).orElseThrow());
+            .containsExactly(authorityRepository.findById(AuthoritiesConstants.USER_ADMIN).orElseThrow());
 
         userService.deleteUser("badguy");
     }

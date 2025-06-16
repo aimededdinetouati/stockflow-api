@@ -40,7 +40,6 @@ import org.springframework.test.context.TestPropertySource;
         "application.import.file-storage.temp-directory=${java.io.tmpdir}/stockflow-test-imports",
     }
 )
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class ProductImportBatchTest {
 
     @Autowired

@@ -23,16 +23,19 @@ class TechnicalStructureTest {
         .layer("Config").definedBy("..config..")
         .layer("Web").definedBy("..web..")
         .optionalLayer("Service").definedBy("..service..")
+        .optionalLayer("Batch").definedBy("..batch..")  // Add batch layer
         .layer("Security").definedBy("..security..")
         .optionalLayer("Persistence").definedBy("..repository..")
         .layer("Domain").definedBy("..domain..")
 
         .whereLayer("Config").mayNotBeAccessedByAnyLayer()
         .whereLayer("Web").mayOnlyBeAccessedByLayers("Config")
-        .whereLayer("Service").mayOnlyBeAccessedByLayers("Web", "Config")
-        .whereLayer("Security").mayOnlyBeAccessedByLayers("Config", "Service", "Web")
-        .whereLayer("Persistence").mayOnlyBeAccessedByLayers("Service", "Security", "Web", "Config")
-        .whereLayer("Domain").mayOnlyBeAccessedByLayers("Persistence", "Service", "Security", "Web", "Config")
+        .whereLayer("Service").mayOnlyBeAccessedByLayers("Web", "Config", "Batch")  // Allow batch to access service
+        .whereLayer("Batch").mayOnlyBeAccessedByLayers("Config", "Web", "Service")  // Allow service and web to access batch
+        .whereLayer("Batch").mayOnlyBeAccessedByLayers("Config", "Web")  // Allow web to access batch
+        .whereLayer("Security").mayOnlyBeAccessedByLayers("Config", "Service", "Web", "Batch")  // Allow batch to access security
+        .whereLayer("Persistence").mayOnlyBeAccessedByLayers("Service", "Security", "Web", "Config", "Batch")  // Allow batch to access persistence
+        .whereLayer("Domain").mayOnlyBeAccessedByLayers("Persistence", "Service", "Security", "Web", "Config", "Batch")  // Allow batch to access domain
 
         .ignoreDependency(resideInAPackage("com.adeem.stockflow.audit"), alwaysTrue())
         .ignoreDependency(type(AbstractAuditingEntity.class), type(EntityAuditEventListener.class))

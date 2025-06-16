@@ -32,20 +32,20 @@ class CustomerTest {
         Customer customer = getCustomerRandomSampleGenerator();
         Address addressBack = getAddressRandomSampleGenerator();
 
-        customer.addAddressList(addressBack);
-        assertThat(customer.getAddressLists()).containsOnly(addressBack);
+        customer.addAddress(addressBack);
+        assertThat(customer.getAddresses()).containsOnly(addressBack);
         assertThat(addressBack.getCustomer()).isEqualTo(customer);
 
-        customer.removeAddressList(addressBack);
-        assertThat(customer.getAddressLists()).doesNotContain(addressBack);
+        customer.removeAddress(addressBack);
+        assertThat(customer.getAddresses()).doesNotContain(addressBack);
         assertThat(addressBack.getCustomer()).isNull();
 
-        customer.addressLists(new HashSet<>(Set.of(addressBack)));
-        assertThat(customer.getAddressLists()).containsOnly(addressBack);
+        customer.addresses(new HashSet<>(Set.of(addressBack)));
+        assertThat(customer.getAddresses()).containsOnly(addressBack);
         assertThat(addressBack.getCustomer()).isEqualTo(customer);
 
-        customer.setAddressLists(new HashSet<>());
-        assertThat(customer.getAddressLists()).doesNotContain(addressBack);
+        customer.addresses(new HashSet<>());
+        assertThat(customer.getAddresses()).doesNotContain(addressBack);
         assertThat(addressBack.getCustomer()).isNull();
     }
 
@@ -76,10 +76,10 @@ class CustomerTest {
         Customer customer = getCustomerRandomSampleGenerator();
         ClientAccount clientAccountBack = getClientAccountRandomSampleGenerator();
 
-        customer.setClientAccount(clientAccountBack);
-        assertThat(customer.getClientAccount()).isEqualTo(clientAccountBack);
+        customer.setCreatedByClientAccount(clientAccountBack);
+        assertThat(customer.getCreatedByClientAccount()).isEqualTo(clientAccountBack);
 
-        customer.clientAccount(null);
-        assertThat(customer.getClientAccount()).isNull();
+        customer.createdByClientAccount(null);
+        assertThat(customer.getCreatedByClientAccount()).isNull();
     }
 }

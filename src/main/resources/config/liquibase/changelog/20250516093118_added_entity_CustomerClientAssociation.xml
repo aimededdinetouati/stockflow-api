@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+  <!--
+      Create the customer_client_association table for managing customer-company relationships.
+  -->
+  <changeSet id="20241201000002-1" author="jhipster">
+    <createTable tableName="customer_client_association">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="customer_id" type="bigint">
+        <constraints nullable="false" />
+      </column>
+      <column name="client_account_id" type="bigint">
+        <constraints nullable="false" />
+      </column>
+      <column name="association_type" type="varchar(50)">
+        <constraints nullable="false" />
+      </column>
+      <column name="status" type="varchar(50)">
+        <constraints nullable="false" />
+      </column>
+      <column name="notes" type="varchar(500)">
+        <constraints nullable="true" />
+      </column>
+      <column name="created_by" type="varchar(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="created_date" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="last_modified_by" type="varchar(50)"/>
+      <column name="last_modified_date" type="timestamp"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet id="20241201000002-2" author="jhipster">
+    <!-- Add foreign key constraints -->
+    <addForeignKeyConstraint baseColumnNames="customer_id"
+                             baseTableName="customer_client_association"
+                             constraintName="fk_customer_client_association_customer_id"
+                             referencedColumnNames="id"
+                             referencedTableName="customer"/>
+
+    <addForeignKeyConstraint baseColumnNames="client_account_id"
+                             baseTableName="customer_client_association"
+                             constraintName="fk_customer_client_association_client_account_id"
+                             referencedColumnNames="id"
+                             referencedTableName="client_account"/>
+  </changeSet>
+
+  <changeSet id="20241201000002-3" author="jhipster">
+    <!-- Add indexes for performance -->
+    <createIndex indexName="idx_customer_client_association_customer"
+                 tableName="customer_client_association">
+      <column name="customer_id"/>
+    </createIndex>
+
+    <createIndex indexName="idx_customer_client_association_client_account"
+                 tableName="customer_client_association">
+      <column name="client_account_id"/>
+    </createIndex>
+
+    <createIndex indexName="idx_customer_client_association_type"
+                 tableName="customer_client_association">
+      <column name="association_type"/>
+    </createIndex>
+
+    <createIndex indexName="idx_customer_client_association_status"
+                 tableName="customer_client_association">
+      <column name="status"/>
+    </createIndex>
+
+    <!-- Composite index for customer associations lookup -->
+    <createIndex indexName="idx_customer_client_association_customer_status"
+                 tableName="customer_client_association">
+      <column name="customer_id"/>
+      <column name="status"/>
+    </createIndex>
+
+    <!-- Composite index for company associations lookup -->
+    <createIndex indexName="idx_customer_client_association_client_status"
+                 tableName="customer_client_association">
+      <column name="client_account_id"/>
+      <column name="status"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet id="20241201000002-4" author="jhipster">
+    <!-- Add unique constraint to prevent duplicate associations -->
+    <addUniqueConstraint columnNames="customer_id, client_account_id, association_type"
+                         constraintName="uc_customer_client_association_unique"
+                         tableName="customer_client_association"/>
+  </changeSet>
+
+  <changeSet id="20241201000002-5" author="jhipster">
+    <!-- Add check constraints for enum values -->
+    <sql>
+      ALTER TABLE customer_client_association
+        ADD CONSTRAINT chk_association_type
+          CHECK (association_type IN ('FOLLOWED', 'PREFERRED_SUPPLIER', 'BUSINESS_PARTNER'));
+    </sql>
+
+    <sql>
+      ALTER TABLE customer_client_association
+        ADD CONSTRAINT chk_association_status
+          CHECK (status IN ('ACTIVE', 'INACTIVE', 'PENDING'));
+    </sql>
+  </changeSet>
+
+</databaseChangeLog>

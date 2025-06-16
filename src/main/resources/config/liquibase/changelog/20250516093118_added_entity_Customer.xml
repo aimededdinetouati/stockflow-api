@@ -53,8 +53,11 @@
             <column name="user_id" type="bigint">
                 <constraints nullable="true" unique="true" uniqueConstraintName="ux_customer__user_id" />
             </column>
-            <column name="client_account_id" type="bigint">
-                <constraints nullable="true" />
+            <column name="created_by_client_account_id" type="bigint">
+              <constraints nullable="true" />
+            </column>
+            <column name="enabled" type="boolean" defaultValueBoolean="true">
+              <constraints nullable="false" />
             </column>
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
         </createTable>

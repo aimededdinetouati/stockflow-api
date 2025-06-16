@@ -19,9 +19,7 @@ public class CustomerTestSamples {
             .taxId("taxId1")
             .registrationArticle("registrationArticle1")
             .statisticalId("statisticalId1")
-            .rc("rc1")
-            .createdBy("createdBy1")
-            .lastModifiedBy("lastModifiedBy1");
+            .rc("rc1");
     }
 
     public static Customer getCustomerSample2() {
@@ -34,9 +32,7 @@ public class CustomerTestSamples {
             .taxId("taxId2")
             .registrationArticle("registrationArticle2")
             .statisticalId("statisticalId2")
-            .rc("rc2")
-            .createdBy("createdBy2")
-            .lastModifiedBy("lastModifiedBy2");
+            .rc("rc2");
     }
 
     public static Customer getCustomerRandomSampleGenerator() {
@@ -49,8 +45,6 @@ public class CustomerTestSamples {
             .taxId(UUID.randomUUID().toString())
             .registrationArticle(UUID.randomUUID().toString())
             .statisticalId(UUID.randomUUID().toString())
-            .rc(UUID.randomUUID().toString())
-            .createdBy(UUID.randomUUID().toString())
-            .lastModifiedBy(UUID.randomUUID().toString());
+            .rc(UUID.randomUUID().toString());
     }
 }
