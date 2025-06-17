@@ -66,6 +66,8 @@ public final class ErrorConstants {
 
     public static final String IMPORT_FAILED = "E035";
     public static final String USER_MUST_HAVE_ONE_AUTHORITY = "E036";
+    public static final String REQUIRED_ORDER_ITEMS = "E037";
+    public static final String REQUIRED_UNIT_PRICE = "E038";
 
     private ErrorConstants() {}
 }

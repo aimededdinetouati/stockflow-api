@@ -1,6 +1,7 @@
 package com.adeem.stockflow.domain;
 
 import com.adeem.stockflow.domain.enumeration.OrderStatus;
+import com.adeem.stockflow.domain.enumeration.OrderType;
 import com.adeem.stockflow.domain.enumeration.SaleType;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
@@ -52,6 +53,12 @@ public class SaleOrder extends AbstractAuditingEntity<Long> implements Serializa
     @Column(name = "status", nullable = false)
     private OrderStatus status;
 
+    @Column(name = "tva_applied")
+    private boolean tvaApplied;
+
+    @Column(name = "stamp_applied")
+    private boolean stampApplied;
+
     @Column(name = "tva_rate", precision = 21, scale = 2)
     private BigDecimal tvaRate;
 
@@ -80,6 +87,21 @@ public class SaleOrder extends AbstractAuditingEntity<Long> implements Serializa
     @Column(name = "sale_type")
     private SaleType saleType;
 
+    // NEW FIELDS for enhanced functionality
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "order_type", nullable = false)
+    private OrderType orderType;
+
+    @Column(name = "reservation_expires_at")
+    private ZonedDateTime reservationExpiresAt;
+
+    @Column(name = "customer_notes", length = 1000)
+    private String customerNotes;
+
+    @Column(name = "shipping_cost", precision = 21, scale = 2)
+    private BigDecimal shippingCost;
+
     // Inherited createdBy definition
     // Inherited createdDate definition
     // Inherited lastModifiedBy definition
@@ -93,20 +115,23 @@ public class SaleOrder extends AbstractAuditingEntity<Long> implements Serializa
     @JoinColumn(unique = true)
     private Payment payment;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "saleOrder")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "saleOrder", cascade = CascadeType.ALL, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(value = { "product", "saleOrder" }, allowSetters = true)
     private Set<SaleOrderItem> orderItems = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "address", "quota", "subscriptions" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "subscription", "quota", "address", "paymentConfiguration" }, allowSetters = true)
     private ClientAccount clientAccount;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "user", "addressLists", "carts", "clientAccount" }, allowSetters = true)
+    @JsonIgnoreProperties(
+        value = { "user", "addressList", "carts", "clientAccounts", "saleOrders", "returnOrders", "payments" },
+        allowSetters = true
+    )
     private Customer customer;
 
-    @JsonIgnoreProperties(value = { "saleOrder", "address" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "saleOrder", "address", "clientAccount" }, allowSetters = true)
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "saleOrder")
     private Shipment shipment;
 
@@ -188,6 +213,22 @@ public class SaleOrder extends AbstractAuditingEntity<Long> implements Serializa
 
     public void setStatus(OrderStatus status) {
         this.status = status;
+    }
+
+    public boolean isTvaApplied() {
+        return tvaApplied;
+    }
+
+    public void setTvaApplied(boolean tvaApplied) {
+        this.tvaApplied = tvaApplied;
+    }
+
+    public boolean isStampApplied() {
+        return stampApplied;
+    }
+
+    public void setStampApplied(boolean stampApplied) {
+        this.stampApplied = stampApplied;
     }
 
     public BigDecimal getTvaRate() {
@@ -307,28 +348,57 @@ public class SaleOrder extends AbstractAuditingEntity<Long> implements Serializa
         this.saleType = saleType;
     }
 
-    // Inherited createdBy methods
-    public SaleOrder createdBy(String createdBy) {
-        this.setCreatedBy(createdBy);
+    // NEW FIELD GETTERS/SETTERS
+    public OrderType getOrderType() {
+        return this.orderType;
+    }
+
+    public SaleOrder orderType(OrderType orderType) {
+        this.setOrderType(orderType);
         return this;
     }
 
-    // Inherited createdDate methods
-    public SaleOrder createdDate(Instant createdDate) {
-        this.setCreatedDate(createdDate);
+    public void setOrderType(OrderType orderType) {
+        this.orderType = orderType;
+    }
+
+    public ZonedDateTime getReservationExpiresAt() {
+        return this.reservationExpiresAt;
+    }
+
+    public SaleOrder reservationExpiresAt(ZonedDateTime reservationExpiresAt) {
+        this.setReservationExpiresAt(reservationExpiresAt);
         return this;
     }
 
-    // Inherited lastModifiedBy methods
-    public SaleOrder lastModifiedBy(String lastModifiedBy) {
-        this.setLastModifiedBy(lastModifiedBy);
+    public void setReservationExpiresAt(ZonedDateTime reservationExpiresAt) {
+        this.reservationExpiresAt = reservationExpiresAt;
+    }
+
+    public String getCustomerNotes() {
+        return this.customerNotes;
+    }
+
+    public SaleOrder customerNotes(String customerNotes) {
+        this.setCustomerNotes(customerNotes);
         return this;
     }
 
-    // Inherited lastModifiedDate methods
-    public SaleOrder lastModifiedDate(Instant lastModifiedDate) {
-        this.setLastModifiedDate(lastModifiedDate);
+    public void setCustomerNotes(String customerNotes) {
+        this.customerNotes = customerNotes;
+    }
+
+    public BigDecimal getShippingCost() {
+        return this.shippingCost;
+    }
+
+    public SaleOrder shippingCost(BigDecimal shippingCost) {
+        this.setShippingCost(shippingCost);
         return this;
+    }
+
+    public void setShippingCost(BigDecimal shippingCost) {
+        this.shippingCost = shippingCost;
     }
 
     @PostLoad
@@ -337,16 +407,14 @@ public class SaleOrder extends AbstractAuditingEntity<Long> implements Serializa
         this.setIsPersisted();
     }
 
-    @org.springframework.data.annotation.Transient
-    @Transient
-    @Override
-    public boolean isNew() {
-        return !this.isPersisted;
-    }
-
     public SaleOrder setIsPersisted() {
         this.isPersisted = true;
         return this;
+    }
+
+    @Override
+    public boolean isNew() {
+        return !this.isPersisted;
     }
 
     public Payment getPayment() {
@@ -381,13 +449,13 @@ public class SaleOrder extends AbstractAuditingEntity<Long> implements Serializa
         return this;
     }
 
-    public SaleOrder addOrderItems(SaleOrderItem saleOrderItem) {
+    public SaleOrder addOrderItem(SaleOrderItem saleOrderItem) {
         this.orderItems.add(saleOrderItem);
         saleOrderItem.setSaleOrder(this);
         return this;
     }
 
-    public SaleOrder removeOrderItems(SaleOrderItem saleOrderItem) {
+    public SaleOrder removeOrderItem(SaleOrderItem saleOrderItem) {
         this.orderItems.remove(saleOrderItem);
         saleOrderItem.setSaleOrder(null);
         return this;
@@ -467,6 +535,10 @@ public class SaleOrder extends AbstractAuditingEntity<Long> implements Serializa
             ", dueDate='" + getDueDate() + "'" +
             ", notes='" + getNotes() + "'" +
             ", status='" + getStatus() + "'" +
+            ", orderType='" + getOrderType() + "'" +
+            ", reservationExpiresAt='" + getReservationExpiresAt() + "'" +
+            ", customerNotes='" + getCustomerNotes() + "'" +
+            ", shippingCost=" + getShippingCost() +
             ", tvaRate=" + getTvaRate() +
             ", stampRate=" + getStampRate() +
             ", discountRate=" + getDiscountRate() +
@@ -476,10 +548,6 @@ public class SaleOrder extends AbstractAuditingEntity<Long> implements Serializa
             ", subTotal=" + getSubTotal() +
             ", total=" + getTotal() +
             ", saleType='" + getSaleType() + "'" +
-            ", createdBy='" + getCreatedBy() + "'" +
-            ", createdDate='" + getCreatedDate() + "'" +
-            ", lastModifiedBy='" + getLastModifiedBy() + "'" +
-            ", lastModifiedDate='" + getLastModifiedDate() + "'" +
             "}";
     }
 }

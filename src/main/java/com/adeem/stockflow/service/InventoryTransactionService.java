@@ -50,7 +50,8 @@ public class InventoryTransactionService {
         inventoryTransaction.setTransactionDate(DateTimeUtils.nowAlgeria());
         inventoryTransaction.setTransactionType(transactionType);
         inventoryTransaction.setProduct(product);
-        inventoryTransaction.setReferenceNumber(generateReference());
+        inventoryTransaction.setClientAccount(product.getClientAccount());
+        inventoryTransaction.setReferenceNumber(generateReference(product.getClientAccount().getId()));
 
         inventoryTransactionRepository.save(inventoryTransaction);
     }
@@ -65,26 +66,6 @@ public class InventoryTransactionService {
         LOG.debug("Request to update InventoryTransaction : {}", inventoryTransaction);
         inventoryTransaction.setIsPersisted();
         inventoryTransactionRepository.save(inventoryTransaction);
-    }
-
-    /**
-     * Partially update a inventoryTransaction.
-     *
-     * @param inventoryTransactionDTO the entity to update partially.
-     * @return the persisted entity.
-     */
-    public Optional<InventoryTransactionDTO> partialUpdate(InventoryTransactionDTO inventoryTransactionDTO) {
-        LOG.debug("Request to partially update InventoryTransaction : {}", inventoryTransactionDTO);
-
-        return inventoryTransactionRepository
-            .findById(inventoryTransactionDTO.getId())
-            .map(existingInventoryTransaction -> {
-                inventoryTransactionMapper.partialUpdate(existingInventoryTransaction, inventoryTransactionDTO);
-
-                return existingInventoryTransaction;
-            })
-            .map(inventoryTransactionRepository::save)
-            .map(inventoryTransactionMapper::toDto);
     }
 
     /**
@@ -121,8 +102,8 @@ public class InventoryTransactionService {
         inventoryTransactionRepository.deleteById(id);
     }
 
-    private String generateReference() {
-        String reference = inventoryTransactionRepository.getLastReference().orElse(null);
+    private String generateReference(Long clientAccountId) {
+        String reference = inventoryTransactionRepository.getLastReference(clientAccountId).orElse(null);
         return GlobalUtils.generateReference(reference);
     }
 }

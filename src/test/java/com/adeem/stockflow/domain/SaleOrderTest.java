@@ -46,11 +46,11 @@ class SaleOrderTest {
         SaleOrder saleOrder = getSaleOrderRandomSampleGenerator();
         SaleOrderItem saleOrderItemBack = getSaleOrderItemRandomSampleGenerator();
 
-        saleOrder.addOrderItems(saleOrderItemBack);
+        saleOrder.addOrderItem(saleOrderItemBack);
         assertThat(saleOrder.getOrderItems()).containsOnly(saleOrderItemBack);
         assertThat(saleOrderItemBack.getSaleOrder()).isEqualTo(saleOrder);
 
-        saleOrder.removeOrderItems(saleOrderItemBack);
+        saleOrder.removeOrderItem(saleOrderItemBack);
         assertThat(saleOrder.getOrderItems()).doesNotContain(saleOrderItemBack);
         assertThat(saleOrderItemBack.getSaleOrder()).isNull();
 

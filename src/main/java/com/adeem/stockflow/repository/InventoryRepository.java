@@ -49,4 +49,6 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long>, Jpa
         """
     )
     InventoryStockLevelStatsDTO getStockLevelStats(@Param("clientAccountId") Long clientAccountId);
+
+    Optional<Inventory> findByProductIdAndClientAccountId(Long productId, Long currentClientAccountId);
 }

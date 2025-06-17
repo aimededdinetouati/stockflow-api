@@ -1,16 +1,21 @@
 package com.adeem.stockflow.service.dto;
 
+import com.adeem.stockflow.domain.SaleOrderItem;
 import com.adeem.stockflow.domain.enumeration.OrderStatus;
+import com.adeem.stockflow.domain.enumeration.OrderType;
 import com.adeem.stockflow.domain.enumeration.SaleType;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * A DTO for the {@link com.adeem.stockflow.domain.SaleOrder} entity.
+ * Enhanced to support delivery/pickup orders with inventory reservation.
  */
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class SaleOrderDTO implements Serializable {
@@ -30,6 +35,10 @@ public class SaleOrderDTO implements Serializable {
     @NotNull
     private OrderStatus status;
 
+    private boolean tvaApplied;
+
+    private boolean stampApplied;
+
     private BigDecimal tvaRate;
 
     private BigDecimal stampRate;
@@ -48,19 +57,26 @@ public class SaleOrderDTO implements Serializable {
 
     private SaleType saleType;
 
-    private String createdBy;
+    // NEW FIELDS
+    @NotNull
+    private OrderType orderType;
 
-    private Instant createdDate;
+    private ZonedDateTime reservationExpiresAt;
 
-    private String lastModifiedBy;
+    private String customerNotes;
 
-    private Instant lastModifiedDate;
+    private BigDecimal shippingCost;
 
+    private Set<SaleOrderItemDTO> orderItems = new HashSet<>();
+
+    // Relationships
     private PaymentDTO payment;
 
     private Long clientAccountId;
 
     private CustomerDTO customer;
+
+    private ShipmentDTO shipment;
 
     public Long getId() {
         return id;
@@ -108,6 +124,22 @@ public class SaleOrderDTO implements Serializable {
 
     public void setStatus(OrderStatus status) {
         this.status = status;
+    }
+
+    public boolean isTvaApplied() {
+        return tvaApplied;
+    }
+
+    public void setTvaApplied(boolean tvaApplied) {
+        this.tvaApplied = tvaApplied;
+    }
+
+    public boolean isStampApplied() {
+        return stampApplied;
+    }
+
+    public void setStampApplied(boolean stampApplied) {
+        this.stampApplied = stampApplied;
     }
 
     public BigDecimal getTvaRate() {
@@ -182,36 +214,45 @@ public class SaleOrderDTO implements Serializable {
         this.saleType = saleType;
     }
 
-    public String getCreatedBy() {
-        return createdBy;
+    // NEW FIELD GETTERS/SETTERS
+    public OrderType getOrderType() {
+        return orderType;
     }
 
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
+    public void setOrderType(OrderType orderType) {
+        this.orderType = orderType;
     }
 
-    public Instant getCreatedDate() {
-        return createdDate;
+    public ZonedDateTime getReservationExpiresAt() {
+        return reservationExpiresAt;
     }
 
-    public void setCreatedDate(Instant createdDate) {
-        this.createdDate = createdDate;
+    public void setReservationExpiresAt(ZonedDateTime reservationExpiresAt) {
+        this.reservationExpiresAt = reservationExpiresAt;
     }
 
-    public String getLastModifiedBy() {
-        return lastModifiedBy;
+    public String getCustomerNotes() {
+        return customerNotes;
     }
 
-    public void setLastModifiedBy(String lastModifiedBy) {
-        this.lastModifiedBy = lastModifiedBy;
+    public void setCustomerNotes(String customerNotes) {
+        this.customerNotes = customerNotes;
     }
 
-    public Instant getLastModifiedDate() {
-        return lastModifiedDate;
+    public BigDecimal getShippingCost() {
+        return shippingCost;
     }
 
-    public void setLastModifiedDate(Instant lastModifiedDate) {
-        this.lastModifiedDate = lastModifiedDate;
+    public void setShippingCost(BigDecimal shippingCost) {
+        this.shippingCost = shippingCost;
+    }
+
+    public Set<SaleOrderItemDTO> getOrderItems() {
+        return orderItems;
+    }
+
+    public void setOrderItems(Set<SaleOrderItemDTO> orderItems) {
+        this.orderItems = orderItems;
     }
 
     public PaymentDTO getPayment() {
@@ -236,6 +277,14 @@ public class SaleOrderDTO implements Serializable {
 
     public void setCustomer(CustomerDTO customer) {
         this.customer = customer;
+    }
+
+    public ShipmentDTO getShipment() {
+        return shipment;
+    }
+
+    public void setShipment(ShipmentDTO shipment) {
+        this.shipment = shipment;
     }
 
     @Override
@@ -269,6 +318,10 @@ public class SaleOrderDTO implements Serializable {
             ", dueDate='" + getDueDate() + "'" +
             ", notes='" + getNotes() + "'" +
             ", status='" + getStatus() + "'" +
+            ", orderType='" + getOrderType() + "'" +
+            ", reservationExpiresAt='" + getReservationExpiresAt() + "'" +
+            ", customerNotes='" + getCustomerNotes() + "'" +
+            ", shippingCost=" + getShippingCost() +
             ", tvaRate=" + getTvaRate() +
             ", stampRate=" + getStampRate() +
             ", discountRate=" + getDiscountRate() +
@@ -278,13 +331,10 @@ public class SaleOrderDTO implements Serializable {
             ", subTotal=" + getSubTotal() +
             ", total=" + getTotal() +
             ", saleType='" + getSaleType() + "'" +
-            ", createdBy='" + getCreatedBy() + "'" +
-            ", createdDate='" + getCreatedDate() + "'" +
-            ", lastModifiedBy='" + getLastModifiedBy() + "'" +
-            ", lastModifiedDate='" + getLastModifiedDate() + "'" +
             ", payment=" + getPayment() +
             ", clientAccountId=" + getClientAccountId() +
             ", customer=" + getCustomer() +
+            ", shipment=" + getShipment() +
             "}";
     }
 }

@@ -16,8 +16,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface InventoryTransactionRepository
     extends JpaRepository<InventoryTransaction, Long>, JpaSpecificationExecutor<InventoryTransaction> {
-    @Query(value = "SELECT reference_number FROM inventory_transaction ORDER BY id DESC LIMIT 1", nativeQuery = true)
-    Optional<String> getLastReference();
+    @Query(
+        value = "SELECT reference_number FROM inventory_transaction it WHERE it.client_account_id = ?1 ORDER BY it.id DESC LIMIT 1",
+        nativeQuery = true
+    )
+    Optional<String> getLastReference(Long clientAccountId);
 
     List<InventoryTransaction> findByProductId(Long id);
 }
