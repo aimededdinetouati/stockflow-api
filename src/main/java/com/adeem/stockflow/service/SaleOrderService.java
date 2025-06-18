@@ -164,6 +164,22 @@ public class SaleOrderService {
     }
 
     /**
+     * Complete an order - transition from SHIPPED to COMPLETED.
+     */
+    public SaleOrderDTO completeOrder(Long id) {
+        LOG.debug("Request to complete SaleOrder : {}", id);
+
+        SaleOrder saleOrder = getAndValidateOrder(id);
+        validateCanComplete(saleOrder);
+
+        completeInventoryTransaction(saleOrder);
+        updateOrderStatusToCompleted(saleOrder);
+
+        saleOrder = saleOrderRepository.save(saleOrder);
+        return saleOrderMapper.toDto(saleOrder);
+    }
+
+    /**
      * Confirm an order - transition from DRAFTED to CONFIRMED.
      */
     public SaleOrderDTO confirmOrder(Long id) {
@@ -271,6 +287,15 @@ public class SaleOrderService {
         }
     }
 
+    // Add validation method to SaleOrderService.java
+    private void validateCanComplete(SaleOrder saleOrder) {
+        if (saleOrder.getStatus() != OrderStatus.SHIPPED || saleOrder.getStatus() != OrderStatus.CONFIRMED) {
+            throw new InvalidOrderStatusTransitionException(
+                String.format("Cannot complete order with status %s. Order must be SHIPPED.", saleOrder.getStatus())
+            );
+        }
+    }
+
     private void validateCanDelete(SaleOrder saleOrder) {
         if (saleOrder.getStatus() != OrderStatus.DRAFTED) {
             throw new BadRequestAlertException("Cannot delete confirmed orders", "SaleOrder", "cannotDeleteConfirmed");
@@ -350,6 +375,10 @@ public class SaleOrderService {
 
     private void updateOrderStatusToCancelled(SaleOrder saleOrder, String reason) {
         saleOrder.setStatus(OrderStatus.CANCELLED);
+    }
+
+    private void updateOrderStatusToCompleted(SaleOrder saleOrder) {
+        saleOrder.setStatus(OrderStatus.COMPLETED);
     }
 
     private void handleInventoryOnCancellation(SaleOrder saleOrder) {
@@ -624,5 +653,9 @@ public class SaleOrderService {
 
         inventoryService.saveAll(inventoriesToSave);
         inventoryTransactionService.saveAll(transactionsToSave);
+    }
+
+    public List<SaleOrder> findExpiredReservations(ZonedDateTime time) {
+        return saleOrderRepository.findExpiredReservations(time);
     }
 }

@@ -155,6 +155,21 @@ public class SaleOrderResource {
     }
 
     /**
+     * {@code POST  /sale-orders/:id/complete} : Complete a sale order.
+     *
+     * @param id the id of the saleOrder to complete.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated saleOrderDTO.
+     */
+    @PostMapping("/{id}/complete")
+    public ResponseEntity<SaleOrderDTO> completeOrder(@PathVariable("id") Long id) {
+        LOG.debug("REST request to complete SaleOrder : {}", id);
+        SaleOrderDTO result = saleOrderService.completeOrder(id);
+        return ResponseEntity.ok()
+            .headers(HeaderUtil.createAlert(applicationName, "Order completed successfully", id.toString()))
+            .body(result);
+    }
+
+    /**
      * {@code POST  /sale-orders/:id/confirm} : Confirm a sale order.
      *
      * @param id the id of the saleOrder to confirm.
