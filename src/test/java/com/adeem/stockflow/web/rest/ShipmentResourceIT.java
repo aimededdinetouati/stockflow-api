@@ -1,3 +1,5 @@
+package com.adeem.stockflow.web.rest;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -27,6 +29,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -37,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Integration tests for the enhanced {@link ShipmentResource} REST controller.
  */
 @IntegrationTest
-@AutoConfigureWebMvc
+@AutoConfigureMockMvc
 @WithMockUser(authorities = { "USER_ADMIN" })
 class ShipmentResourceIT {
 
@@ -123,7 +126,6 @@ class ShipmentResourceIT {
 
         UpdateShipmentStatusDTO updateRequest = new UpdateShipmentStatusDTO();
         updateRequest.setStatus(ShippingStatus.DELIVERED);
-        updateRequest.setNotes("Package delivered successfully");
 
         // Update shipment status
         restShipmentMockMvc

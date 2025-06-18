@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
@@ -24,11 +24,11 @@ public class ShipmentDTO implements Serializable {
     @NotNull
     private String carrier;
 
-    private Instant shippingDate;
+    private LocalDateTime shippingDate;
 
-    private Instant estimatedDeliveryDate;
+    private LocalDateTime estimatedDeliveryDate;
 
-    private Instant actualDeliveryDate;
+    private LocalDateTime actualDeliveryDate;
 
     @NotNull
     private ShippingStatus status;
@@ -86,27 +86,27 @@ public class ShipmentDTO implements Serializable {
         this.carrier = carrier;
     }
 
-    public Instant getShippingDate() {
+    public LocalDateTime getShippingDate() {
         return shippingDate;
     }
 
-    public void setShippingDate(Instant shippingDate) {
+    public void setShippingDate(LocalDateTime shippingDate) {
         this.shippingDate = shippingDate;
     }
 
-    public Instant getEstimatedDeliveryDate() {
+    public LocalDateTime getEstimatedDeliveryDate() {
         return estimatedDeliveryDate;
     }
 
-    public void setEstimatedDeliveryDate(Instant estimatedDeliveryDate) {
+    public void setEstimatedDeliveryDate(LocalDateTime estimatedDeliveryDate) {
         this.estimatedDeliveryDate = estimatedDeliveryDate;
     }
 
-    public Instant getActualDeliveryDate() {
+    public LocalDateTime getActualDeliveryDate() {
         return actualDeliveryDate;
     }
 
-    public void setActualDeliveryDate(Instant actualDeliveryDate) {
+    public void setActualDeliveryDate(LocalDateTime actualDeliveryDate) {
         this.actualDeliveryDate = actualDeliveryDate;
     }
 

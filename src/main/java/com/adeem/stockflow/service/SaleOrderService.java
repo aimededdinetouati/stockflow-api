@@ -16,6 +16,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -40,7 +42,7 @@ public class SaleOrderService {
     private final ClientAccountRepository clientAccountRepository;
     private final ProductRepository productRepository;
     private final InventoryService inventoryService;
-    private final ShipmentService shipmentService;
+    private ShipmentService shipmentService;
 
     public SaleOrderService(
         SaleOrderRepository saleOrderRepository,
@@ -49,8 +51,7 @@ public class SaleOrderService {
         CustomerRepository customerRepository,
         ClientAccountRepository clientAccountRepository,
         ProductRepository productRepository,
-        InventoryService inventoryService,
-        ShipmentService shipmentService
+        InventoryService inventoryService
     ) {
         this.saleOrderRepository = saleOrderRepository;
         this.saleOrderMapper = saleOrderMapper;
@@ -59,58 +60,31 @@ public class SaleOrderService {
         this.clientAccountRepository = clientAccountRepository;
         this.productRepository = productRepository;
         this.inventoryService = inventoryService;
+    }
+
+    @Autowired
+    @Lazy
+    public void setShipmentService(ShipmentService shipmentService) {
         this.shipmentService = shipmentService;
+    }
+
+    public void save(SaleOrder saleOrder) {
+        saleOrderRepository.save(saleOrder);
     }
 
     /**
      * Create a saleOrder.
-     *
-     * @param saleOrderDTO the entity to save.
-     * @return the persisted entity.
      */
     public SaleOrderDTO create(SaleOrderDTO saleOrderDTO) {
         LOG.debug("Request to save SaleOrder : {}", saleOrderDTO);
 
-        Long currentClientAccountId = SecurityUtils.getCurrentClientAccountId();
+        ClientAccount clientAccount = getCurrentClientAccount();
+        Customer customer = getAndValidateCustomer(saleOrderDTO.getCustomer().getId());
+        validateOrderItems(saleOrderDTO.getOrderItems());
 
-        // Validate customer relationship
-        Customer customer = customerRepository
-            .findById(saleOrderDTO.getCustomer().getId())
-            .orElseThrow(() -> new AccessDeniedException(Constants.NOT_ALLOWED));
+        Set<SaleOrderItem> orderItems = validateAndCreateOrderItems(saleOrderDTO.getOrderItems(), clientAccount.getId());
 
-        if (saleOrderDTO.getOrderItems() == null || saleOrderDTO.getOrderItems().isEmpty()) {
-            throw new BadRequestAlertException("order items cannot be null or empty", "", ErrorConstants.REQUIRED_ORDER_ITEMS);
-        }
-
-        ClientAccount clientAccount = clientAccountRepository
-            .findById(currentClientAccountId)
-            .orElseThrow(() -> new AccessDeniedException(Constants.NOT_ALLOWED));
-
-        Set<SaleOrderItem> orderItems = validateAndCreateOrderItems(saleOrderDTO.getOrderItems(), currentClientAccountId);
-
-        // Generate reference if creating new order
-        SaleOrder saleOrder = new SaleOrder();
-        saleOrder.setClientAccount(clientAccount);
-        saleOrder.setReference(generateReference(clientAccount.getId()));
-        saleOrder.setStatus(OrderStatus.DRAFTED);
-        saleOrder.setDate(saleOrderDTO.getDate());
-        saleOrder.setNotes(saleOrderDTO.getNotes());
-        saleOrder.setReservationExpiresAt(saleOrderDTO.getDate().plusHours(clientAccount.getReservationTimeoutHours()));
-        saleOrder.setShippingCost(saleOrderDTO.getShippingCost());
-        saleOrder.setOrderType(saleOrderDTO.getOrderType());
-        saleOrder.setSaleType(saleOrderDTO.getSaleType());
-        saleOrder.setTvaRate(saleOrderDTO.getTvaRate());
-        saleOrder.setStampRate(saleOrderDTO.getStampRate());
-        saleOrder.setDiscountRate(saleOrderDTO.getDiscountRate());
-        saleOrder.setStampApplied(saleOrderDTO.isStampApplied());
-        saleOrder.setTvaApplied(saleOrderDTO.isTvaApplied());
-        saleOrder.setCustomer(customer);
-
-        SaleOrder finalSaleOrder = saleOrder;
-        orderItems.forEach(orderItem -> orderItem.setSaleOrder(finalSaleOrder));
-        saleOrder.setOrderItems(orderItems);
-
-        // Calculate totals
+        SaleOrder saleOrder = buildNewSaleOrder(saleOrderDTO, clientAccount, customer, orderItems);
         calculateOrderTotals(saleOrder, orderItems);
 
         saleOrder = saleOrderRepository.save(saleOrder);
@@ -119,51 +93,16 @@ public class SaleOrderService {
 
     /**
      * Update a saleOrder with business rule validation.
-     *
-     * @param saleOrderDTO the entity to save.
-     * @return the persisted entity.
      */
     public SaleOrderDTO update(SaleOrderDTO saleOrderDTO) {
         LOG.debug("Request to update SaleOrder : {}", saleOrderDTO);
 
-        Long currentClientAccountId = SecurityUtils.getCurrentClientAccountId();
-        ClientAccount clientAccount = clientAccountRepository
-            .findById(currentClientAccountId)
-            .orElseThrow(() -> new AccessDeniedException(Constants.NOT_ALLOWED));
+        ClientAccount clientAccount = getCurrentClientAccount();
+        SaleOrder existingOrder = getAndValidateOrder(saleOrderDTO.getId());
+        validateCanModifyOrder(existingOrder);
 
-        SaleOrder existingOrder = saleOrderRepository
-            .findById(saleOrderDTO.getId())
-            .orElseThrow(() -> new AccessDeniedException(Constants.NOT_ALLOWED));
-
-        // Validate ownership
-        if (!existingOrder.getClientAccount().getId().equals(currentClientAccountId)) {
-            throw new AccessDeniedException(Constants.NOT_ALLOWED);
-        }
-
-        // Validate modification is allowed
-        if (!canModifyOrder(existingOrder)) {
-            throw new OrderModificationNotAllowedException("Order cannot be modified after confirmation");
-        }
-
-        existingOrder.getOrderItems().clear();
-        Set<SaleOrderItem> newOrderItems = validateAndCreateOrderItems(saleOrderDTO.getOrderItems(), currentClientAccountId);
-
-        existingOrder.setDate(saleOrderDTO.getDate());
-        existingOrder.setNotes(saleOrderDTO.getNotes());
-        existingOrder.setReservationExpiresAt(saleOrderDTO.getDate().plusHours(clientAccount.getReservationTimeoutHours()));
-        existingOrder.setShippingCost(saleOrderDTO.getShippingCost());
-        existingOrder.setOrderType(saleOrderDTO.getOrderType());
-        existingOrder.setSaleType(saleOrderDTO.getSaleType());
-        existingOrder.setTvaRate(saleOrderDTO.getTvaRate());
-        existingOrder.setStampRate(saleOrderDTO.getStampRate());
-        existingOrder.setDiscountRate(saleOrderDTO.getDiscountRate());
-        existingOrder.setStampApplied(saleOrderDTO.isStampApplied());
-        existingOrder.setTvaApplied(saleOrderDTO.isTvaApplied());
-        SaleOrder finalSaleOrder = existingOrder;
-        newOrderItems.forEach(orderItem -> orderItem.setSaleOrder(finalSaleOrder));
-        existingOrder.setOrderItems(newOrderItems);
-
-        // Calculate totals
+        Set<SaleOrderItem> newOrderItems = validateAndCreateOrderItems(saleOrderDTO.getOrderItems(), clientAccount.getId());
+        updateOrderFields(existingOrder, saleOrderDTO, clientAccount, newOrderItems);
         calculateOrderTotals(existingOrder, newOrderItems);
 
         existingOrder.setIsPersisted();
@@ -173,47 +112,28 @@ public class SaleOrderService {
 
     /**
      * Get all saleOrders for current client account.
-     *
-     * @param pageable the pagination information.
-     * @return the list of entities.
      */
     @Transactional(readOnly = true)
     public Page<SaleOrderDTO> findAll(Pageable pageable) {
         LOG.debug("Request to get all SaleOrders");
-
-        Long currentClientAccountId = SecurityUtils.getCurrentClientAccountId();
-
-        Specification<SaleOrder> spec = SaleOrderSpecification.withClientAccountId(currentClientAccountId);
-        return saleOrderRepository.findAll(spec, pageable).map(saleOrderMapper::toDto);
+        return findAllWithCriteria(pageable, null);
     }
 
     /**
      * Get all saleOrders with criteria filtering.
-     *
-     * @param pageable the pagination information.
-     * @param spec the specification for filtering.
-     * @return the list of entities.
      */
     @Transactional(readOnly = true)
     public Page<SaleOrderDTO> findAllWithCriteria(Pageable pageable, Specification<SaleOrder> spec) {
         LOG.debug("Request to get SaleOrders with criteria");
 
         Long currentClientAccountId = SecurityUtils.getCurrentClientAccountId();
-
-        // Always add client account filter
-        Specification<SaleOrder> finalSpec = Specification.where(SaleOrderSpecification.withClientAccountId(currentClientAccountId));
-        if (spec != null) {
-            finalSpec = finalSpec.and(spec);
-        }
+        Specification<SaleOrder> finalSpec = buildSpecificationWithClientFilter(currentClientAccountId, spec);
 
         return saleOrderRepository.findAll(finalSpec, pageable).map(saleOrderMapper::toDto);
     }
 
     /**
      * Get one saleOrder by id.
-     *
-     * @param id the id of the entity.
-     * @return the entity.
      */
     @Transactional(readOnly = true)
     public Optional<SaleOrderDTO> findOne(Long id) {
@@ -227,68 +147,34 @@ public class SaleOrderService {
             .map(saleOrderMapper::toDto);
     }
 
+    public Optional<SaleOrder> findById(Long id) {
+        return saleOrderRepository.findById(id);
+    }
+
     /**
      * Delete the saleOrder by id.
-     *
-     * @param id the id of the entity.
      */
     public void delete(Long id) {
         LOG.debug("Request to delete SaleOrder : {}", id);
 
-        Long currentClientAccountId = SecurityUtils.getCurrentClientAccountId();
-
-        SaleOrder saleOrder = saleOrderRepository
-            .findById(id)
-            .orElseThrow(() -> new BadRequestAlertException("Sale order not found", "SaleOrder", "orderNotFound"));
-
-        // Validate ownership
-        if (!saleOrder.getClientAccount().getId().equals(currentClientAccountId)) {
-            throw new AccessDeniedException(Constants.NOT_ALLOWED);
-        }
-
-        // Only allow deletion of drafted orders
-        if (saleOrder.getStatus() != OrderStatus.DRAFTED) {
-            throw new BadRequestAlertException("Cannot delete confirmed orders", "SaleOrder", "cannotDeleteConfirmed");
-        }
+        SaleOrder saleOrder = getAndValidateOrder(id);
+        validateCanDelete(saleOrder);
 
         saleOrderRepository.deleteById(id);
     }
 
     /**
      * Confirm an order - transition from DRAFTED to CONFIRMED.
-     *
-     * @param id the order id.
-     * @return the updated order.
      */
     public SaleOrderDTO confirmOrder(Long id) {
         LOG.debug("Request to confirm SaleOrder : {}", id);
 
-        Long currentClientAccountId = SecurityUtils.getCurrentClientAccountId();
-
-        SaleOrder saleOrder = saleOrderRepository.findById(id).orElseThrow(() -> new AccessDeniedException(Constants.NOT_ALLOWED));
-
-        // Validate ownership
-        if (!saleOrder.getClientAccount().getId().equals(currentClientAccountId)) {
-            throw new AccessDeniedException(Constants.NOT_ALLOWED);
-        }
-
-        // Validate status transition
-        if (saleOrder.getStatus() != OrderStatus.DRAFTED) {
-            throw new InvalidOrderStatusTransitionException(String.format("Cannot confirm order with status %s", saleOrder.getStatus()));
-        }
-
-        // Validate inventory availability
+        SaleOrder saleOrder = getAndValidateOrder(id);
+        validateCanConfirm(saleOrder);
         validateInventoryAvailability(saleOrder);
 
-        // Reserve inventory
         reserveInventoryForOrder(saleOrder);
-
-        // Update order status and set expiration
-        saleOrder.setStatus(OrderStatus.CONFIRMED);
-        ClientAccount clientAccount = saleOrder.getClientAccount();
-        if (clientAccount.getReservationTimeoutHours() != null) {
-            saleOrder.setReservationExpiresAt(ZonedDateTime.now().plusHours(clientAccount.getReservationTimeoutHours()));
-        }
+        updateOrderStatusToConfirmed(saleOrder);
 
         saleOrder = saleOrderRepository.save(saleOrder);
         return saleOrderMapper.toDto(saleOrder);
@@ -296,82 +182,16 @@ public class SaleOrderService {
 
     /**
      * Cancel an order.
-     *
-     * @param id the order id.
-     * @param cancelRequest the cancellation details.
-     * @return the updated order.
      */
     public SaleOrderDTO cancelOrder(Long id, CancelOrderDTO cancelRequest) {
         LOG.debug("Request to cancel SaleOrder : {} with reason: {}", id, cancelRequest.getReason());
 
-        Long currentClientAccountId = SecurityUtils.getCurrentClientAccountId();
+        SaleOrder saleOrder = getAndValidateOrder(id);
+        validateCanCancel(saleOrder);
 
-        SaleOrder saleOrder = saleOrderRepository
-            .findById(id)
-            .orElseThrow(() -> new BadRequestAlertException("Sale order not found", "SaleOrder", "orderNotFound"));
-
-        // Validate ownership
-        if (!saleOrder.getClientAccount().getId().equals(currentClientAccountId)) {
-            throw new AccessDeniedException(Constants.NOT_ALLOWED);
-        }
-
-        // Cannot cancel completed orders
-        if (saleOrder.getStatus() == OrderStatus.COMPLETED) {
-            throw new InvalidOrderStatusTransitionException("Cannot cancel completed orders");
-        }
-
-        // Release reserved inventory if order was confirmed
-        if (saleOrder.getStatus() == OrderStatus.CONFIRMED || saleOrder.getStatus() == OrderStatus.SHIPPED) {
-            releaseReservedInventory(saleOrder);
-        }
-
-        // Cancel shipment if exists
-        if (saleOrder.getShipment() != null) {
-            // Cancel with Yalidine or mark as cancelled
-            shipmentService.cancelShipment(saleOrder.getShipment().getId());
-        }
-
-        saleOrder.setStatus(OrderStatus.CANCELLED);
-        saleOrder.setNotes(saleOrder.getNotes() + "\nCancellation reason: " + cancelRequest.getReason());
-
-        saleOrder = saleOrderRepository.save(saleOrder);
-        return saleOrderMapper.toDto(saleOrder);
-    }
-
-    /**
-     * Mark order as picked up (for STORE_PICKUP orders).
-     *
-     * @param id the order id.
-     * @return the updated order.
-     */
-    public SaleOrderDTO markOrderPickedUp(Long id) {
-        LOG.debug("Request to mark SaleOrder as picked up : {}", id);
-
-        Long currentClientAccountId = SecurityUtils.getCurrentClientAccountId();
-
-        SaleOrder saleOrder = saleOrderRepository
-            .findById(id)
-            .orElseThrow(() -> new BadRequestAlertException("Sale order not found", "SaleOrder", "orderNotFound"));
-
-        // Validate ownership
-        if (!saleOrder.getClientAccount().getId().equals(currentClientAccountId)) {
-            throw new AccessDeniedException(Constants.NOT_ALLOWED);
-        }
-
-        // Validate order type and status
-        if (saleOrder.getOrderType() != OrderType.STORE_PICKUP) {
-            throw new BadRequestAlertException("Order is not a store pickup order", "SaleOrder", "notStorePickup");
-        }
-
-        if (saleOrder.getStatus() != OrderStatus.CONFIRMED) {
-            throw new InvalidOrderStatusTransitionException(
-                String.format("Cannot mark order with status %s as picked up", saleOrder.getStatus())
-            );
-        }
-
-        // Update status and complete inventory transaction
-        saleOrder.setStatus(OrderStatus.PICKED_UP);
-        completeInventoryTransaction(saleOrder);
+        handleInventoryOnCancellation(saleOrder);
+        handleShipmentOnCancellation(saleOrder);
+        updateOrderStatusToCancelled(saleOrder, cancelRequest.getReason());
 
         saleOrder = saleOrderRepository.save(saleOrder);
         return saleOrderMapper.toDto(saleOrder);
@@ -379,104 +199,253 @@ public class SaleOrderService {
 
     /**
      * Validate inventory availability for order items.
-     *
-     * @param items the order items to validate.
-     * @return validation result.
      */
     public InventoryValidationDTO validateOrderAvailability(List<OrderItemDTO> items) {
         LOG.debug("Request to validate inventory availability for {} items", items.size());
 
         Long currentClientAccountId = SecurityUtils.getCurrentClientAccountId();
-
         InventoryValidationDTO result = new InventoryValidationDTO();
         result.setValid(true);
-        result.setErrors(
-            items
-                .stream()
-                .map(item -> {
-                    Optional<Inventory> inventory = inventoryService.findByProductIdAndClientAccountId(
-                        item.getProductId(),
-                        currentClientAccountId
-                    );
 
-                    if (inventory.isEmpty()) {
-                        InventoryValidationDTO.InventoryValidationErrorDTO error = new InventoryValidationDTO.InventoryValidationErrorDTO();
-                        error.setProductId(item.getProductId());
-                        error.setRequestedQuantity(item.getQuantity());
-                        error.setAvailableQuantity(BigDecimal.ZERO);
-                        error.setMessage("Product not found in inventory");
-                        result.setValid(false);
-                        return error;
-                    }
+        List<InventoryValidationDTO.InventoryValidationErrorDTO> errors = items
+            .stream()
+            .map(item -> validateSingleItemAvailability(item, currentClientAccountId))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
 
-                    Inventory inv = inventory.get();
-                    if (inv.getAvailableQuantity().compareTo(item.getQuantity()) < 0) {
-                        InventoryValidationDTO.InventoryValidationErrorDTO error = new InventoryValidationDTO.InventoryValidationErrorDTO();
-                        error.setProductId(item.getProductId());
-                        error.setProductName(inv.getProduct().getName());
-                        error.setRequestedQuantity(item.getQuantity());
-                        error.setAvailableQuantity(inv.getAvailableQuantity());
-                        error.setMessage("Insufficient inventory");
-                        result.setValid(false);
-                        return error;
-                    }
-
-                    return null;
-                })
-                .filter(error -> error != null)
-                .collect(Collectors.toList())
-        );
+        result.setErrors(errors);
+        if (!errors.isEmpty()) {
+            result.setValid(false);
+        }
 
         return result;
     }
 
     /**
      * Get order statistics for current client account.
-     *
-     * @return statistics DTO.
      */
     @Transactional(readOnly = true)
     public SaleOrderStatsDTO getOrderStatistics() {
         LOG.debug("Request to get order statistics");
 
         Long currentClientAccountId = SecurityUtils.getCurrentClientAccountId();
-
-        // Implementation would calculate various statistics
-        // This is a simplified version - you'd implement proper repository queries
-        SaleOrderStatsDTO stats = new SaleOrderStatsDTO();
-
         List<SaleOrder> orders = saleOrderRepository.findByClientAccountId(currentClientAccountId);
 
-        stats.setTotalOrders((long) orders.size());
-        stats.setDraftedOrders(orders.stream().filter(o -> o.getStatus() == OrderStatus.DRAFTED).count());
-        stats.setConfirmedOrders(orders.stream().filter(o -> o.getStatus() == OrderStatus.CONFIRMED).count());
-        stats.setShippedOrders(orders.stream().filter(o -> o.getStatus() == OrderStatus.SHIPPED).count());
-        stats.setCompletedOrders(orders.stream().filter(o -> o.getStatus() == OrderStatus.COMPLETED).count());
-        stats.setCancelledOrders(orders.stream().filter(o -> o.getStatus() == OrderStatus.CANCELLED).count());
+        return buildOrderStatistics(orders);
+    }
 
-        BigDecimal totalRevenue = orders
-            .stream()
-            .filter(o -> o.getStatus() == OrderStatus.COMPLETED)
-            .map(SaleOrder::getTotal)
-            .filter(total -> total != null)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    // Private helper methods - Validation and Retrieval
+
+    private ClientAccount getCurrentClientAccount() {
+        Long currentClientAccountId = SecurityUtils.getCurrentClientAccountId();
+        return clientAccountRepository.findById(currentClientAccountId).orElseThrow(() -> new AccessDeniedException(Constants.NOT_ALLOWED));
+    }
+
+    private Customer getAndValidateCustomer(Long customerId) {
+        return customerRepository.findById(customerId).orElseThrow(() -> new AccessDeniedException(Constants.NOT_ALLOWED));
+    }
+
+    private SaleOrder getAndValidateOrder(Long orderId) {
+        Long currentClientAccountId = SecurityUtils.getCurrentClientAccountId();
+        SaleOrder saleOrder = saleOrderRepository.findById(orderId).orElseThrow(() -> new AccessDeniedException(Constants.NOT_ALLOWED));
+
+        validateOwnership(saleOrder.getClientAccount().getId(), currentClientAccountId);
+        return saleOrder;
+    }
+
+    private void validateOwnership(Long entityClientAccountId, Long currentClientAccountId) {
+        if (!entityClientAccountId.equals(currentClientAccountId)) {
+            throw new AccessDeniedException(Constants.NOT_ALLOWED);
+        }
+    }
+
+    private void validateOrderItems(Set<SaleOrderItemDTO> orderItems) {
+        if (orderItems == null || orderItems.isEmpty()) {
+            throw new BadRequestAlertException("order items cannot be null or empty", "", ErrorConstants.REQUIRED_ORDER_ITEMS);
+        }
+    }
+
+    private void validateCanModifyOrder(SaleOrder order) {
+        if (!canModifyOrder(order)) {
+            throw new OrderModificationNotAllowedException("Order cannot be modified after confirmation");
+        }
+    }
+
+    private void validateCanDelete(SaleOrder saleOrder) {
+        if (saleOrder.getStatus() != OrderStatus.DRAFTED) {
+            throw new BadRequestAlertException("Cannot delete confirmed orders", "SaleOrder", "cannotDeleteConfirmed");
+        }
+    }
+
+    private void validateCanConfirm(SaleOrder saleOrder) {
+        if (saleOrder.getStatus() != OrderStatus.DRAFTED) {
+            throw new InvalidOrderStatusTransitionException(String.format("Cannot confirm order with status %s", saleOrder.getStatus()));
+        }
+    }
+
+    private void validateCanCancel(SaleOrder saleOrder) {
+        if (saleOrder.getStatus() == OrderStatus.COMPLETED) {
+            throw new InvalidOrderStatusTransitionException("Cannot cancel completed orders");
+        }
+    }
+
+    // Private helper methods - Business Logic
+
+    private SaleOrder buildNewSaleOrder(SaleOrderDTO dto, ClientAccount clientAccount, Customer customer, Set<SaleOrderItem> orderItems) {
+        SaleOrder saleOrder = new SaleOrder();
+        saleOrder.setClientAccount(clientAccount);
+        saleOrder.setReference(generateReference(clientAccount.getId()));
+        saleOrder.setStatus(OrderStatus.DRAFTED);
+        saleOrder.setCustomer(customer);
+        saleOrder.setReservationExpiresAt(dto.getDate().plusHours(clientAccount.getReservationTimeoutHours()));
+
+        updateOrderCommonFields(saleOrder, dto);
+        setOrderItems(saleOrder, orderItems);
+
+        return saleOrder;
+    }
+
+    private void updateOrderFields(
+        SaleOrder existingOrder,
+        SaleOrderDTO dto,
+        ClientAccount clientAccount,
+        Set<SaleOrderItem> newOrderItems
+    ) {
+        existingOrder.getOrderItems().clear();
+        existingOrder.setReservationExpiresAt(dto.getDate().plusHours(clientAccount.getReservationTimeoutHours()));
+
+        updateOrderCommonFields(existingOrder, dto);
+        setOrderItems(existingOrder, newOrderItems);
+    }
+
+    private void updateOrderCommonFields(SaleOrder saleOrder, SaleOrderDTO dto) {
+        saleOrder.setDate(dto.getDate());
+        saleOrder.setNotes(dto.getNotes());
+        saleOrder.setShippingCost(dto.getShippingCost());
+        saleOrder.setOrderType(dto.getOrderType());
+        saleOrder.setSaleType(dto.getSaleType());
+        saleOrder.setTvaRate(dto.getTvaRate());
+        saleOrder.setStampRate(dto.getStampRate());
+        saleOrder.setDiscountRate(dto.getDiscountRate());
+        saleOrder.setStampApplied(dto.isStampApplied());
+        saleOrder.setTvaApplied(dto.isTvaApplied());
+    }
+
+    private void setOrderItems(SaleOrder saleOrder, Set<SaleOrderItem> orderItems) {
+        orderItems.forEach(orderItem -> orderItem.setSaleOrder(saleOrder));
+        saleOrder.setOrderItems(orderItems);
+    }
+
+    private void updateOrderStatusToConfirmed(SaleOrder saleOrder) {
+        saleOrder.setStatus(OrderStatus.CONFIRMED);
+        ClientAccount clientAccount = saleOrder.getClientAccount();
+        if (clientAccount.getReservationTimeoutHours() != null) {
+            saleOrder.setReservationExpiresAt(ZonedDateTime.now().plusHours(clientAccount.getReservationTimeoutHours()));
+        }
+    }
+
+    private void updateOrderStatusToCancelled(SaleOrder saleOrder, String reason) {
+        saleOrder.setStatus(OrderStatus.CANCELLED);
+    }
+
+    private void handleInventoryOnCancellation(SaleOrder saleOrder) {
+        if (saleOrder.getStatus() == OrderStatus.CONFIRMED || saleOrder.getStatus() == OrderStatus.SHIPPED) {
+            releaseReservedInventory(saleOrder);
+        }
+    }
+
+    private void handleShipmentOnCancellation(SaleOrder saleOrder) {
+        if (saleOrder.getShipment() != null) {
+            shipmentService.cancelShipment(saleOrder.getShipment().getId());
+        }
+    }
+
+    private InventoryValidationDTO.InventoryValidationErrorDTO validateSingleItemAvailability(
+        OrderItemDTO item,
+        Long currentClientAccountId
+    ) {
+        Optional<Inventory> inventory = inventoryService.findByProductIdAndClientAccountId(item.getProductId(), currentClientAccountId);
+
+        if (inventory.isEmpty()) {
+            return createInventoryError(item.getProductId(), null, item.getQuantity(), BigDecimal.ZERO, "Product not found in inventory");
+        }
+
+        Inventory inv = inventory.get();
+        if (inv.getAvailableQuantity().compareTo(item.getQuantity()) < 0) {
+            return createInventoryError(
+                item.getProductId(),
+                inv.getProduct().getName(),
+                item.getQuantity(),
+                inv.getAvailableQuantity(),
+                "Insufficient inventory"
+            );
+        }
+
+        return null;
+    }
+
+    private InventoryValidationDTO.InventoryValidationErrorDTO createInventoryError(
+        Long productId,
+        String productName,
+        BigDecimal requested,
+        BigDecimal available,
+        String message
+    ) {
+        InventoryValidationDTO.InventoryValidationErrorDTO error = new InventoryValidationDTO.InventoryValidationErrorDTO();
+        error.setProductId(productId);
+        error.setProductName(productName);
+        error.setRequestedQuantity(requested);
+        error.setAvailableQuantity(available);
+        error.setMessage(message);
+        return error;
+    }
+
+    private SaleOrderStatsDTO buildOrderStatistics(List<SaleOrder> orders) {
+        SaleOrderStatsDTO stats = new SaleOrderStatsDTO();
+
+        stats.setTotalOrders((long) orders.size());
+        stats.setDraftedOrders(countOrdersByStatus(orders, OrderStatus.DRAFTED));
+        stats.setConfirmedOrders(countOrdersByStatus(orders, OrderStatus.CONFIRMED));
+        stats.setShippedOrders(countOrdersByStatus(orders, OrderStatus.SHIPPED));
+        stats.setCompletedOrders(countOrdersByStatus(orders, OrderStatus.COMPLETED));
+        stats.setCancelledOrders(countOrdersByStatus(orders, OrderStatus.CANCELLED));
+
+        BigDecimal totalRevenue = calculateTotalRevenue(orders);
         stats.setTotalRevenue(totalRevenue);
 
         if (stats.getCompletedOrders() > 0) {
             stats.setAverageOrderValue(totalRevenue.divide(BigDecimal.valueOf(stats.getCompletedOrders()), 2, BigDecimal.ROUND_HALF_UP));
         }
 
-        stats.setDeliveryOrders(orders.stream().filter(o -> o.getOrderType() == OrderType.DELIVERY).count());
-        stats.setPickupOrders(orders.stream().filter(o -> o.getOrderType() == OrderType.STORE_PICKUP).count());
+        stats.setDeliveryOrders(countOrdersByType(orders, OrderType.DELIVERY));
+        stats.setPickupOrders(countOrdersByType(orders, OrderType.STORE_PICKUP));
 
         return stats;
     }
 
-    // Private helper methods
-
-    private void validateCustomerRelationship(Long customerId, Long clientAccountId) {
-        Customer customer = customerRepository.findById(customerId).orElseThrow(() -> new AccessDeniedException(Constants.NOT_ALLOWED));
+    private long countOrdersByStatus(List<SaleOrder> orders, OrderStatus status) {
+        return orders.stream().filter(o -> o.getStatus() == status).count();
     }
+
+    private long countOrdersByType(List<SaleOrder> orders, OrderType type) {
+        return orders.stream().filter(o -> o.getOrderType() == type).count();
+    }
+
+    private BigDecimal calculateTotalRevenue(List<SaleOrder> orders) {
+        return orders
+            .stream()
+            .filter(o -> o.getStatus() == OrderStatus.COMPLETED)
+            .map(SaleOrder::getTotal)
+            .filter(Objects::nonNull)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private Specification<SaleOrder> buildSpecificationWithClientFilter(Long clientAccountId, Specification<SaleOrder> additionalSpec) {
+        Specification<SaleOrder> clientSpec = SaleOrderSpecification.withClientAccountId(clientAccountId);
+        return additionalSpec != null ? clientSpec.and(additionalSpec) : clientSpec;
+    }
+
+    // Existing helper methods - preserved as-is
 
     private Set<SaleOrderItem> validateAndCreateOrderItems(Set<SaleOrderItemDTO> itemDTOs, Long clientAccountId) {
         if (itemDTOs == null || itemDTOs.isEmpty()) {
@@ -484,7 +453,6 @@ public class SaleOrderService {
         }
 
         Set<SaleOrderItem> orderItems = new HashSet<>();
-
         for (SaleOrderItemDTO itemDTO : itemDTOs) {
             SaleOrderItem orderItem = createAndValidateOrderItem(itemDTO, clientAccountId);
             orderItems.add(orderItem);
@@ -494,7 +462,6 @@ public class SaleOrderService {
     }
 
     private SaleOrderItem createAndValidateOrderItem(SaleOrderItemDTO itemDTO, Long clientAccountId) {
-        // Validate product exists and belongs to company
         Product product = productRepository
             .findById(itemDTO.getProduct().getId())
             .orElseThrow(() -> new AccessDeniedException(Constants.NOT_ALLOWED));
@@ -564,16 +531,13 @@ public class SaleOrderService {
     }
 
     private BigDecimal calculateStampAmount(BigDecimal netTotal, BigDecimal tvaAmount, BigDecimal stampRate) {
-        if (
-            netTotal == null || netTotal.compareTo(BigDecimal.ZERO) <= 0 || stampRate.compareTo(BigDecimal.ZERO) <= 0
-        ) return BigDecimal.ZERO;
+        if (netTotal == null || netTotal.compareTo(BigDecimal.ZERO) <= 0 || stampRate.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
         BigDecimal stampBase = netTotal.add(tvaAmount != null ? tvaAmount : BigDecimal.ZERO);
-        // Rate still based on netTotal
-
         return stampBase.multiply(stampRate).divide(BigDecimal.valueOf(100), 2, BigDecimal.ROUND_HALF_UP);
     }
 
-    // Update stamp rate calculation to use netTotal instead of subTotal
     private BigDecimal calculateStampRate(BigDecimal netTotal) {
         if (netTotal == null) return BigDecimal.ZERO;
 
@@ -630,12 +594,12 @@ public class SaleOrderService {
         updateInventoryQuantities(saleOrder, TransactionType.SALE);
     }
 
-    private void updateInventoryQuantities(SaleOrder saleOrder, TransactionType transactionType) {
+    public void updateInventoryQuantities(SaleOrder saleOrder, TransactionType transactionType) {
         String transactionReference = inventoryTransactionService.generateReference(saleOrder.getClientAccount().getId());
         List<Inventory> inventoriesToSave = new ArrayList<>();
         List<InventoryTransaction> transactionsToSave = new ArrayList<>();
+
         for (SaleOrderItem item : saleOrder.getOrderItems()) {
-            // At the moment we have only one inventory for a product
             Inventory inventory = inventoryService
                 .findByProductIdAndClientAccountId(item.getProduct().getId(), saleOrder.getClientAccount().getId())
                 .orElseThrow();
@@ -649,6 +613,7 @@ public class SaleOrderService {
             );
             transactionReference = GlobalUtils.generateReference(transactionReference);
         }
+
         inventoryService.saveAll(inventoriesToSave);
         inventoryTransactionService.saveAll(transactionsToSave);
     }

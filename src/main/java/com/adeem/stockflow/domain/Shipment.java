@@ -8,6 +8,7 @@ import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -43,13 +44,13 @@ public class Shipment extends AbstractAuditingEntity<Long> implements Serializab
     private String carrier;
 
     @Column(name = "shipping_date")
-    private Instant shippingDate;
+    private LocalDateTime shippingDate;
 
     @Column(name = "estimated_delivery_date")
-    private Instant estimatedDeliveryDate;
+    private LocalDateTime estimatedDeliveryDate;
 
     @Column(name = "actual_delivery_date")
-    private Instant actualDeliveryDate;
+    private LocalDateTime actualDeliveryDate;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -170,42 +171,42 @@ public class Shipment extends AbstractAuditingEntity<Long> implements Serializab
         this.carrier = carrier;
     }
 
-    public Instant getShippingDate() {
+    public LocalDateTime getShippingDate() {
         return this.shippingDate;
     }
 
-    public Shipment shippingDate(Instant shippingDate) {
+    public Shipment shippingDate(LocalDateTime shippingDate) {
         this.setShippingDate(shippingDate);
         return this;
     }
 
-    public void setShippingDate(Instant shippingDate) {
+    public void setShippingDate(LocalDateTime shippingDate) {
         this.shippingDate = shippingDate;
     }
 
-    public Instant getEstimatedDeliveryDate() {
+    public LocalDateTime getEstimatedDeliveryDate() {
         return this.estimatedDeliveryDate;
     }
 
-    public Shipment estimatedDeliveryDate(Instant estimatedDeliveryDate) {
+    public Shipment estimatedDeliveryDate(LocalDateTime estimatedDeliveryDate) {
         this.setEstimatedDeliveryDate(estimatedDeliveryDate);
         return this;
     }
 
-    public void setEstimatedDeliveryDate(Instant estimatedDeliveryDate) {
+    public void setEstimatedDeliveryDate(LocalDateTime estimatedDeliveryDate) {
         this.estimatedDeliveryDate = estimatedDeliveryDate;
     }
 
-    public Instant getActualDeliveryDate() {
+    public LocalDateTime getActualDeliveryDate() {
         return this.actualDeliveryDate;
     }
 
-    public Shipment actualDeliveryDate(Instant actualDeliveryDate) {
+    public Shipment actualDeliveryDate(LocalDateTime actualDeliveryDate) {
         this.setActualDeliveryDate(actualDeliveryDate);
         return this;
     }
 
-    public void setActualDeliveryDate(Instant actualDeliveryDate) {
+    public void setActualDeliveryDate(LocalDateTime actualDeliveryDate) {
         this.actualDeliveryDate = actualDeliveryDate;
     }
 

@@ -8,7 +8,6 @@ public enum OrderStatus {
     DRAFTED, // Initial state, can be modified
     CONFIRMED, // Inventory reserved, order locked
     SHIPPED, // For DELIVERY orders - with Yalidine or other carrier
-    PICKED_UP, // For STORE_PICKUP orders
     COMPLETED, // Final successful state
     CANCELLED, // Can happen at any stage before COMPLETED
     RETURNED,

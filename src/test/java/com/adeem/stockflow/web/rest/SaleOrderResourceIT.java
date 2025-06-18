@@ -1273,29 +1273,6 @@ class SaleOrderResourceIT {
         assertThat(updatedInventory).isNotNull();
     }
 
-    @Test
-    @Transactional
-    void markOrderPickedUp() throws Exception {
-        setupSecurityContext();
-
-        createCompleteTestOrder();
-        saleOrder.setStatus(OrderStatus.CONFIRMED);
-        saleOrder.setOrderType(OrderType.STORE_PICKUP);
-        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
-
-        // Mark as picked up
-        restSaleOrderMockMvc
-            .perform(post(ENTITY_API_URL_ID + "/mark-picked-up", saleOrder.getId()))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.status").value(OrderStatus.PICKED_UP.toString()));
-
-        // Validate the SaleOrder in the database
-        SaleOrder testSaleOrder = saleOrderRepository.findById(saleOrder.getId()).orElse(null);
-        assertThat(testSaleOrder).isNotNull();
-        assertThat(testSaleOrder.getStatus()).isEqualTo(OrderStatus.PICKED_UP);
-    }
-
     // ===============================
     // VALIDATION & SEARCH TESTS
     // ===============================

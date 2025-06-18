@@ -3,6 +3,7 @@ package com.adeem.stockflow.service.dto;
 import com.adeem.stockflow.domain.enumeration.ShippingStatus;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
  * DTO for updating shipment status.
@@ -12,7 +13,7 @@ public class UpdateShipmentStatusDTO implements Serializable {
     @NotNull
     private ShippingStatus status;
 
-    private String notes;
+    private LocalDateTime actualDeliveryDate;
 
     public ShippingStatus getStatus() {
         return status;
@@ -22,11 +23,11 @@ public class UpdateShipmentStatusDTO implements Serializable {
         this.status = status;
     }
 
-    public String getNotes() {
-        return notes;
+    public LocalDateTime getActualDeliveryDate() {
+        return actualDeliveryDate;
     }
 
-    public void setNotes(String notes) {
-        this.notes = notes;
+    public void setActualDeliveryDate(LocalDateTime actualDeliveryDate) {
+        this.actualDeliveryDate = actualDeliveryDate;
     }
 }

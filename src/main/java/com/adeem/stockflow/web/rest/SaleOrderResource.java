@@ -186,21 +186,6 @@ public class SaleOrderResource {
     }
 
     /**
-     * {@code POST  /sale-orders/:id/mark-picked-up} : Mark order as picked up.
-     *
-     * @param id the id of the saleOrder to mark as picked up.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated saleOrderDTO.
-     */
-    @PostMapping("/{id}/mark-picked-up")
-    public ResponseEntity<SaleOrderDTO> markOrderPickedUp(@PathVariable("id") Long id) {
-        LOG.debug("REST request to mark SaleOrder as picked up : {}", id);
-        SaleOrderDTO result = saleOrderService.markOrderPickedUp(id);
-        return ResponseEntity.ok()
-            .headers(HeaderUtil.createAlert(applicationName, "Order marked as picked up", id.toString()))
-            .body(result);
-    }
-
-    /**
      * {@code POST  /sale-orders/validate-availability} : Validate inventory availability for order items.
      *
      * @param items the order items to validate.

@@ -70,6 +70,8 @@ public final class ErrorConstants {
     public static final String REQUIRED_UNIT_PRICE = "E038";
     public static final String INSUFFICIENT_INVENTORY = "E039";
     public static final String INVALID_ORDER_TRANSITION = "E040";
+    public static final String REQUIRED_ADDRESS = "E041";
+    public static final String REQUIRED_CUSTOMER = "E042";
 
     private ErrorConstants() {}
 }
