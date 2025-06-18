@@ -556,7 +556,8 @@ public class SaleOrderService {
 
         BigDecimal total = netTotal
             .add(saleOrder.getTvaAmount() != null ? saleOrder.getTvaAmount() : BigDecimal.ZERO)
-            .add(saleOrder.getStampAmount() != null ? saleOrder.getStampAmount() : BigDecimal.ZERO);
+            .add(saleOrder.getStampAmount() != null ? saleOrder.getStampAmount() : BigDecimal.ZERO)
+            .add(saleOrder.getShippingCost() != null ? saleOrder.getShippingCost() : BigDecimal.ZERO);
 
         saleOrder.setTotal(total);
     }
