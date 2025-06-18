@@ -60,27 +60,35 @@ public class SaleOrder extends AbstractAuditingEntity<Long> implements Serializa
     private boolean stampApplied;
 
     @Column(name = "tva_rate", precision = 21, scale = 2)
+    @Min(0)
     private BigDecimal tvaRate;
 
     @Column(name = "stamp_rate", precision = 21, scale = 2)
+    @Min(0)
     private BigDecimal stampRate;
 
     @Column(name = "discount_rate", precision = 21, scale = 2)
+    @Min(0)
     private BigDecimal discountRate;
 
     @Column(name = "tva_amount", precision = 21, scale = 2)
+    @Min(0)
     private BigDecimal tvaAmount;
 
     @Column(name = "stamp_amount", precision = 21, scale = 2)
+    @Min(0)
     private BigDecimal stampAmount;
 
     @Column(name = "discount_amount", precision = 21, scale = 2)
+    @Min(0)
     private BigDecimal discountAmount;
 
     @Column(name = "sub_total", precision = 21, scale = 2)
+    @Min(0)
     private BigDecimal subTotal;
 
     @Column(name = "total", precision = 21, scale = 2)
+    @Min(0)
     private BigDecimal total;
 
     @Enumerated(EnumType.STRING)
@@ -100,6 +108,7 @@ public class SaleOrder extends AbstractAuditingEntity<Long> implements Serializa
     private String customerNotes;
 
     @Column(name = "shipping_cost", precision = 21, scale = 2)
+    @Min(0)
     private BigDecimal shippingCost;
 
     // Inherited createdBy definition

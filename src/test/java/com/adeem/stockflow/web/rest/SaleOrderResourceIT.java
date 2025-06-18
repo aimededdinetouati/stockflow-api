@@ -17,10 +17,12 @@ import com.adeem.stockflow.service.mapper.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.*;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
@@ -512,38 +514,8 @@ class SaleOrderResourceIT {
 
         restSaleOrderMockMvc
             .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsBytes(saleOrderDTO)))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.total").value(0.0));
-
-        List<SaleOrder> saleOrderList = saleOrderRepository.findAll();
-        assertThat(saleOrderList).hasSize(databaseSizeBeforeCreate + 1);
-    }
-
-    @Test
-    @Transactional
-    void createSaleOrder_WithNegativeQuantity_ShouldSucceed() throws Exception {
-        setupSecurityContext();
-
-        product = createAndSaveProduct(clientAccount);
-
-        // Create order item with negative quantity
-        SaleOrderItemDTO item = new SaleOrderItemDTO();
-        item.setProduct(productMapper.toDto(product));
-        item.setQuantity(new BigDecimal("-5")); // Negative quantity
-        item.setUnitPrice(new BigDecimal("100.00"));
-
-        Set<SaleOrderItemDTO> orderItems = new HashSet<>();
-        orderItems.add(item);
-
-        SaleOrderDTO saleOrderDTO = createBasicSaleOrderDTO();
-        saleOrderDTO.setSubTotal(new BigDecimal("-500.00"));
-        saleOrderDTO.setTotal(new BigDecimal("-500.00"));
-        saleOrderDTO.setOrderItems(orderItems);
-
-        restSaleOrderMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsBytes(saleOrderDTO)))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.total").value(-500.0));
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errorKey").value(ErrorConstants.QUANTITY_INVALID));
     }
 
     @Test
@@ -1181,28 +1153,6 @@ class SaleOrderResourceIT {
 
     @Test
     @Transactional
-    void confirmOrder_WithZeroQuantityItem_ShouldSucceed() throws Exception {
-        setupSecurityContext();
-
-        createCompleteTestOrder(BigDecimal.ZERO, new BigDecimal("100.00"));
-        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
-
-        BigDecimal originalAvailableQuantity = inventory.getAvailableQuantity();
-
-        // Confirm the order
-        restSaleOrderMockMvc
-            .perform(post(ENTITY_API_URL_ID + "/confirm", saleOrder.getId()))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status").value(OrderStatus.CONFIRMED.toString()));
-
-        // Verify inventory unchanged (no reservation for zero quantity)
-        Inventory updatedInventory = inventoryRepository.findById(inventory.getId()).orElse(null);
-        assertThat(updatedInventory).isNotNull();
-        assertThat(updatedInventory.getAvailableQuantity()).isEqualByComparingTo(originalAvailableQuantity);
-    }
-
-    @Test
-    @Transactional
     void confirmOrder_ReservationExpirationSet_ShouldHaveCorrectTimeout() throws Exception {
         setupSecurityContext();
 
@@ -1234,10 +1184,6 @@ class SaleOrderResourceIT {
 
         assertThat(confirmedOrder.getReservationExpiresAt()).isAfterOrEqualTo(expectedMin).isBeforeOrEqualTo(expectedMax);
     }
-
-    // ===============================
-    // ORDER OPERATIONS TESTS
-    // ===============================
 
     @Test
     @Transactional
@@ -1272,10 +1218,6 @@ class SaleOrderResourceIT {
         Inventory updatedInventory = inventoryRepository.findById(inventory.getId()).orElse(null);
         assertThat(updatedInventory).isNotNull();
     }
-
-    // ===============================
-    // VALIDATION & SEARCH TESTS
-    // ===============================
 
     @Test
     @Transactional
@@ -1359,14 +1301,427 @@ class SaleOrderResourceIT {
         setupSecurityContext();
 
         createCompleteTestOrder();
+        saleOrder.setReference("SO-TEST-2024-001");
+        saleOrder.setStatus(OrderStatus.DRAFTED);
+        saleOrder.setOrderType(OrderType.STORE_PICKUP);
         saleOrderRepository.saveAndFlush(saleOrder);
 
-        // Search orders
+        // Search orders using criteria filtering via findAll endpoint
         restSaleOrderMockMvc
-            .perform(get(ENTITY_API_URL + "/search").param("query", "TEST").param("status", "DRAFTED").param("orderType", "STORE_PICKUP"))
+            .perform(
+                get(ENTITY_API_URL)
+                    .param("reference.contains", "TEST")
+                    .param("status.equals", "DRAFTED")
+                    .param("orderType.equals", "STORE_PICKUP")
+                    .param("sort", "id,desc")
+            )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").isArray())
-            .andExpect(jsonPath("$[0].reference").value(containsString("TEST")));
+            .andExpect(jsonPath("$[0].reference").value(containsString("TEST")))
+            .andExpect(jsonPath("$[0].status").value("DRAFTED"))
+            .andExpect(jsonPath("$[0].orderType").value("STORE_PICKUP"));
+    }
+
+    @Test
+    @Transactional
+    void searchSaleOrders_ByReference() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        saleOrder.setReference("SO-TEST-2024-001");
+        saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Search by reference using proper criteria parameters
+        restSaleOrderMockMvc
+            .perform(get(ENTITY_API_URL).param("reference.contains", "TEST").param("sort", "id,desc"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$[*].reference").value(hasItem(containsString("TEST"))));
+    }
+
+    @Test
+    @Transactional
+    void searchSaleOrders_ByStatus() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        saleOrder.setStatus(OrderStatus.CONFIRMED);
+        saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Search by status
+        restSaleOrderMockMvc
+            .perform(get(ENTITY_API_URL).param("status.equals", "CONFIRMED").param("sort", "id,desc"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$[*].status").value(hasItem("CONFIRMED")));
+    }
+
+    @Test
+    @Transactional
+    void searchSaleOrders_ByOrderType() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        saleOrder.setOrderType(OrderType.DELIVERY);
+        saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Search by order type
+        restSaleOrderMockMvc
+            .perform(get(ENTITY_API_URL).param("orderType.equals", "DELIVERY").param("sort", "id,desc"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$[*].orderType").value(hasItem("DELIVERY")));
+    }
+
+    @Test
+    @Transactional
+    void searchSaleOrders_ByCustomerName() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        customer.setFirstName("John");
+        customer.setLastName("TestCustomer");
+        customerRepository.saveAndFlush(customer);
+        saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Search by customer name using customerName criteria
+        restSaleOrderMockMvc
+            .perform(get(ENTITY_API_URL).param("customerName.contains", "john").param("sort", "id,desc"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    @Transactional
+    void searchSaleOrders_ByCustomerId() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Search by customer ID
+        restSaleOrderMockMvc
+            .perform(get(ENTITY_API_URL).param("customerId.equals", customer.getId().toString()).param("sort", "id,desc"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$[*].customer.id").value(hasItem(customer.getId().intValue())));
+    }
+
+    @Test
+    @Transactional
+    void searchSaleOrders_ByDateRange() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        ZonedDateTime testDate = ZonedDateTime.now().minusDays(1);
+        saleOrder.setDate(testDate);
+        saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Search by date range using date criteria
+        String fromDate = testDate.minusHours(1).format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+        String toDate = testDate.plusHours(1).format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+
+        restSaleOrderMockMvc
+            .perform(
+                get(ENTITY_API_URL)
+                    .param("date.greaterThanOrEqual", fromDate)
+                    .param("date.lessThanOrEqual", toDate)
+                    .param("sort", "id,desc")
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    @Transactional
+    void searchSaleOrders_ByTotalRange() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        saleOrder.setTotal(new BigDecimal("500.00"));
+        saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Search by total amount range
+        restSaleOrderMockMvc
+            .perform(
+                get(ENTITY_API_URL).param("total.greaterThanOrEqual", "400").param("total.lessThanOrEqual", "600").param("sort", "id,desc")
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    @Transactional
+    void searchSaleOrders_MultipleCriteria() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        saleOrder.setStatus(OrderStatus.CONFIRMED);
+        saleOrder.setOrderType(OrderType.STORE_PICKUP);
+        saleOrder.setReference("SO-MULTI-TEST-001");
+        saleOrder.setTotal(new BigDecimal("750.00"));
+        saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Search with multiple criteria
+        restSaleOrderMockMvc
+            .perform(
+                get(ENTITY_API_URL)
+                    .param("status.equals", "CONFIRMED")
+                    .param("orderType.equals", "STORE_PICKUP")
+                    .param("reference.contains", "MULTI")
+                    .param("total.greaterThan", "500")
+                    .param("sort", "id,desc")
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$[*].status").value(hasItem("CONFIRMED")))
+            .andExpect(jsonPath("$[*].orderType").value(hasItem("STORE_PICKUP")))
+            .andExpect(jsonPath("$[*].reference").value(hasItem(containsString("MULTI"))));
+    }
+
+    @Test
+    @Transactional
+    void searchSaleOrders_EmptyResult() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Search for non-existent reference
+        restSaleOrderMockMvc
+            .perform(get(ENTITY_API_URL).param("reference.contains", "NONEXISTENT").param("sort", "id,desc"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    @Transactional
+    void searchSaleOrders_ByMultipleStatuses() throws Exception {
+        setupSecurityContext();
+
+        // Create first order with DRAFTED status
+        createCompleteTestOrder();
+        saleOrder.setStatus(OrderStatus.DRAFTED);
+        saleOrder.setReference("SO-DRAFTED-001");
+        saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Create a completely separate order with CONFIRMED status
+        SaleOrder confirmedOrder = createCompleteTestOrder();
+        confirmedOrder.setStatus(OrderStatus.CONFIRMED);
+        confirmedOrder.setReference("SO-CONFIRMED-002");
+        saleOrderRepository.saveAndFlush(confirmedOrder);
+
+        // Search by multiple statuses using 'in' filter
+        restSaleOrderMockMvc
+            .perform(get(ENTITY_API_URL).param("status.in", "DRAFTED,CONFIRMED").param("sort", "id,desc"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$.length()").value(greaterThanOrEqualTo(2)));
+    }
+
+    @Test
+    @Transactional
+    void searchSaleOrders_ExcludeStatus() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        saleOrder.setStatus(OrderStatus.CANCELLED);
+        saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Search excluding cancelled orders
+        restSaleOrderMockMvc
+            .perform(get(ENTITY_API_URL).param("status.notEquals", "CANCELLED").param("sort", "id,desc"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    @Transactional
+    void searchSaleOrders_ByPaymentStatus() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Search by payment status
+        restSaleOrderMockMvc
+            .perform(get(ENTITY_API_URL).param("paymentStatus.equals", "PENDING").param("sort", "id,desc"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    @Transactional
+    void searchSaleOrders_OrdersWithoutPayment() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Search for orders without payment
+        restSaleOrderMockMvc
+            .perform(get(ENTITY_API_URL).param("hasPayment.equals", "false").param("sort", "id,desc"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    @Transactional
+    void searchSaleOrders_OrdersWithShipment() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Search for orders with shipment
+        restSaleOrderMockMvc
+            .perform(get(ENTITY_API_URL).param("hasShipment.equals", "true").param("sort", "id,desc"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    @Transactional
+    void cancelOrder_AlreadyCancelled_ShouldFail() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        saleOrder.setStatus(OrderStatus.CANCELLED);
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        CancelOrderDTO cancelRequest = new CancelOrderDTO();
+        cancelRequest.setReason("Already cancelled order");
+
+        // Attempt to cancel already cancelled order should fail
+        restSaleOrderMockMvc
+            .perform(
+                post(ENTITY_API_URL_ID + "/cancel", saleOrder.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsBytes(cancelRequest))
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errorKey").value(containsString(ErrorConstants.INVALID_ORDER_TRANSITION)));
+    }
+
+    @Test
+    @Transactional
+    void cancelOrder_CompletedOrder_ShouldFail() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        saleOrder.setStatus(OrderStatus.COMPLETED);
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        CancelOrderDTO cancelRequest = new CancelOrderDTO();
+        cancelRequest.setReason("Try to cancel completed order");
+
+        // Attempt to cancel completed order should fail
+        restSaleOrderMockMvc
+            .perform(
+                post(ENTITY_API_URL_ID + "/cancel", saleOrder.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsBytes(cancelRequest))
+            )
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value(containsString("Cannot cancel completed order")));
+    }
+
+    @Test
+    @Transactional
+    void validateOrderAvailability_WithMixedResults() throws Exception {
+        setupSecurityContext();
+
+        // Create two products, one with sufficient stock, one without
+        Product product1 = createAndSaveProduct(clientAccount);
+        Product product2 = createAndSaveProduct(clientAccount);
+        product2.setName("Product 2");
+        productRepository.saveAndFlush(product2);
+
+        Inventory inventory1 = createAndSaveInventory(product1, new BigDecimal("10"), new BigDecimal("10"), clientAccount);
+        Inventory inventory2 = createAndSaveInventory(product2, new BigDecimal("2"), new BigDecimal("2"), clientAccount);
+
+        // Create order items
+        OrderItemDTO orderItem1 = new OrderItemDTO();
+        orderItem1.setProductId(product1.getId());
+        orderItem1.setQuantity(BigDecimal.valueOf(5)); // Available
+
+        OrderItemDTO orderItem2 = new OrderItemDTO();
+        orderItem2.setProductId(product2.getId());
+        orderItem2.setQuantity(BigDecimal.valueOf(5)); // Not enough
+
+        List<OrderItemDTO> items = List.of(orderItem1, orderItem2);
+
+        // Validate availability
+        restSaleOrderMockMvc
+            .perform(
+                post(ENTITY_API_URL + "/validate-availability")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsBytes(items))
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.valid").value(false))
+            .andExpect(jsonPath("$.errors").isNotEmpty())
+            .andExpect(jsonPath("$.errors[0].productId").value(product2.getId()));
+    }
+
+    @Test
+    @Transactional
+    void getOrderStatistics_WithNoOrders() throws Exception {
+        setupSecurityContext();
+
+        // Get statistics when no orders exist
+        restSaleOrderMockMvc
+            .perform(get(ENTITY_API_URL + "/stats"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.totalOrders").value(0))
+            .andExpect(jsonPath("$.draftedOrders").value(0))
+            .andExpect(jsonPath("$.confirmedOrders").value(0))
+            .andExpect(jsonPath("$.deliveryOrders").value(0))
+            .andExpect(jsonPath("$.pickupOrders").value(0));
+    }
+
+    @Test
+    @Transactional
+    void getOrderStatistics_WithMultipleOrderTypes() throws Exception {
+        setupSecurityContext();
+
+        // Create multiple orders with different statuses and types
+        createCompleteTestOrder();
+        saleOrder.setStatus(OrderStatus.CONFIRMED);
+        saleOrder.setOrderType(OrderType.DELIVERY);
+        saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Create another order
+        SaleOrder order2 = createSaleOrder(clientAccount, customer);
+        order2.setStatus(OrderStatus.DRAFTED);
+        order2.setOrderType(OrderType.STORE_PICKUP);
+        order2.setReference("SO-TEST-2024-002");
+        saleOrderRepository.saveAndFlush(order2);
+
+        // Get statistics
+        restSaleOrderMockMvc
+            .perform(get(ENTITY_API_URL + "/stats"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.totalOrders").value(greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.draftedOrders").value(greaterThanOrEqualTo(1)))
+            .andExpect(jsonPath("$.confirmedOrders").value(greaterThanOrEqualTo(1)))
+            .andExpect(jsonPath("$.deliveryOrders").value(greaterThanOrEqualTo(1)))
+            .andExpect(jsonPath("$.pickupOrders").value(greaterThanOrEqualTo(1)));
     }
 }

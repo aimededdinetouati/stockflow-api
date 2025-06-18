@@ -30,14 +30,17 @@ public class SaleOrderItem extends AbstractAuditingEntity<Long> implements Seria
 
     @NotNull
     @Column(name = "quantity", precision = 21, scale = 2, nullable = false)
+    @Min(1)
     private BigDecimal quantity;
 
     @NotNull
     @Column(name = "unit_price", precision = 21, scale = 2, nullable = false)
+    @Min(0)
     private BigDecimal unitPrice;
 
     @NotNull
     @Column(name = "total", precision = 21, scale = 2, nullable = false)
+    @Min(0)
     private BigDecimal total;
 
     // Inherited createdBy definition

@@ -39,20 +39,28 @@ public class SaleOrderDTO implements Serializable {
 
     private boolean stampApplied;
 
+    @Min(0)
     private BigDecimal tvaRate;
 
+    @Min(0)
     private BigDecimal stampRate;
 
+    @Min(0)
     private BigDecimal discountRate;
 
+    @Min(0)
     private BigDecimal tvaAmount;
 
+    @Min(0)
     private BigDecimal stampAmount;
 
+    @Min(0)
     private BigDecimal discountAmount;
 
+    @Min(0)
     private BigDecimal subTotal;
 
+    @Min(0)
     private BigDecimal total;
 
     private SaleType saleType;

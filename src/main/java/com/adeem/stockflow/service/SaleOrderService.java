@@ -287,6 +287,10 @@ public class SaleOrderService {
         if (saleOrder.getStatus() == OrderStatus.COMPLETED) {
             throw new InvalidOrderStatusTransitionException("Cannot cancel completed orders");
         }
+
+        if (saleOrder.getStatus() == OrderStatus.CANCELLED) {
+            throw new InvalidOrderStatusTransitionException("Order is already canceled");
+        }
     }
 
     // Private helper methods - Business Logic
@@ -468,6 +472,10 @@ public class SaleOrderService {
 
         if (!product.getClientAccount().getId().equals(clientAccountId)) {
             throw new AccessDeniedException(Constants.NOT_ALLOWED);
+        }
+
+        if (itemDTO.getQuantity() == null || itemDTO.getQuantity().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestAlertException("Quantity cannot be null or negative", "", ErrorConstants.QUANTITY_INVALID);
         }
 
         BigDecimal unitPrice = itemDTO.getUnitPrice() != null ? itemDTO.getUnitPrice() : product.getSellingPrice();
