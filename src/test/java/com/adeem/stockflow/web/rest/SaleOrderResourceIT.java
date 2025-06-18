@@ -15,6 +15,7 @@ import com.adeem.stockflow.service.dto.*;
 import com.adeem.stockflow.service.exceptions.ErrorConstants;
 import com.adeem.stockflow.service.mapper.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -92,6 +93,9 @@ class SaleOrderResourceIT {
 
     @Autowired
     private CustomerMapper customerMapper;
+
+    @Autowired
+    private EntityManager em;
 
     // Test data
     private SaleOrder saleOrder;
@@ -1723,5 +1727,239 @@ class SaleOrderResourceIT {
             .andExpect(jsonPath("$.confirmedOrders").value(greaterThanOrEqualTo(1)))
             .andExpect(jsonPath("$.deliveryOrders").value(greaterThanOrEqualTo(1)))
             .andExpect(jsonPath("$.pickupOrders").value(greaterThanOrEqualTo(1)));
+    }
+
+    @Test
+    @Transactional
+    void completeOrder_WithValidShippedOrder_ShouldSucceed() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        saleOrder.setOrderType(OrderType.DELIVERY);
+        saleOrder.setStatus(OrderStatus.SHIPPED);
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Reserve inventory to simulate previous confirmation
+        BigDecimal originalAvailable = inventory.getAvailableQuantity();
+        BigDecimal orderQuantity = BigDecimal.TEN; // From createCompleteTestOrder
+        inventory.setAvailableQuantity(originalAvailable.subtract(orderQuantity));
+        inventoryRepository.saveAndFlush(inventory);
+
+        em.detach(inventory);
+        // Complete the order
+        restSaleOrderMockMvc
+            .perform(post(ENTITY_API_URL_ID + "/complete", saleOrder.getId()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.status").value(OrderStatus.COMPLETED.toString()))
+            .andExpect(jsonPath("$.id").value(saleOrder.getId().intValue()));
+
+        // Verify order status change
+        SaleOrder completedOrder = saleOrderRepository.findById(saleOrder.getId()).orElse(null);
+        assertThat(completedOrder).isNotNull();
+        assertThat(completedOrder.getStatus()).isEqualTo(OrderStatus.COMPLETED);
+
+        // Verify inventory was finally consumed (total quantity decreased)
+        Inventory updatedInventory = inventoryRepository.findById(inventory.getId()).orElse(null);
+        assertThat(updatedInventory).isNotNull();
+        assertThat(updatedInventory.getQuantity()).isEqualByComparingTo(inventory.getQuantity().subtract(orderQuantity));
+        // Available quantity should remain the same (already reduced during confirmation)
+        assertThat(updatedInventory.getAvailableQuantity()).isEqualByComparingTo(originalAvailable.subtract(orderQuantity));
+    }
+
+    @Test
+    @Transactional
+    void completeOrder_WithDraftedOrder_ShouldFail() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        saleOrder.setStatus(OrderStatus.DRAFTED);
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Attempt to complete drafted order
+        restSaleOrderMockMvc
+            .perform(post(ENTITY_API_URL_ID + "/complete", saleOrder.getId()))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value(containsString("Order must be CONFIRMED")));
+
+        // Verify order status remains unchanged
+        SaleOrder unchangedOrder = saleOrderRepository.findById(saleOrder.getId()).orElse(null);
+        assertThat(unchangedOrder).isNotNull();
+        assertThat(unchangedOrder.getStatus()).isEqualTo(OrderStatus.DRAFTED);
+    }
+
+    @Test
+    @Transactional
+    void completeOrder_WithAlreadyCompletedOrder_ShouldFail() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        saleOrder.setStatus(OrderStatus.COMPLETED);
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Attempt to complete already completed order
+        restSaleOrderMockMvc
+            .perform(post(ENTITY_API_URL_ID + "/complete", saleOrder.getId()))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value(containsString("Order must be CONFIRMED")));
+
+        // Verify order status remains unchanged
+        SaleOrder unchangedOrder = saleOrderRepository.findById(saleOrder.getId()).orElse(null);
+        assertThat(unchangedOrder).isNotNull();
+        assertThat(unchangedOrder.getStatus()).isEqualTo(OrderStatus.COMPLETED);
+    }
+
+    @Test
+    @Transactional
+    void completeOrder_WithCancelledOrder_ShouldFail() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        saleOrder.setStatus(OrderStatus.CANCELLED);
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Attempt to complete cancelled order
+        restSaleOrderMockMvc
+            .perform(post(ENTITY_API_URL_ID + "/complete", saleOrder.getId()))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value(containsString("Order must be CONFIRMED")));
+
+        // Verify order status remains unchanged
+        SaleOrder unchangedOrder = saleOrderRepository.findById(saleOrder.getId()).orElse(null);
+        assertThat(unchangedOrder).isNotNull();
+        assertThat(unchangedOrder.getStatus()).isEqualTo(OrderStatus.CANCELLED);
+    }
+
+    @Test
+    @Transactional
+    void completeOrder_OrderFromDifferentClientAccount_ShouldFail() throws Exception {
+        setupSecurityContext();
+
+        // Create another client account
+        ClientAccount otherClientAccount = createAndSaveClientAccount("Other Company", "other@company.com", "0676841437", 24);
+
+        createCompleteTestOrder();
+        saleOrder.setStatus(OrderStatus.SHIPPED);
+        saleOrder.setClientAccount(otherClientAccount); // Set to different client account
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Attempt to complete should fail (access denied)
+        restSaleOrderMockMvc.perform(post(ENTITY_API_URL_ID + "/complete", saleOrder.getId())).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @Transactional
+    void completeOrder_NonExistentOrder_ShouldFail() throws Exception {
+        setupSecurityContext();
+
+        // Attempt to complete non-existent order
+        restSaleOrderMockMvc.perform(post(ENTITY_API_URL_ID + "/complete", 99999L)).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @Transactional
+    void completeOrder_WithMultipleItems_ShouldCompleteAllInventoryTransactions() throws Exception {
+        setupSecurityContext();
+
+        // Create multiple products and inventories
+        Product product1 = createAndSaveProduct(
+            "Product 1",
+            "PROD-001",
+            new BigDecimal("100.00"),
+            new BigDecimal("80.00"),
+            false,
+            clientAccount
+        );
+        Product product2 = createAndSaveProduct(
+            "Product 2",
+            "PROD-002",
+            new BigDecimal("200.00"),
+            new BigDecimal("160.00"),
+            false,
+            clientAccount
+        );
+
+        Inventory inventory1 = createAndSaveInventory(product1, new BigDecimal("50"), new BigDecimal("40"), clientAccount);
+        Inventory inventory2 = createAndSaveInventory(product2, new BigDecimal("30"), new BigDecimal("25"), clientAccount);
+
+        // Create order with multiple items
+        saleOrder = createSaleOrder(
+            DEFAULT_REFERENCE,
+            DEFAULT_DATE,
+            OrderStatus.SHIPPED, // Set to shipped so it can be completed
+            UPDATED_ORDER_TYPE,
+            new BigDecimal("1500.00"),
+            new BigDecimal("1500.00"),
+            false,
+            false,
+            clientAccount,
+            customer
+        );
+
+        BigDecimal quantity1 = new BigDecimal("5");
+        BigDecimal quantity2 = new BigDecimal("3");
+
+        SaleOrderItem item1 = createSaleOrderItem(product1, quantity1, new BigDecimal("100.00"), saleOrder);
+        SaleOrderItem item2 = createSaleOrderItem(product2, quantity2, new BigDecimal("200.00"), saleOrder);
+
+        saleOrder.addOrderItem(item1);
+        saleOrder.addOrderItem(item2);
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Store original quantities for verification
+        BigDecimal originalQuantity1 = inventory1.getQuantity();
+        BigDecimal originalQuantity2 = inventory2.getQuantity();
+
+        // Complete the order
+        restSaleOrderMockMvc
+            .perform(post(ENTITY_API_URL_ID + "/complete", saleOrder.getId()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value(OrderStatus.COMPLETED.toString()));
+
+        // Verify both inventories were updated (total quantities decreased)
+        Inventory updatedInventory1 = inventoryRepository.findById(inventory1.getId()).orElse(null);
+        assertThat(updatedInventory1).isNotNull();
+        assertThat(updatedInventory1.getQuantity()).isEqualByComparingTo(originalQuantity1.subtract(quantity1));
+
+        Inventory updatedInventory2 = inventoryRepository.findById(inventory2.getId()).orElse(null);
+        assertThat(updatedInventory2).isNotNull();
+        assertThat(updatedInventory2.getQuantity()).isEqualByComparingTo(originalQuantity2.subtract(quantity2));
+    }
+
+    @Test
+    @Transactional
+    void completeOrder_WithDeliveryOrderType_ShouldSucceed() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        saleOrder.setOrderType(OrderType.DELIVERY);
+        saleOrder.setStatus(OrderStatus.SHIPPED);
+        saleOrder.setShippingCost(new BigDecimal("25.00"));
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Reserve inventory
+        BigDecimal originalQuantity = inventory.getQuantity();
+        BigDecimal orderQuantity = BigDecimal.TEN;
+        inventory.setAvailableQuantity(inventory.getAvailableQuantity().subtract(orderQuantity));
+        inventoryRepository.saveAndFlush(inventory);
+
+        // Complete the order
+        restSaleOrderMockMvc
+            .perform(post(ENTITY_API_URL_ID + "/complete", saleOrder.getId()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.status").value(OrderStatus.COMPLETED.toString()))
+            .andExpect(jsonPath("$.orderType").value(OrderType.DELIVERY.toString()));
+
+        // Verify order completion
+        SaleOrder completedOrder = saleOrderRepository.findById(saleOrder.getId()).orElse(null);
+        assertThat(completedOrder).isNotNull();
+        assertThat(completedOrder.getStatus()).isEqualTo(OrderStatus.COMPLETED);
+        assertThat(completedOrder.getOrderType()).isEqualTo(OrderType.DELIVERY);
+
+        // Verify inventory transaction
+        Inventory updatedInventory = inventoryRepository.findById(inventory.getId()).orElse(null);
+        assertThat(updatedInventory).isNotNull();
+        assertThat(updatedInventory.getQuantity()).isEqualByComparingTo(originalQuantity.subtract(orderQuantity));
     }
 }

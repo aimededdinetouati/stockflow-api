@@ -289,10 +289,18 @@ public class SaleOrderService {
 
     // Add validation method to SaleOrderService.java
     private void validateCanComplete(SaleOrder saleOrder) {
-        if (saleOrder.getStatus() != OrderStatus.SHIPPED || saleOrder.getStatus() != OrderStatus.CONFIRMED) {
-            throw new InvalidOrderStatusTransitionException(
-                String.format("Cannot complete order with status %s. Order must be SHIPPED.", saleOrder.getStatus())
-            );
+        if (saleOrder.getOrderType() == OrderType.DELIVERY) {
+            if (saleOrder.getStatus() != OrderStatus.SHIPPED) {
+                throw new InvalidOrderStatusTransitionException(
+                    String.format("Cannot complete DELIVERY order with status %s. Order must be SHIPPED.", saleOrder.getStatus())
+                );
+            }
+        } else {
+            if (saleOrder.getStatus() != OrderStatus.CONFIRMED) {
+                throw new InvalidOrderStatusTransitionException(
+                    String.format("Cannot complete order with status %s. Order must be CONFIRMED.", saleOrder.getStatus())
+                );
+            }
         }
     }
 
