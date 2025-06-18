@@ -145,7 +145,7 @@ class ProductImportResourceIT {
         restProductImportMockMvc
             .perform(multipart(ENTITY_API_URL + "/upload").file(file).contentType(MediaType.MULTIPART_FORM_DATA))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value(ErrorConstants.FILE_INVALID_FORMAT));
+            .andExpect(jsonPath("$.errorKey").value(ErrorConstants.FILE_INVALID_FORMAT));
     }
 
     @Test
@@ -161,7 +161,7 @@ class ProductImportResourceIT {
         restProductImportMockMvc
             .perform(multipart(ENTITY_API_URL + "/upload").file(file).contentType(MediaType.MULTIPART_FORM_DATA))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value(ErrorConstants.FILE_EMPTY));
+            .andExpect(jsonPath("$.errorKey").value(ErrorConstants.FILE_EMPTY));
     }
 
     @Test
@@ -179,7 +179,7 @@ class ProductImportResourceIT {
         restProductImportMockMvc
             .perform(multipart(ENTITY_API_URL + "/upload").file(file).contentType(MediaType.MULTIPART_FORM_DATA))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value(ErrorConstants.FILE_TOO_LARGE));
+            .andExpect(jsonPath("$.errorKey").value(ErrorConstants.FILE_TOO_LARGE));
     }
 
     @Test

@@ -39,9 +39,8 @@ public class SaleOrderService {
     private final CustomerRepository customerRepository;
     private final ClientAccountRepository clientAccountRepository;
     private final ProductRepository productRepository;
-    private final InventoryRepository inventoryRepository;
+    private final InventoryService inventoryService;
     private final ShipmentService shipmentService;
-    private final SaleOrderItemService saleOrderItemService;
 
     public SaleOrderService(
         SaleOrderRepository saleOrderRepository,
@@ -50,9 +49,8 @@ public class SaleOrderService {
         CustomerRepository customerRepository,
         ClientAccountRepository clientAccountRepository,
         ProductRepository productRepository,
-        InventoryRepository inventoryRepository,
-        ShipmentService shipmentService,
-        SaleOrderItemService saleOrderItemService
+        InventoryService inventoryService,
+        ShipmentService shipmentService
     ) {
         this.saleOrderRepository = saleOrderRepository;
         this.saleOrderMapper = saleOrderMapper;
@@ -60,9 +58,8 @@ public class SaleOrderService {
         this.customerRepository = customerRepository;
         this.clientAccountRepository = clientAccountRepository;
         this.productRepository = productRepository;
-        this.inventoryRepository = inventoryRepository;
+        this.inventoryService = inventoryService;
         this.shipmentService = shipmentService;
-        this.saleOrderItemService = saleOrderItemService;
     }
 
     /**
@@ -246,7 +243,7 @@ public class SaleOrderService {
 
         // Validate ownership
         if (!saleOrder.getClientAccount().getId().equals(currentClientAccountId)) {
-            throw new BadRequestAlertException("Access denied", "SaleOrder", "accessDenied");
+            throw new AccessDeniedException(Constants.NOT_ALLOWED);
         }
 
         // Only allow deletion of drafted orders
@@ -268,13 +265,11 @@ public class SaleOrderService {
 
         Long currentClientAccountId = SecurityUtils.getCurrentClientAccountId();
 
-        SaleOrder saleOrder = saleOrderRepository
-            .findById(id)
-            .orElseThrow(() -> new BadRequestAlertException("Sale order not found", "SaleOrder", "orderNotFound"));
+        SaleOrder saleOrder = saleOrderRepository.findById(id).orElseThrow(() -> new AccessDeniedException(Constants.NOT_ALLOWED));
 
         // Validate ownership
         if (!saleOrder.getClientAccount().getId().equals(currentClientAccountId)) {
-            throw new BadRequestAlertException("Access denied", "SaleOrder", "accessDenied");
+            throw new AccessDeniedException(Constants.NOT_ALLOWED);
         }
 
         // Validate status transition
@@ -317,7 +312,7 @@ public class SaleOrderService {
 
         // Validate ownership
         if (!saleOrder.getClientAccount().getId().equals(currentClientAccountId)) {
-            throw new BadRequestAlertException("Access denied", "SaleOrder", "accessDenied");
+            throw new AccessDeniedException(Constants.NOT_ALLOWED);
         }
 
         // Cannot cancel completed orders
@@ -360,7 +355,7 @@ public class SaleOrderService {
 
         // Validate ownership
         if (!saleOrder.getClientAccount().getId().equals(currentClientAccountId)) {
-            throw new BadRequestAlertException("Access denied", "SaleOrder", "accessDenied");
+            throw new AccessDeniedException(Constants.NOT_ALLOWED);
         }
 
         // Validate order type and status
@@ -399,7 +394,7 @@ public class SaleOrderService {
             items
                 .stream()
                 .map(item -> {
-                    Optional<Inventory> inventory = inventoryRepository.findByProductIdAndClientAccountId(
+                    Optional<Inventory> inventory = inventoryService.findByProductIdAndClientAccountId(
                         item.getProductId(),
                         currentClientAccountId
                     );
@@ -602,7 +597,7 @@ public class SaleOrderService {
 
     private void validateInventoryAvailability(SaleOrder saleOrder) {
         for (SaleOrderItem item : saleOrder.getOrderItems()) {
-            Optional<Inventory> inventory = inventoryRepository.findByProductIdAndClientAccountId(
+            Optional<Inventory> inventory = inventoryService.findByProductIdAndClientAccountId(
                 item.getProduct().getId(),
                 saleOrder.getClientAccount().getId()
             );
@@ -624,20 +619,37 @@ public class SaleOrderService {
     }
 
     private void reserveInventoryForOrder(SaleOrder saleOrder) {
-        for (SaleOrderItem item : saleOrder.getOrderItems()) {
-            inventoryTransactionService.save(item.getProduct(), item.getQuantity(), TransactionType.RESERVATION);
-        }
+        updateInventoryQuantities(saleOrder, TransactionType.RESERVATION);
     }
 
     private void releaseReservedInventory(SaleOrder saleOrder) {
-        for (SaleOrderItem item : saleOrder.getOrderItems()) {
-            inventoryTransactionService.save(item.getProduct(), item.getQuantity(), TransactionType.RESERVATION_RELEASE);
-        }
+        updateInventoryQuantities(saleOrder, TransactionType.RESERVATION_RELEASE);
     }
 
     private void completeInventoryTransaction(SaleOrder saleOrder) {
+        updateInventoryQuantities(saleOrder, TransactionType.SALE);
+    }
+
+    private void updateInventoryQuantities(SaleOrder saleOrder, TransactionType transactionType) {
+        String transactionReference = inventoryTransactionService.generateReference(saleOrder.getClientAccount().getId());
+        List<Inventory> inventoriesToSave = new ArrayList<>();
+        List<InventoryTransaction> transactionsToSave = new ArrayList<>();
         for (SaleOrderItem item : saleOrder.getOrderItems()) {
-            inventoryTransactionService.save(item.getProduct(), item.getQuantity(), TransactionType.SALE);
+            // At the moment we have only one inventory for a product
+            Inventory inventory = inventoryService
+                .findByProductIdAndClientAccountId(item.getProduct().getId(), saleOrder.getClientAccount().getId())
+                .orElseThrow();
+            inventoryService.updateInventoryQuantities(
+                inventory,
+                item.getQuantity(),
+                transactionReference,
+                transactionType,
+                inventoriesToSave,
+                transactionsToSave
+            );
+            transactionReference = GlobalUtils.generateReference(transactionReference);
         }
+        inventoryService.saveAll(inventoriesToSave);
+        inventoryTransactionService.saveAll(transactionsToSave);
     }
 }

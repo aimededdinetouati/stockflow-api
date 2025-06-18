@@ -198,7 +198,7 @@ class CustomerResourceIT {
         restCustomerMockMvc
             .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(customerDTO)))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value("phoneexists"));
+            .andExpect(jsonPath("$.errorKey").value("phoneexists"));
     }
 
     @Test

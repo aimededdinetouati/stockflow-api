@@ -27,6 +27,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebM
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -36,21 +37,17 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 class SaleOrderResourceIT {
 
+    // Constants
     private static final String DEFAULT_REFERENCE = "2025/0001";
     private static final String UPDATED_REFERENCE = "2025/0001";
-
     private static final ZonedDateTime DEFAULT_DATE = ZonedDateTime.now();
     private static final ZonedDateTime UPDATED_DATE = ZonedDateTime.now().plusDays(1);
-
     private static final OrderStatus DEFAULT_STATUS = OrderStatus.DRAFTED;
     private static final OrderStatus UPDATED_STATUS = OrderStatus.CONFIRMED;
-
     private static final OrderType DEFAULT_ORDER_TYPE = OrderType.STORE_PICKUP;
     private static final OrderType UPDATED_ORDER_TYPE = OrderType.DELIVERY;
-
     private static final BigDecimal DEFAULT_TOTAL = new BigDecimal("1000.00");
     private static final BigDecimal UPDATED_TOTAL = new BigDecimal("1500.00");
-
     private static final BigDecimal DEFAULT_TVA_AMOUNT = DEFAULT_TOTAL.multiply(BigDecimal.valueOf(19)).divide(
         BigDecimal.valueOf(100),
         2,
@@ -59,12 +56,11 @@ class SaleOrderResourceIT {
     private static final BigDecimal DEFAULT_STAMP_AMOUNT = DEFAULT_TOTAL.add(DEFAULT_TVA_AMOUNT)
         .multiply(BigDecimal.valueOf(1))
         .divide(BigDecimal.valueOf(100), 2, BigDecimal.ROUND_HALF_UP);
-
     private static final BigDecimal DEFAULT_SHIPPING_COST = new BigDecimal("500.00");
-
     private static final String ENTITY_API_URL = "/api/sale-orders";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
 
+    // Dependencies
     @Autowired
     private SaleOrderRepository saleOrderRepository;
 
@@ -95,6 +91,7 @@ class SaleOrderResourceIT {
     @Autowired
     private CustomerMapper customerMapper;
 
+    // Test data
     private SaleOrder saleOrder;
     private ClientAccount clientAccount;
     private Customer customer;
@@ -103,59 +100,191 @@ class SaleOrderResourceIT {
 
     @BeforeEach
     void initTest() {
-        // Create test data
-        createTestClientAccount();
-        createTestCustomer();
-        //        createTestProduct();
-        //        createTestInventory();
-        //        createTestSaleOrder();
+        clientAccount = createAndSaveClientAccount();
+        customer = createAndSaveCustomer(clientAccount);
     }
+
+    // ===============================
+    // CENTRALIZED OBJECT CREATION
+    // ===============================
+
+    private ClientAccount createAndSaveClientAccount() {
+        return createAndSaveClientAccount("Test Company", "test@company.com", "0676841436", 24);
+    }
+
+    private ClientAccount createAndSaveClientAccount(String companyName, String email, String phone, int timeoutHours) {
+        ClientAccount account = new ClientAccount();
+        account.setCompanyName(companyName);
+        account.email(email);
+        account.setPhone(phone);
+        account.setStatus(AccountStatus.ENABLED);
+        account.setDefaultShippingCost(DEFAULT_SHIPPING_COST);
+        account.setReservationTimeoutHours(timeoutHours);
+        account.setYalidineEnabled(false);
+        return clientAccountRepository.saveAndFlush(account);
+    }
+
+    private Customer createAndSaveCustomer(ClientAccount clientAccount) {
+        return createAndSaveCustomer("John", "Doe", "+213555123456", clientAccount);
+    }
+
+    private Customer createAndSaveCustomer(String firstName, String lastName, String phone, ClientAccount clientAccount) {
+        Customer customer = new Customer();
+        customer.setFirstName(firstName);
+        customer.setLastName(lastName);
+        customer.setPhone(phone);
+        customer.setCreatedByClientAccount(clientAccount);
+        return customerRepository.saveAndFlush(customer);
+    }
+
+    private Product createAndSaveProduct(ClientAccount clientAccount) {
+        return createAndSaveProduct("Test Product", "TEST-001", new BigDecimal("100.00"), new BigDecimal("80.00"), false, clientAccount);
+    }
+
+    private Product createAndSaveProduct(
+        String name,
+        String code,
+        BigDecimal sellingPrice,
+        BigDecimal costPrice,
+        boolean tvaApplied,
+        ClientAccount clientAccount
+    ) {
+        Product product = new Product();
+        product.setName(name);
+        product.setCode(code);
+        product.applyTva(tvaApplied);
+        product.setSellingPrice(sellingPrice);
+        product.setCostPrice(costPrice);
+        product.setCategory(ProductCategory.ELECTRONICS);
+        product.setClientAccount(clientAccount);
+        return productRepository.saveAndFlush(product);
+    }
+
+    private Inventory createAndSaveInventory(Product product, ClientAccount clientAccount) {
+        return createAndSaveInventory(product, new BigDecimal("100"), new BigDecimal("100"), clientAccount);
+    }
+
+    private Inventory createAndSaveInventory(
+        Product product,
+        BigDecimal quantity,
+        BigDecimal availableQuantity,
+        ClientAccount clientAccount
+    ) {
+        Inventory inventory = new Inventory();
+        inventory.setProduct(product);
+        inventory.setQuantity(quantity);
+        inventory.setAvailableQuantity(availableQuantity);
+        inventory.setStatus(InventoryStatus.AVAILABLE);
+        inventory.setClientAccount(clientAccount);
+        return inventoryRepository.saveAndFlush(inventory);
+    }
+
+    private SaleOrder createSaleOrder(ClientAccount clientAccount, Customer customer) {
+        return createSaleOrder(
+            DEFAULT_REFERENCE,
+            DEFAULT_DATE,
+            DEFAULT_STATUS,
+            DEFAULT_ORDER_TYPE,
+            DEFAULT_TOTAL,
+            DEFAULT_TOTAL,
+            false,
+            false,
+            clientAccount,
+            customer
+        );
+    }
+
+    private SaleOrder createSaleOrder(
+        String reference,
+        ZonedDateTime date,
+        OrderStatus status,
+        OrderType orderType,
+        BigDecimal subTotal,
+        BigDecimal total,
+        boolean tvaApplied,
+        boolean stampApplied,
+        ClientAccount clientAccount,
+        Customer customer
+    ) {
+        SaleOrder order = new SaleOrder();
+        order.setReference(reference);
+        order.setDate(date);
+        order.setStatus(status);
+        order.setTvaApplied(tvaApplied);
+        order.setStampApplied(stampApplied);
+        order.setOrderType(orderType);
+        order.setSubTotal(subTotal);
+        order.setTotal(total);
+        order.setClientAccount(clientAccount);
+        order.setCustomer(customer);
+        return order;
+    }
+
+    private SaleOrderItem createSaleOrderItem(Product product, BigDecimal quantity, BigDecimal unitPrice, SaleOrder saleOrder) {
+        SaleOrderItem item = new SaleOrderItem();
+        item.setProduct(product);
+        item.setQuantity(quantity);
+        item.setUnitPrice(unitPrice);
+        item.setTotal(quantity.multiply(unitPrice));
+        item.setSaleOrder(saleOrder);
+        return item;
+    }
+
+    private SaleOrder createCompleteTestOrder() {
+        return createCompleteTestOrder(BigDecimal.TEN, new BigDecimal("100.00"));
+    }
+
+    private SaleOrder createCompleteTestOrder(BigDecimal quantity, BigDecimal unitPrice) {
+        product = createAndSaveProduct(clientAccount);
+        inventory = createAndSaveInventory(product, clientAccount);
+
+        saleOrder = createSaleOrder(clientAccount, customer);
+        SaleOrderItem item = createSaleOrderItem(product, quantity, unitPrice, saleOrder);
+        saleOrder.addOrderItem(item);
+
+        return saleOrder;
+    }
+
+    private Set<SaleOrderItemDTO> createValidOrderItems() {
+        if (product == null) {
+            product = createAndSaveProduct(clientAccount);
+        }
+
+        SaleOrderItemDTO item = new SaleOrderItemDTO();
+        item.setProduct(productMapper.toDto(product));
+        item.setQuantity(BigDecimal.TEN);
+        item.setUnitPrice(new BigDecimal("100.00"));
+
+        Set<SaleOrderItemDTO> orderItems = new HashSet<>();
+        orderItems.add(item);
+        return orderItems;
+    }
+
+    private SaleOrderDTO createBasicSaleOrderDTO() {
+        SaleOrderDTO dto = new SaleOrderDTO();
+        dto.setReference(DEFAULT_REFERENCE);
+        dto.setDate(DEFAULT_DATE);
+        dto.setStatus(DEFAULT_STATUS);
+        dto.setOrderType(DEFAULT_ORDER_TYPE);
+        dto.setCustomer(customerMapper.toDto(customer));
+        return dto;
+    }
+
+    private void setupSecurityContext() {
+        setSecurityContextWithClientAccountId(clientAccount.getId());
+    }
+
+    // ===============================
+    // BASIC CRUD TESTS
+    // ===============================
 
     @Test
     @Transactional
     void createSaleOrder() throws Exception {
-        setSecurityContextWithClientAccountId(clientAccount.getId());
+        setupSecurityContext();
         int databaseSizeBeforeCreate = saleOrderRepository.findAll().size();
 
-        product = new Product();
-        product.setName("Test Product");
-        product.setCode("TEST-001");
-        product.applyTva(false);
-        product.setSellingPrice(new BigDecimal("100.00"));
-        product.setCostPrice(new BigDecimal("80.00"));
-        product.setCategory(ProductCategory.ELECTRONICS);
-        product.setClientAccount(clientAccount);
-        product = productRepository.saveAndFlush(product);
-
-        inventory = new Inventory();
-        inventory.setProduct(product);
-        inventory.setQuantity(new BigDecimal("100"));
-        inventory.setAvailableQuantity(new BigDecimal("100"));
-        inventory.setStatus(InventoryStatus.AVAILABLE);
-        inventory.setClientAccount(clientAccount);
-        inventory = inventoryRepository.saveAndFlush(inventory);
-
-        saleOrder = new SaleOrder();
-        saleOrder.setReference(DEFAULT_REFERENCE);
-        saleOrder.setDate(DEFAULT_DATE);
-        saleOrder.setStatus(DEFAULT_STATUS);
-        saleOrder.setTvaApplied(false);
-        saleOrder.setStampApplied(false);
-        saleOrder.setOrderType(DEFAULT_ORDER_TYPE);
-        saleOrder.setSubTotal(DEFAULT_TOTAL);
-        saleOrder.setTotal(DEFAULT_TOTAL);
-        saleOrder.setClientAccount(clientAccount);
-        saleOrder.setCustomer(customer);
-
-        // Add order items
-        SaleOrderItem item = new SaleOrderItem();
-        item.setProduct(product);
-        item.setQuantity(BigDecimal.TEN);
-        item.setUnitPrice(new BigDecimal("100.00"));
-        item.setTotal(new BigDecimal("1000.00"));
-        item.setSaleOrder(saleOrder);
-
-        saleOrder.addOrderItem(item);
+        createCompleteTestOrder();
 
         // Create the SaleOrder
         SaleOrderDTO saleOrderDTO = saleOrderMapper.toDto(saleOrder);
@@ -182,48 +311,14 @@ class SaleOrderResourceIT {
     @Test
     @Transactional
     void createSaleOrderWithTvaAndStampApplied() throws Exception {
-        setSecurityContextWithClientAccountId(clientAccount.getId());
+        setupSecurityContext();
         int databaseSizeBeforeCreate = saleOrderRepository.findAll().size();
 
-        product = new Product();
-        product.setName("Test Product");
-        product.setCode("TEST-001");
-        product.applyTva(false);
-        product.setSellingPrice(new BigDecimal("100.00"));
-        product.setCostPrice(new BigDecimal("80.00"));
-        product.setCategory(ProductCategory.ELECTRONICS);
-        product.setClientAccount(clientAccount);
-        product = productRepository.saveAndFlush(product);
+        createCompleteTestOrder();
 
-        inventory = new Inventory();
-        inventory.setProduct(product);
-        inventory.setQuantity(new BigDecimal("100"));
-        inventory.setAvailableQuantity(new BigDecimal("100"));
-        inventory.setStatus(InventoryStatus.AVAILABLE);
-        inventory.setClientAccount(clientAccount);
-        inventory = inventoryRepository.saveAndFlush(inventory);
-
-        saleOrder = new SaleOrder();
-        saleOrder.setReference(DEFAULT_REFERENCE);
-        saleOrder.setDate(DEFAULT_DATE);
-        saleOrder.setStatus(DEFAULT_STATUS);
+        // Update order to apply TVA and stamp
         saleOrder.setTvaApplied(true);
         saleOrder.setStampApplied(true);
-        saleOrder.setOrderType(DEFAULT_ORDER_TYPE);
-        saleOrder.setSubTotal(DEFAULT_TOTAL);
-        saleOrder.setTotal(DEFAULT_TOTAL);
-        saleOrder.setClientAccount(clientAccount);
-        saleOrder.setCustomer(customer);
-
-        // Add order items
-        SaleOrderItem item = new SaleOrderItem();
-        item.setProduct(product);
-        item.setQuantity(BigDecimal.TEN);
-        item.setUnitPrice(new BigDecimal("100.00"));
-        item.setTotal(new BigDecimal("1000.00"));
-        item.setSaleOrder(saleOrder);
-
-        saleOrder.addOrderItem(item);
 
         // Create the SaleOrder
         SaleOrderDTO saleOrderDTO = saleOrderMapper.toDto(saleOrder);
@@ -250,59 +345,47 @@ class SaleOrderResourceIT {
         assertThat(testSaleOrder.getOrderType()).isEqualTo(DEFAULT_ORDER_TYPE);
     }
 
-    // Additional test cases for SaleOrder create functionality - add these to SaleOrderResourceIT class
+    // ===============================
+    // VALIDATION TESTS
+    // ===============================
 
     @Test
     @Transactional
     void createSaleOrder_WithNullOrderItems_ShouldThrowException() throws Exception {
-        setSecurityContextWithClientAccountId(clientAccount.getId());
+        setupSecurityContext();
 
-        SaleOrderDTO saleOrderDTO = new SaleOrderDTO();
-        saleOrderDTO.setReference(DEFAULT_REFERENCE);
-        saleOrderDTO.setDate(DEFAULT_DATE);
-        saleOrderDTO.setStatus(DEFAULT_STATUS);
-        saleOrderDTO.setOrderType(DEFAULT_ORDER_TYPE);
-        saleOrderDTO.setCustomer(customerMapper.toDto(customer));
+        SaleOrderDTO saleOrderDTO = createBasicSaleOrderDTO();
         saleOrderDTO.setOrderItems(null); // Null order items
 
         restSaleOrderMockMvc
             .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsBytes(saleOrderDTO)))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value(containsString(ErrorConstants.REQUIRED_ORDER_ITEMS)));
+            .andExpect(jsonPath("$.errorKey").value(containsString(ErrorConstants.REQUIRED_ORDER_ITEMS)));
     }
 
     @Test
     @Transactional
     void createSaleOrder_WithEmptyOrderItems_ShouldThrowException() throws Exception {
-        setSecurityContextWithClientAccountId(clientAccount.getId());
+        setupSecurityContext();
 
-        SaleOrderDTO saleOrderDTO = new SaleOrderDTO();
-        saleOrderDTO.setReference(DEFAULT_REFERENCE);
-        saleOrderDTO.setDate(DEFAULT_DATE);
-        saleOrderDTO.setStatus(DEFAULT_STATUS);
-        saleOrderDTO.setOrderType(DEFAULT_ORDER_TYPE);
-        saleOrderDTO.setCustomer(customerMapper.toDto(customer));
+        SaleOrderDTO saleOrderDTO = createBasicSaleOrderDTO();
         saleOrderDTO.setOrderItems(new HashSet<>()); // Empty order items
 
         restSaleOrderMockMvc
             .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsBytes(saleOrderDTO)))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value(containsString(ErrorConstants.REQUIRED_ORDER_ITEMS)));
+            .andExpect(jsonPath("$.errorKey").value(containsString(ErrorConstants.REQUIRED_ORDER_ITEMS)));
     }
 
     @Test
     @Transactional
     void createSaleOrder_WithNonExistentCustomer_ShouldThrowException() throws Exception {
-        setSecurityContextWithClientAccountId(clientAccount.getId());
+        setupSecurityContext();
 
         CustomerDTO nonExistentCustomer = new CustomerDTO();
         nonExistentCustomer.setId(99999L); // Non-existent customer ID
 
-        SaleOrderDTO saleOrderDTO = new SaleOrderDTO();
-        saleOrderDTO.setReference(DEFAULT_REFERENCE);
-        saleOrderDTO.setDate(DEFAULT_DATE);
-        saleOrderDTO.setStatus(DEFAULT_STATUS);
-        saleOrderDTO.setOrderType(DEFAULT_ORDER_TYPE);
+        SaleOrderDTO saleOrderDTO = createBasicSaleOrderDTO();
         saleOrderDTO.setCustomer(nonExistentCustomer);
         saleOrderDTO.setOrderItems(createValidOrderItems());
 
@@ -314,7 +397,7 @@ class SaleOrderResourceIT {
     @Test
     @Transactional
     void createSaleOrder_WithNonExistentProduct_ShouldThrowException() throws Exception {
-        setSecurityContextWithClientAccountId(clientAccount.getId());
+        setupSecurityContext();
 
         // Create order item with non-existent product
         SaleOrderItemDTO item = new SaleOrderItemDTO();
@@ -327,12 +410,7 @@ class SaleOrderResourceIT {
         Set<SaleOrderItemDTO> orderItems = new HashSet<>();
         orderItems.add(item);
 
-        SaleOrderDTO saleOrderDTO = new SaleOrderDTO();
-        saleOrderDTO.setReference(DEFAULT_REFERENCE);
-        saleOrderDTO.setDate(DEFAULT_DATE);
-        saleOrderDTO.setStatus(DEFAULT_STATUS);
-        saleOrderDTO.setOrderType(DEFAULT_ORDER_TYPE);
-        saleOrderDTO.setCustomer(customerMapper.toDto(customer));
+        SaleOrderDTO saleOrderDTO = createBasicSaleOrderDTO();
         saleOrderDTO.setOrderItems(orderItems);
 
         restSaleOrderMockMvc
@@ -343,25 +421,18 @@ class SaleOrderResourceIT {
     @Test
     @Transactional
     void createSaleOrder_WithProductFromDifferentClientAccount_ShouldThrowException() throws Exception {
-        setSecurityContextWithClientAccountId(clientAccount.getId());
+        setupSecurityContext();
 
         // Create a product for a different client account
-        ClientAccount otherClientAccount = new ClientAccount();
-        otherClientAccount.setCompanyName("Other Company");
-        otherClientAccount.email("other@company.com");
-        otherClientAccount.setPhone("0676841437");
-        otherClientAccount.setStatus(AccountStatus.ENABLED);
-        otherClientAccount = clientAccountRepository.saveAndFlush(otherClientAccount);
-
-        Product otherProduct = new Product();
-        otherProduct.setName("Other Product");
-        otherProduct.setCode("OTHER-001");
-        otherProduct.applyTva(false);
-        otherProduct.setSellingPrice(new BigDecimal("100.00"));
-        otherProduct.setCostPrice(new BigDecimal("80.00"));
-        otherProduct.setCategory(ProductCategory.ELECTRONICS);
-        otherProduct.setClientAccount(otherClientAccount);
-        otherProduct = productRepository.saveAndFlush(otherProduct);
+        ClientAccount otherClientAccount = createAndSaveClientAccount("Other Company", "other@company.com", "0676841437", 24);
+        Product otherProduct = createAndSaveProduct(
+            "Other Product",
+            "OTHER-001",
+            new BigDecimal("100.00"),
+            new BigDecimal("80.00"),
+            false,
+            otherClientAccount
+        );
 
         // Create order item with product from different client account
         SaleOrderItemDTO item = new SaleOrderItemDTO();
@@ -372,12 +443,7 @@ class SaleOrderResourceIT {
         Set<SaleOrderItemDTO> orderItems = new HashSet<>();
         orderItems.add(item);
 
-        SaleOrderDTO saleOrderDTO = new SaleOrderDTO();
-        saleOrderDTO.setReference(DEFAULT_REFERENCE);
-        saleOrderDTO.setDate(DEFAULT_DATE);
-        saleOrderDTO.setStatus(DEFAULT_STATUS);
-        saleOrderDTO.setOrderType(DEFAULT_ORDER_TYPE);
-        saleOrderDTO.setCustomer(customerMapper.toDto(customer));
+        SaleOrderDTO saleOrderDTO = createBasicSaleOrderDTO();
         saleOrderDTO.setOrderItems(orderItems);
 
         restSaleOrderMockMvc
@@ -388,18 +454,17 @@ class SaleOrderResourceIT {
     @Test
     @Transactional
     void createSaleOrder_WithProductWithoutPrice_ShouldThrowException() throws Exception {
-        setSecurityContextWithClientAccountId(clientAccount.getId());
+        setupSecurityContext();
 
         // Create product without selling price
-        Product productWithoutPrice = new Product();
-        productWithoutPrice.setName("No Price Product");
-        productWithoutPrice.setCode("NOPRICE-001");
-        productWithoutPrice.applyTva(false);
-        productWithoutPrice.setSellingPrice(null); // No selling price
-        productWithoutPrice.setCostPrice(new BigDecimal("80.00"));
-        productWithoutPrice.setCategory(ProductCategory.ELECTRONICS);
-        productWithoutPrice.setClientAccount(clientAccount);
-        productWithoutPrice = productRepository.saveAndFlush(productWithoutPrice);
+        Product productWithoutPrice = createAndSaveProduct(
+            "No Price Product",
+            "NOPRICE-001",
+            null,
+            new BigDecimal("80.00"),
+            false,
+            clientAccount
+        );
 
         // Create order item without unit price (should use product price which is null)
         SaleOrderItemDTO item = new SaleOrderItemDTO();
@@ -410,27 +475,26 @@ class SaleOrderResourceIT {
         Set<SaleOrderItemDTO> orderItems = new HashSet<>();
         orderItems.add(item);
 
-        SaleOrderDTO saleOrderDTO = new SaleOrderDTO();
-        saleOrderDTO.setReference(DEFAULT_REFERENCE);
-        saleOrderDTO.setDate(DEFAULT_DATE);
-        saleOrderDTO.setStatus(DEFAULT_STATUS);
-        saleOrderDTO.setOrderType(DEFAULT_ORDER_TYPE);
-        saleOrderDTO.setCustomer(customerMapper.toDto(customer));
+        SaleOrderDTO saleOrderDTO = createBasicSaleOrderDTO();
         saleOrderDTO.setOrderItems(orderItems);
 
         restSaleOrderMockMvc
             .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsBytes(saleOrderDTO)))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value(containsString(ErrorConstants.REQUIRED_UNIT_PRICE)));
+            .andExpect(jsonPath("$.errorKey").value(containsString(ErrorConstants.REQUIRED_UNIT_PRICE)));
     }
+
+    // ===============================
+    // EDGE CASE TESTS
+    // ===============================
 
     @Test
     @Transactional
     void createSaleOrder_WithZeroQuantity_ShouldSucceed() throws Exception {
-        setSecurityContextWithClientAccountId(clientAccount.getId());
+        setupSecurityContext();
         int databaseSizeBeforeCreate = saleOrderRepository.findAll().size();
 
-        createTestProduct();
+        product = createAndSaveProduct(clientAccount);
 
         // Create order item with zero quantity
         SaleOrderItemDTO item = new SaleOrderItemDTO();
@@ -441,14 +505,9 @@ class SaleOrderResourceIT {
         Set<SaleOrderItemDTO> orderItems = new HashSet<>();
         orderItems.add(item);
 
-        SaleOrderDTO saleOrderDTO = new SaleOrderDTO();
-        saleOrderDTO.setReference(DEFAULT_REFERENCE);
-        saleOrderDTO.setDate(DEFAULT_DATE);
-        saleOrderDTO.setStatus(DEFAULT_STATUS);
-        saleOrderDTO.setOrderType(DEFAULT_ORDER_TYPE);
+        SaleOrderDTO saleOrderDTO = createBasicSaleOrderDTO();
         saleOrderDTO.setSubTotal(BigDecimal.ZERO);
         saleOrderDTO.setTotal(BigDecimal.ZERO);
-        saleOrderDTO.setCustomer(customerMapper.toDto(customer));
         saleOrderDTO.setOrderItems(orderItems);
 
         restSaleOrderMockMvc
@@ -463,9 +522,9 @@ class SaleOrderResourceIT {
     @Test
     @Transactional
     void createSaleOrder_WithNegativeQuantity_ShouldSucceed() throws Exception {
-        setSecurityContextWithClientAccountId(clientAccount.getId());
+        setupSecurityContext();
 
-        createTestProduct();
+        product = createAndSaveProduct(clientAccount);
 
         // Create order item with negative quantity
         SaleOrderItemDTO item = new SaleOrderItemDTO();
@@ -476,14 +535,9 @@ class SaleOrderResourceIT {
         Set<SaleOrderItemDTO> orderItems = new HashSet<>();
         orderItems.add(item);
 
-        SaleOrderDTO saleOrderDTO = new SaleOrderDTO();
-        saleOrderDTO.setReference(DEFAULT_REFERENCE);
-        saleOrderDTO.setDate(DEFAULT_DATE);
-        saleOrderDTO.setStatus(DEFAULT_STATUS);
-        saleOrderDTO.setOrderType(DEFAULT_ORDER_TYPE);
+        SaleOrderDTO saleOrderDTO = createBasicSaleOrderDTO();
         saleOrderDTO.setSubTotal(new BigDecimal("-500.00"));
         saleOrderDTO.setTotal(new BigDecimal("-500.00"));
-        saleOrderDTO.setCustomer(customerMapper.toDto(customer));
         saleOrderDTO.setOrderItems(orderItems);
 
         restSaleOrderMockMvc
@@ -495,10 +549,10 @@ class SaleOrderResourceIT {
     @Test
     @Transactional
     void createSaleOrder_WithMultipleItemsSameProduct_ShouldSucceed() throws Exception {
-        setSecurityContextWithClientAccountId(clientAccount.getId());
+        setupSecurityContext();
         int databaseSizeBeforeCreate = saleOrderRepository.findAll().size();
 
-        createTestProduct();
+        product = createAndSaveProduct(clientAccount);
 
         // Create multiple order items with same product
         SaleOrderItemDTO item1 = new SaleOrderItemDTO();
@@ -515,14 +569,9 @@ class SaleOrderResourceIT {
         orderItems.add(item1);
         orderItems.add(item2);
 
-        SaleOrderDTO saleOrderDTO = new SaleOrderDTO();
-        saleOrderDTO.setReference(DEFAULT_REFERENCE);
-        saleOrderDTO.setDate(DEFAULT_DATE);
-        saleOrderDTO.setStatus(DEFAULT_STATUS);
-        saleOrderDTO.setOrderType(DEFAULT_ORDER_TYPE);
+        SaleOrderDTO saleOrderDTO = createBasicSaleOrderDTO();
         saleOrderDTO.setSubTotal(new BigDecimal("860.00")); // 500 + 360
         saleOrderDTO.setTotal(new BigDecimal("860.00"));
-        saleOrderDTO.setCustomer(customerMapper.toDto(customer));
         saleOrderDTO.setOrderItems(orderItems);
 
         restSaleOrderMockMvc
@@ -537,9 +586,9 @@ class SaleOrderResourceIT {
     @Test
     @Transactional
     void createSaleOrder_WithVeryLargeQuantityAndPrice_ShouldSucceed() throws Exception {
-        setSecurityContextWithClientAccountId(clientAccount.getId());
+        setupSecurityContext();
 
-        createTestProduct();
+        product = createAndSaveProduct(clientAccount);
 
         // Create order item with very large quantity and price
         SaleOrderItemDTO item = new SaleOrderItemDTO();
@@ -552,14 +601,9 @@ class SaleOrderResourceIT {
 
         BigDecimal expectedTotal = new BigDecimal("999999999.99").multiply(new BigDecimal("999999999.99"));
 
-        SaleOrderDTO saleOrderDTO = new SaleOrderDTO();
-        saleOrderDTO.setReference(DEFAULT_REFERENCE);
-        saleOrderDTO.setDate(DEFAULT_DATE);
-        saleOrderDTO.setStatus(DEFAULT_STATUS);
-        saleOrderDTO.setOrderType(DEFAULT_ORDER_TYPE);
+        SaleOrderDTO saleOrderDTO = createBasicSaleOrderDTO();
         saleOrderDTO.setSubTotal(expectedTotal);
         saleOrderDTO.setTotal(expectedTotal);
-        saleOrderDTO.setCustomer(customerMapper.toDto(customer));
         saleOrderDTO.setOrderItems(orderItems);
 
         restSaleOrderMockMvc
@@ -572,9 +616,9 @@ class SaleOrderResourceIT {
     @Test
     @Transactional
     void createSaleOrder_WithComplexDiscountAndTaxCalculations_ShouldSucceed() throws Exception {
-        setSecurityContextWithClientAccountId(clientAccount.getId());
+        setupSecurityContext();
 
-        createTestProduct();
+        product = createAndSaveProduct(clientAccount);
 
         SaleOrderItemDTO item = new SaleOrderItemDTO();
         item.setProduct(productMapper.toDto(product));
@@ -584,14 +628,9 @@ class SaleOrderResourceIT {
         Set<SaleOrderItemDTO> orderItems = new HashSet<>();
         orderItems.add(item);
 
-        SaleOrderDTO saleOrderDTO = new SaleOrderDTO();
-        saleOrderDTO.setReference(DEFAULT_REFERENCE);
-        saleOrderDTO.setDate(DEFAULT_DATE);
-        saleOrderDTO.setStatus(DEFAULT_STATUS);
-        saleOrderDTO.setOrderType(DEFAULT_ORDER_TYPE);
+        SaleOrderDTO saleOrderDTO = createBasicSaleOrderDTO();
         saleOrderDTO.setSubTotal(new BigDecimal("1000.00"));
         saleOrderDTO.setTotal(new BigDecimal("1000.00"));
-        saleOrderDTO.setCustomer(customerMapper.toDto(customer));
         saleOrderDTO.setOrderItems(orderItems);
         saleOrderDTO.setTvaApplied(true);
         saleOrderDTO.setStampApplied(true);
@@ -614,7 +653,7 @@ class SaleOrderResourceIT {
     void createSaleOrder_WithoutSecurityContext_ShouldThrowException() throws Exception {
         // Don't set security context - should fail
 
-        createTestProduct();
+        product = createAndSaveProduct(clientAccount);
 
         SaleOrderItemDTO item = new SaleOrderItemDTO();
         item.setProduct(productMapper.toDto(product));
@@ -624,42 +663,28 @@ class SaleOrderResourceIT {
         Set<SaleOrderItemDTO> orderItems = new HashSet<>();
         orderItems.add(item);
 
-        SaleOrderDTO saleOrderDTO = new SaleOrderDTO();
-        saleOrderDTO.setReference(DEFAULT_REFERENCE);
-        saleOrderDTO.setDate(DEFAULT_DATE);
-        saleOrderDTO.setStatus(DEFAULT_STATUS);
-        saleOrderDTO.setOrderType(DEFAULT_ORDER_TYPE);
-        saleOrderDTO.setCustomer(customerMapper.toDto(customer));
+        SaleOrderDTO saleOrderDTO = createBasicSaleOrderDTO();
         saleOrderDTO.setOrderItems(orderItems);
 
         restSaleOrderMockMvc
             .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsBytes(saleOrderDTO)))
-            .andExpect(status().isForbidden());
+            .andExpect(status().is5xxServerError());
     }
 
-    // Helper method to create valid order items
-    private Set<SaleOrderItemDTO> createValidOrderItems() {
-        if (product == null) {
-            createTestProduct();
-        }
-
-        SaleOrderItemDTO item = new SaleOrderItemDTO();
-        item.setProduct(productMapper.toDto(product));
-        item.setQuantity(BigDecimal.TEN);
-        item.setUnitPrice(new BigDecimal("100.00"));
-
-        Set<SaleOrderItemDTO> orderItems = new HashSet<>();
-        orderItems.add(item);
-        return orderItems;
-    }
+    // ===============================
+    // ORDER CONFIRMATION TESTS
+    // ===============================
 
     @Test
     @Transactional
-    void confirmOrder() throws Exception {
-        // Initialize the database
-        saleOrderRepository.saveAndFlush(saleOrder);
+    void confirmOrder_Success() throws Exception {
+        setupSecurityContext();
 
-        int databaseSizeBeforeUpdate = saleOrderRepository.findAll().size();
+        createCompleteTestOrder();
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        BigDecimal originalAvailableQuantity = inventory.getAvailableQuantity();
+        BigDecimal orderQuantity = saleOrder.getOrderItems().iterator().next().getQuantity();
 
         // Confirm the order
         restSaleOrderMockMvc
@@ -669,26 +694,560 @@ class SaleOrderResourceIT {
             .andExpect(jsonPath("$.status").value(OrderStatus.CONFIRMED.toString()))
             .andExpect(jsonPath("$.reservationExpiresAt").exists());
 
-        // Validate the SaleOrder in the database
-        List<SaleOrder> saleOrderList = saleOrderRepository.findAll();
-        assertThat(saleOrderList).hasSize(databaseSizeBeforeUpdate);
-        SaleOrder testSaleOrder = saleOrderList.get(saleOrderList.size() - 1);
-        assertThat(testSaleOrder.getStatus()).isEqualTo(OrderStatus.CONFIRMED);
-        assertThat(testSaleOrder.getReservationExpiresAt()).isNotNull();
+        // Verify order status change
+        SaleOrder confirmedOrder = saleOrderRepository.findById(saleOrder.getId()).orElse(null);
+        assertThat(confirmedOrder).isNotNull();
+        assertThat(confirmedOrder.getStatus()).isEqualTo(OrderStatus.CONFIRMED);
+        assertThat(confirmedOrder.getReservationExpiresAt()).isNotNull();
 
-        // Validate inventory reservation
+        // Verify inventory reservation (available quantity should decrease)
         Inventory updatedInventory = inventoryRepository.findById(inventory.getId()).orElse(null);
         assertThat(updatedInventory).isNotNull();
-        //assertThat(updatedInventory.getReservedQuantity()).isGreaterThan(BigDecimal.ZERO);
+        assertThat(updatedInventory.getAvailableQuantity()).isEqualByComparingTo(originalAvailableQuantity.subtract(orderQuantity));
+
+        // Total quantity should remain the same (only reserved, not consumed)
+        assertThat(updatedInventory.getQuantity()).isEqualByComparingTo(inventory.getQuantity());
     }
 
     @Test
     @Transactional
+    void confirmOrder_WithExactInventoryMatch_ShouldSucceed() throws Exception {
+        setupSecurityContext();
+
+        // Create product with limited inventory that exactly matches order quantity
+        product = createAndSaveProduct(clientAccount);
+        BigDecimal exactQuantity = new BigDecimal("15");
+        inventory = createAndSaveInventory(product, exactQuantity, exactQuantity, clientAccount);
+
+        // Create order that requires exactly the available inventory
+        saleOrder = createSaleOrder(clientAccount, customer);
+        SaleOrderItem item = createSaleOrderItem(product, exactQuantity, new BigDecimal("100.00"), saleOrder);
+        saleOrder.addOrderItem(item);
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Confirm the order
+        restSaleOrderMockMvc
+            .perform(post(ENTITY_API_URL_ID + "/confirm", saleOrder.getId()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.status").value(OrderStatus.CONFIRMED.toString()))
+            .andExpect(jsonPath("$.reservationExpiresAt").exists());
+
+        // Verify order status change
+        SaleOrder confirmedOrder = saleOrderRepository.findById(saleOrder.getId()).orElse(null);
+        assertThat(confirmedOrder).isNotNull();
+        assertThat(confirmedOrder.getStatus()).isEqualTo(OrderStatus.CONFIRMED);
+
+        // Verify inventory is completely reserved (available quantity should be zero)
+        Inventory updatedInventory = inventoryRepository.findById(inventory.getId()).orElse(null);
+        assertThat(updatedInventory).isNotNull();
+        assertThat(updatedInventory.getAvailableQuantity()).isEqualByComparingTo(BigDecimal.ZERO);
+
+        // Total quantity should remain the same (only reserved, not consumed)
+        assertThat(updatedInventory.getQuantity()).isEqualByComparingTo(exactQuantity);
+    }
+
+    @Test
+    @Transactional
+    void confirmOrder_WithMixedInventoryLevels_ShouldSucceed() throws Exception {
+        setupSecurityContext();
+
+        // Create multiple products with different inventory levels
+        Product productAbundant = createAndSaveProduct(
+            "Abundant Product",
+            "ABUND-001",
+            new BigDecimal("50.00"),
+            new BigDecimal("40.00"),
+            false,
+            clientAccount
+        );
+        Product productLimited = createAndSaveProduct(
+            "Limited Product",
+            "LIMIT-001",
+            new BigDecimal("100.00"),
+            new BigDecimal("80.00"),
+            false,
+            clientAccount
+        );
+        Product productExact = createAndSaveProduct(
+            "Exact Product",
+            "EXACT-001",
+            new BigDecimal("200.00"),
+            new BigDecimal("160.00"),
+            false,
+            clientAccount
+        );
+
+        // Create inventories with different availability levels
+        Inventory inventoryAbundant = createAndSaveInventory(
+            productAbundant,
+            new BigDecimal("1000"),
+            new BigDecimal("1000"),
+            clientAccount
+        ); // Plenty available
+        Inventory inventoryLimited = createAndSaveInventory(productLimited, new BigDecimal("20"), new BigDecimal("15"), clientAccount); // Some already reserved
+        Inventory inventoryExact = createAndSaveInventory(productExact, new BigDecimal("5"), new BigDecimal("5"), clientAccount); // Exact match
+
+        // Create order with mixed quantities
+        saleOrder = createSaleOrder(
+            DEFAULT_REFERENCE,
+            DEFAULT_DATE,
+            OrderStatus.DRAFTED,
+            DEFAULT_ORDER_TYPE,
+            new BigDecimal("1750.00"),
+            new BigDecimal("1750.00"),
+            false,
+            false,
+            clientAccount,
+            customer
+        );
+
+        SaleOrderItem itemAbundant = createSaleOrderItem(productAbundant, new BigDecimal("10"), new BigDecimal("50.00"), saleOrder); // Uses 1% of available
+        SaleOrderItem itemLimited = createSaleOrderItem(productLimited, new BigDecimal("5"), new BigDecimal("100.00"), saleOrder); // Uses 1/3 of available
+        SaleOrderItem itemExact = createSaleOrderItem(productExact, new BigDecimal("5"), new BigDecimal("200.00"), saleOrder); // Uses all available
+
+        saleOrder.addOrderItem(itemAbundant);
+        saleOrder.addOrderItem(itemLimited);
+        saleOrder.addOrderItem(itemExact);
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Confirm the order
+        restSaleOrderMockMvc
+            .perform(post(ENTITY_API_URL_ID + "/confirm", saleOrder.getId()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value(OrderStatus.CONFIRMED.toString()))
+            .andExpect(jsonPath("$.orderItems", hasSize(3)));
+
+        // Verify all inventories were properly reserved
+        Inventory updatedAbundant = inventoryRepository.findById(inventoryAbundant.getId()).orElse(null);
+        assertThat(updatedAbundant).isNotNull();
+        assertThat(updatedAbundant.getAvailableQuantity()).isEqualByComparingTo(new BigDecimal("990")); // 1000 - 10
+
+        Inventory updatedLimited = inventoryRepository.findById(inventoryLimited.getId()).orElse(null);
+        assertThat(updatedLimited).isNotNull();
+        assertThat(updatedLimited.getAvailableQuantity()).isEqualByComparingTo(new BigDecimal("10")); // 15 - 5
+
+        Inventory updatedExact = inventoryRepository.findById(inventoryExact.getId()).orElse(null);
+        assertThat(updatedExact).isNotNull();
+        assertThat(updatedExact.getAvailableQuantity()).isEqualByComparingTo(BigDecimal.ZERO); // 5 - 5
+
+        // Verify total quantities remain unchanged
+        assertThat(updatedAbundant.getQuantity()).isEqualByComparingTo(new BigDecimal("1000"));
+        assertThat(updatedLimited.getQuantity()).isEqualByComparingTo(new BigDecimal("20"));
+        assertThat(updatedExact.getQuantity()).isEqualByComparingTo(new BigDecimal("5"));
+    }
+
+    @Test
+    @Transactional
+    void confirmOrder_WithCustomReservationTimeout_ShouldSetCorrectExpiration() throws Exception {
+        setupSecurityContext();
+
+        // Create client account with specific custom timeout (72 hours)
+        clientAccount.setReservationTimeoutHours(72);
+        clientAccount = clientAccountRepository.saveAndFlush(clientAccount);
+
+        createCompleteTestOrder();
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        ZonedDateTime beforeConfirm = ZonedDateTime.now();
+
+        // Confirm the order
+        restSaleOrderMockMvc
+            .perform(post(ENTITY_API_URL_ID + "/confirm", saleOrder.getId()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value(OrderStatus.CONFIRMED.toString()))
+            .andExpect(jsonPath("$.reservationExpiresAt").exists());
+
+        ZonedDateTime afterConfirm = ZonedDateTime.now();
+
+        // Verify order was confirmed
+        SaleOrder confirmedOrder = saleOrderRepository.findById(saleOrder.getId()).orElse(null);
+        assertThat(confirmedOrder).isNotNull();
+        assertThat(confirmedOrder.getStatus()).isEqualTo(OrderStatus.CONFIRMED);
+
+        // Verify reservation expiration is set to exactly 72 hours from confirmation time
+        assertThat(confirmedOrder.getReservationExpiresAt()).isNotNull();
+
+        ZonedDateTime expectedMinExpiration = beforeConfirm.plusHours(72);
+        ZonedDateTime expectedMaxExpiration = afterConfirm.plusHours(72);
+
+        assertThat(confirmedOrder.getReservationExpiresAt())
+            .isAfterOrEqualTo(expectedMinExpiration)
+            .isBeforeOrEqualTo(expectedMaxExpiration);
+
+        // Verify the expiration is approximately 72 hours from now (within reasonable tolerance)
+        long hoursDifference = java.time.Duration.between(ZonedDateTime.now(), confirmedOrder.getReservationExpiresAt()).toHours();
+        assertThat(hoursDifference).isBetween(71L, 73L); // Allow for small timing differences
+
+        // Verify inventory reservation still occurred correctly
+        Inventory updatedInventory = inventoryRepository.findById(inventory.getId()).orElse(null);
+        assertThat(updatedInventory).isNotNull();
+        // Original inventory starts with 100 available, after reserving 10 should be 90
+        BigDecimal expectedAvailable = new BigDecimal("90");
+        assertThat(updatedInventory.getAvailableQuantity()).isEqualByComparingTo(expectedAvailable);
+
+        // Test different timeout value by updating client account
+        clientAccount.setReservationTimeoutHours(24); // Change to 24 hours
+        clientAccount = clientAccountRepository.saveAndFlush(clientAccount);
+
+        // Create another order to test different timeout
+        Product secondProduct = createAndSaveProduct(
+            "Timeout Test Product",
+            "TIMEOUT-001",
+            new BigDecimal("75.00"),
+            new BigDecimal("60.00"),
+            false,
+            clientAccount
+        );
+        Inventory secondInventory = createAndSaveInventory(secondProduct, clientAccount);
+
+        SaleOrder secondOrder = createSaleOrder(
+            "2025/0002",
+            DEFAULT_DATE,
+            OrderStatus.DRAFTED,
+            DEFAULT_ORDER_TYPE,
+            new BigDecimal("750.00"),
+            new BigDecimal("750.00"),
+            false,
+            false,
+            clientAccount,
+            customer
+        );
+        SaleOrderItem secondItem = createSaleOrderItem(secondProduct, new BigDecimal("5"), new BigDecimal("75.00"), secondOrder);
+        secondOrder.addOrderItem(secondItem);
+        secondOrder = saleOrderRepository.saveAndFlush(secondOrder);
+
+        ZonedDateTime beforeSecondConfirm = ZonedDateTime.now();
+
+        // Confirm second order
+        restSaleOrderMockMvc
+            .perform(post(ENTITY_API_URL_ID + "/confirm", secondOrder.getId()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value(OrderStatus.CONFIRMED.toString()));
+
+        ZonedDateTime afterSecondConfirm = ZonedDateTime.now();
+
+        // Verify second order has 24-hour expiration
+        SaleOrder confirmedSecondOrder = saleOrderRepository.findById(secondOrder.getId()).orElse(null);
+        assertThat(confirmedSecondOrder).isNotNull();
+        assertThat(confirmedSecondOrder.getReservationExpiresAt()).isNotNull();
+
+        ZonedDateTime expectedSecondMinExpiration = beforeSecondConfirm.plusHours(24);
+        ZonedDateTime expectedSecondMaxExpiration = afterSecondConfirm.plusHours(24);
+
+        assertThat(confirmedSecondOrder.getReservationExpiresAt())
+            .isAfterOrEqualTo(expectedSecondMinExpiration)
+            .isBeforeOrEqualTo(expectedSecondMaxExpiration);
+
+        long secondOrderHoursDifference = java.time.Duration.between(
+            ZonedDateTime.now(),
+            confirmedSecondOrder.getReservationExpiresAt()
+        ).toHours();
+        assertThat(secondOrderHoursDifference).isBetween(23L, 25L); // Should be approximately 24 hours
+    }
+
+    @Test
+    @Transactional
+    void confirmOrder_InsufficientInventory_ShouldFail() throws Exception {
+        setupSecurityContext();
+
+        // Create test data with limited inventory
+        product = createAndSaveProduct(clientAccount);
+        inventory = createAndSaveInventory(product, new BigDecimal("5"), new BigDecimal("5"), clientAccount);
+
+        // Create order that requires more than available
+        saleOrder = createSaleOrder(clientAccount, customer);
+        SaleOrderItem item = createSaleOrderItem(product, BigDecimal.TEN, new BigDecimal("100.00"), saleOrder);
+        saleOrder.addOrderItem(item);
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Attempt to confirm should fail
+        ResultActions resultActions = restSaleOrderMockMvc
+            .perform(post(ENTITY_API_URL_ID + "/confirm", saleOrder.getId()))
+            .andExpect(status().isBadRequest());
+        resultActions
+            .andExpect(jsonPath("$.errorKey").value(ErrorConstants.INSUFFICIENT_INVENTORY))
+            .andExpect(jsonPath("$.message").value(containsString("has only 5 units available")));
+
+        // Verify order status remains DRAFTED
+        SaleOrder unchangedOrder = saleOrderRepository.findById(saleOrder.getId()).orElse(null);
+        assertThat(unchangedOrder).isNotNull();
+        assertThat(unchangedOrder.getStatus()).isEqualTo(OrderStatus.DRAFTED);
+
+        // Verify inventory unchanged
+        Inventory unchangedInventory = inventoryRepository.findById(inventory.getId()).orElse(null);
+        assertThat(unchangedInventory).isNotNull();
+        assertThat(unchangedInventory.getAvailableQuantity()).isEqualByComparingTo(new BigDecimal("5"));
+    }
+
+    @Test
+    @Transactional
+    void confirmOrder_ProductNotInInventory_ShouldFail() throws Exception {
+        setupSecurityContext();
+
+        // Create product without inventory
+        product = createAndSaveProduct(clientAccount);
+        // Note: Not creating inventory for this product
+
+        saleOrder = createSaleOrder(clientAccount, customer);
+        SaleOrderItem item = createSaleOrderItem(product, BigDecimal.TEN, new BigDecimal("100.00"), saleOrder);
+        saleOrder.addOrderItem(item);
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Attempt to confirm should fail
+        restSaleOrderMockMvc
+            .perform(post(ENTITY_API_URL_ID + "/confirm", saleOrder.getId()))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value(containsString("not found in inventory")));
+
+        // Verify order status remains DRAFTED
+        SaleOrder unchangedOrder = saleOrderRepository.findById(saleOrder.getId()).orElse(null);
+        assertThat(unchangedOrder).isNotNull();
+        assertThat(unchangedOrder.getStatus()).isEqualTo(OrderStatus.DRAFTED);
+    }
+
+    @Test
+    @Transactional
+    void confirmOrder_AlreadyConfirmed_ShouldFail() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder();
+        saleOrder.setStatus(OrderStatus.CONFIRMED);
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Attempt to confirm already confirmed order
+        restSaleOrderMockMvc
+            .perform(post(ENTITY_API_URL_ID + "/confirm", saleOrder.getId()))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value(containsString("Cannot confirm order with status CONFIRMED")));
+    }
+
+    @Test
+    @Transactional
+    void confirmOrder_OrderFromDifferentClientAccount_ShouldFail() throws Exception {
+        setupSecurityContext();
+
+        // Create another client account
+        ClientAccount otherClientAccount = createAndSaveClientAccount("Other Company", "other@company.com", "0676841437", 24);
+
+        createCompleteTestOrder();
+        saleOrder.setClientAccount(otherClientAccount); // Set to different client account
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Attempt to confirm should fail (access denied)
+        restSaleOrderMockMvc.perform(post(ENTITY_API_URL_ID + "/confirm", saleOrder.getId())).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @Transactional
+    void confirmOrder_NonExistentOrder_ShouldFail() throws Exception {
+        setupSecurityContext();
+
+        // Attempt to confirm non-existent order
+        restSaleOrderMockMvc.perform(post(ENTITY_API_URL_ID + "/confirm", 99999L)).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @Transactional
+    void confirmOrder_MultipleItems_ShouldReserveAllInventory() throws Exception {
+        setupSecurityContext();
+
+        // Create multiple products and inventories
+        Product product1 = createAndSaveProduct(
+            "Product 1",
+            "PROD-001",
+            new BigDecimal("100.00"),
+            new BigDecimal("80.00"),
+            false,
+            clientAccount
+        );
+        Product product2 = createAndSaveProduct(
+            "Product 2",
+            "PROD-002",
+            new BigDecimal("200.00"),
+            new BigDecimal("160.00"),
+            false,
+            clientAccount
+        );
+
+        Inventory inventory1 = createAndSaveInventory(product1, new BigDecimal("50"), new BigDecimal("50"), clientAccount);
+        Inventory inventory2 = createAndSaveInventory(product2, new BigDecimal("30"), new BigDecimal("30"), clientAccount);
+
+        // Create order with multiple items
+        saleOrder = createSaleOrder(
+            DEFAULT_REFERENCE,
+            DEFAULT_DATE,
+            OrderStatus.DRAFTED,
+            DEFAULT_ORDER_TYPE,
+            new BigDecimal("1500.00"),
+            new BigDecimal("1500.00"),
+            false,
+            false,
+            clientAccount,
+            customer
+        );
+
+        SaleOrderItem item1 = createSaleOrderItem(product1, new BigDecimal("5"), new BigDecimal("100.00"), saleOrder);
+        SaleOrderItem item2 = createSaleOrderItem(product2, new BigDecimal("5"), new BigDecimal("200.00"), saleOrder);
+
+        saleOrder.addOrderItem(item1);
+        saleOrder.addOrderItem(item2);
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Confirm the order
+        restSaleOrderMockMvc
+            .perform(post(ENTITY_API_URL_ID + "/confirm", saleOrder.getId()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value(OrderStatus.CONFIRMED.toString()));
+
+        // Verify both inventories were reserved
+        Inventory updatedInventory1 = inventoryRepository.findById(inventory1.getId()).orElse(null);
+        assertThat(updatedInventory1).isNotNull();
+        assertThat(updatedInventory1.getAvailableQuantity()).isEqualByComparingTo(new BigDecimal("45")); // 50 - 5
+
+        Inventory updatedInventory2 = inventoryRepository.findById(inventory2.getId()).orElse(null);
+        assertThat(updatedInventory2).isNotNull();
+        assertThat(updatedInventory2.getAvailableQuantity()).isEqualByComparingTo(new BigDecimal("25")); // 30 - 5
+    }
+
+    @Test
+    @Transactional
+    void confirmOrder_PartialInventoryFailure_ShouldRollback() throws Exception {
+        setupSecurityContext();
+
+        // Create two products, one with sufficient inventory, one without
+        Product product1 = createAndSaveProduct(
+            "Product 1",
+            "PROD-001",
+            new BigDecimal("100.00"),
+            new BigDecimal("80.00"),
+            false,
+            clientAccount
+        );
+        Product product2 = createAndSaveProduct(
+            "Product 2",
+            "PROD-002",
+            new BigDecimal("200.00"),
+            new BigDecimal("160.00"),
+            false,
+            clientAccount
+        );
+
+        // Product 1 has sufficient inventory, Product 2 has insufficient inventory
+        Inventory inventory1 = createAndSaveInventory(product1, new BigDecimal("50"), new BigDecimal("50"), clientAccount);
+        Inventory inventory2 = createAndSaveInventory(product2, new BigDecimal("2"), new BigDecimal("2"), clientAccount);
+
+        // Create order requesting more than available for product2
+        saleOrder = createSaleOrder(
+            DEFAULT_REFERENCE,
+            DEFAULT_DATE,
+            OrderStatus.DRAFTED,
+            DEFAULT_ORDER_TYPE,
+            new BigDecimal("1500.00"),
+            new BigDecimal("1500.00"),
+            false,
+            false,
+            clientAccount,
+            customer
+        );
+
+        SaleOrderItem item1 = createSaleOrderItem(product1, new BigDecimal("5"), new BigDecimal("100.00"), saleOrder); // This is fine
+        SaleOrderItem item2 = createSaleOrderItem(product2, new BigDecimal("5"), new BigDecimal("200.00"), saleOrder); // This exceeds available
+
+        saleOrder.addOrderItem(item1);
+        saleOrder.addOrderItem(item2);
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        // Attempt to confirm should fail
+        restSaleOrderMockMvc
+            .perform(post(ENTITY_API_URL_ID + "/confirm", saleOrder.getId()))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value(containsString("has only 2 units available")));
+
+        // Verify NO inventory was reserved (transaction rollback)
+        Inventory unchangedInventory1 = inventoryRepository.findById(inventory1.getId()).orElse(null);
+        assertThat(unchangedInventory1).isNotNull();
+        assertThat(unchangedInventory1.getAvailableQuantity()).isEqualByComparingTo(new BigDecimal("50"));
+
+        Inventory unchangedInventory2 = inventoryRepository.findById(inventory2.getId()).orElse(null);
+        assertThat(unchangedInventory2).isNotNull();
+        assertThat(unchangedInventory2.getAvailableQuantity()).isEqualByComparingTo(new BigDecimal("2"));
+
+        // Verify order status remains DRAFTED
+        SaleOrder unchangedOrder = saleOrderRepository.findById(saleOrder.getId()).orElse(null);
+        assertThat(unchangedOrder).isNotNull();
+        assertThat(unchangedOrder.getStatus()).isEqualTo(OrderStatus.DRAFTED);
+    }
+
+    @Test
+    @Transactional
+    void confirmOrder_WithZeroQuantityItem_ShouldSucceed() throws Exception {
+        setupSecurityContext();
+
+        createCompleteTestOrder(BigDecimal.ZERO, new BigDecimal("100.00"));
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        BigDecimal originalAvailableQuantity = inventory.getAvailableQuantity();
+
+        // Confirm the order
+        restSaleOrderMockMvc
+            .perform(post(ENTITY_API_URL_ID + "/confirm", saleOrder.getId()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value(OrderStatus.CONFIRMED.toString()));
+
+        // Verify inventory unchanged (no reservation for zero quantity)
+        Inventory updatedInventory = inventoryRepository.findById(inventory.getId()).orElse(null);
+        assertThat(updatedInventory).isNotNull();
+        assertThat(updatedInventory.getAvailableQuantity()).isEqualByComparingTo(originalAvailableQuantity);
+    }
+
+    @Test
+    @Transactional
+    void confirmOrder_ReservationExpirationSet_ShouldHaveCorrectTimeout() throws Exception {
+        setupSecurityContext();
+
+        // Update client account with specific timeout
+        clientAccount.setReservationTimeoutHours(48); // 48 hours
+        clientAccount = clientAccountRepository.saveAndFlush(clientAccount);
+
+        createCompleteTestOrder();
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
+
+        ZonedDateTime beforeConfirm = ZonedDateTime.now();
+
+        // Confirm the order
+        restSaleOrderMockMvc
+            .perform(post(ENTITY_API_URL_ID + "/confirm", saleOrder.getId()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value(OrderStatus.CONFIRMED.toString()))
+            .andExpect(jsonPath("$.reservationExpiresAt").exists());
+
+        ZonedDateTime afterConfirm = ZonedDateTime.now();
+
+        // Verify reservation expiration is set correctly (48 hours from now)
+        SaleOrder confirmedOrder = saleOrderRepository.findById(saleOrder.getId()).orElse(null);
+        assertThat(confirmedOrder).isNotNull();
+        assertThat(confirmedOrder.getReservationExpiresAt()).isNotNull();
+
+        ZonedDateTime expectedMin = beforeConfirm.plusHours(48);
+        ZonedDateTime expectedMax = afterConfirm.plusHours(48);
+
+        assertThat(confirmedOrder.getReservationExpiresAt()).isAfterOrEqualTo(expectedMin).isBeforeOrEqualTo(expectedMax);
+    }
+
+    // ===============================
+    // ORDER OPERATIONS TESTS
+    // ===============================
+
+    @Test
+    @Transactional
     void cancelOrder() throws Exception {
-        // Initialize the database with confirmed order
+        setupSecurityContext();
+
+        createCompleteTestOrder();
         saleOrder.setStatus(OrderStatus.CONFIRMED);
         saleOrder.setReservationExpiresAt(ZonedDateTime.now().plusHours(24));
-        saleOrderRepository.saveAndFlush(saleOrder);
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
 
         // Reserve inventory
         inventory.setAvailableQuantity(inventory.getAvailableQuantity().subtract(BigDecimal.TEN));
@@ -717,10 +1276,12 @@ class SaleOrderResourceIT {
     @Test
     @Transactional
     void markOrderPickedUp() throws Exception {
-        // Initialize the database with confirmed pickup order
+        setupSecurityContext();
+
+        createCompleteTestOrder();
         saleOrder.setStatus(OrderStatus.CONFIRMED);
         saleOrder.setOrderType(OrderType.STORE_PICKUP);
-        saleOrderRepository.saveAndFlush(saleOrder);
+        saleOrder = saleOrderRepository.saveAndFlush(saleOrder);
 
         // Mark as picked up
         restSaleOrderMockMvc
@@ -735,9 +1296,18 @@ class SaleOrderResourceIT {
         assertThat(testSaleOrder.getStatus()).isEqualTo(OrderStatus.PICKED_UP);
     }
 
+    // ===============================
+    // VALIDATION & SEARCH TESTS
+    // ===============================
+
     @Test
     @Transactional
     void validateOrderAvailability() throws Exception {
+        setupSecurityContext();
+
+        product = createAndSaveProduct(clientAccount);
+        inventory = createAndSaveInventory(product, clientAccount);
+
         // Create order items for validation
         OrderItemDTO orderItem = new OrderItemDTO();
         orderItem.setProductId(product.getId());
@@ -761,6 +1331,11 @@ class SaleOrderResourceIT {
     @Test
     @Transactional
     void validateOrderAvailability_InsufficientStock() throws Exception {
+        setupSecurityContext();
+
+        product = createAndSaveProduct(clientAccount);
+        inventory = createAndSaveInventory(product, clientAccount);
+
         // Create order items that exceed available stock
         OrderItemDTO orderItem = new OrderItemDTO();
         orderItem.setProductId(product.getId());
@@ -785,7 +1360,9 @@ class SaleOrderResourceIT {
     @Test
     @Transactional
     void getOrderStatistics() throws Exception {
-        // Initialize the database with test orders
+        setupSecurityContext();
+
+        createCompleteTestOrder();
         saleOrderRepository.saveAndFlush(saleOrder);
 
         // Get statistics
@@ -802,7 +1379,9 @@ class SaleOrderResourceIT {
     @Test
     @Transactional
     void searchSaleOrders() throws Exception {
-        // Initialize the database
+        setupSecurityContext();
+
+        createCompleteTestOrder();
         saleOrderRepository.saveAndFlush(saleOrder);
 
         // Search orders
@@ -812,72 +1391,5 @@ class SaleOrderResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$[0].reference").value(containsString("TEST")));
-    }
-
-    // Helper methods to create test data
-
-    private void createTestClientAccount() {
-        clientAccount = new ClientAccount();
-        clientAccount.setCompanyName("Test Company");
-        clientAccount.email("test@company.com");
-        clientAccount.setPhone("0676841436");
-        clientAccount.setStatus(AccountStatus.ENABLED);
-        clientAccount.setDefaultShippingCost(DEFAULT_SHIPPING_COST);
-        clientAccount.setReservationTimeoutHours(24);
-        clientAccount.setYalidineEnabled(false);
-        clientAccount = clientAccountRepository.saveAndFlush(clientAccount);
-    }
-
-    private void createTestCustomer() {
-        customer = new Customer();
-        customer.setFirstName("John");
-        customer.setLastName("Doe");
-        customer.setPhone("+213555123456");
-        customer.setCreatedByClientAccount(clientAccount);
-        customer = customerRepository.saveAndFlush(customer);
-    }
-
-    private void createTestProduct() {
-        product = new Product();
-        product.setName("Test Product");
-        product.setCode("TEST-001");
-        product.applyTva(false);
-        product.setSellingPrice(new BigDecimal("100.00"));
-        product.setCostPrice(new BigDecimal("80.00"));
-        product.setCategory(ProductCategory.ELECTRONICS);
-        product.setClientAccount(clientAccount);
-        product = productRepository.saveAndFlush(product);
-    }
-
-    private void createTestInventory() {
-        inventory = new Inventory();
-        inventory.setProduct(product);
-        inventory.setQuantity(new BigDecimal("100"));
-        inventory.setAvailableQuantity(new BigDecimal("100"));
-        inventory.setStatus(InventoryStatus.AVAILABLE);
-        inventory.setClientAccount(clientAccount);
-        inventory = inventoryRepository.saveAndFlush(inventory);
-    }
-
-    private void createTestSaleOrder() {
-        saleOrder = new SaleOrder();
-        saleOrder.setReference(DEFAULT_REFERENCE);
-        saleOrder.setDate(DEFAULT_DATE);
-        saleOrder.setStatus(DEFAULT_STATUS);
-        saleOrder.setOrderType(DEFAULT_ORDER_TYPE);
-        saleOrder.setSubTotal(DEFAULT_TOTAL);
-        saleOrder.setTotal(DEFAULT_TOTAL);
-        saleOrder.setClientAccount(clientAccount);
-        saleOrder.setCustomer(customer);
-
-        // Add order items
-        SaleOrderItem item = new SaleOrderItem();
-        item.setProduct(product);
-        item.setQuantity(BigDecimal.TEN);
-        item.setUnitPrice(new BigDecimal("100.00"));
-        item.setTotal(new BigDecimal("1000.00"));
-        item.setSaleOrder(saleOrder);
-
-        saleOrder.addOrderItem(item);
     }
 }

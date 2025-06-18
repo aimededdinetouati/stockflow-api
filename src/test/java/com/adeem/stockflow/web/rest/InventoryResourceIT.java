@@ -491,7 +491,7 @@ class InventoryResourceIT {
                     .content(om.writeValueAsBytes(request))
             )
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value("E014"));
+            .andExpect(jsonPath("$.errorKey").value("E014"));
     }
 
     @Test
