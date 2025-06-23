@@ -2,13 +2,17 @@ package com.adeem.stockflow.domain;
 
 import com.adeem.stockflow.domain.enumeration.ShippingStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.domain.Persistable;
 
 /**
@@ -40,13 +44,13 @@ public class Shipment extends AbstractAuditingEntity<Long> implements Serializab
     private String carrier;
 
     @Column(name = "shipping_date")
-    private Instant shippingDate;
+    private LocalDateTime shippingDate;
 
     @Column(name = "estimated_delivery_date")
-    private Instant estimatedDeliveryDate;
+    private LocalDateTime estimatedDeliveryDate;
 
     @Column(name = "actual_delivery_date")
-    private Instant actualDeliveryDate;
+    private LocalDateTime actualDeliveryDate;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -63,6 +67,17 @@ public class Shipment extends AbstractAuditingEntity<Long> implements Serializab
     @Column(name = "notes")
     private String notes;
 
+    // NEW FIELDS for Yalidine integration
+    @Column(name = "yalidine_shipment_id")
+    private String yalidineShipmentId;
+
+    @Column(name = "yalidine_tracking_url")
+    private String yalidineTrackingUrl;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "yalidine_response_data", columnDefinition = "jsonb")
+    private JsonNode yalidineResponseData;
+
     // Inherited createdBy definition
     // Inherited createdDate definition
     // Inherited lastModifiedBy definition
@@ -77,8 +92,30 @@ public class Shipment extends AbstractAuditingEntity<Long> implements Serializab
     private SaleOrder saleOrder;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "customer", "clientAccount", "supplier" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "customer", "clientAccount" }, allowSetters = true)
     private Address address;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnoreProperties(
+        value = {
+            "user",
+            "subscription",
+            "quota",
+            "address",
+            "paymentConfiguration",
+            "products",
+            "inventories",
+            "customers",
+            "saleOrders",
+            "purchaseOrders",
+            "returnOrders",
+            "payments",
+            "shipments",
+            "attachments",
+        },
+        allowSetters = true
+    )
+    private ClientAccount clientAccount;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -134,42 +171,42 @@ public class Shipment extends AbstractAuditingEntity<Long> implements Serializab
         this.carrier = carrier;
     }
 
-    public Instant getShippingDate() {
+    public LocalDateTime getShippingDate() {
         return this.shippingDate;
     }
 
-    public Shipment shippingDate(Instant shippingDate) {
+    public Shipment shippingDate(LocalDateTime shippingDate) {
         this.setShippingDate(shippingDate);
         return this;
     }
 
-    public void setShippingDate(Instant shippingDate) {
+    public void setShippingDate(LocalDateTime shippingDate) {
         this.shippingDate = shippingDate;
     }
 
-    public Instant getEstimatedDeliveryDate() {
+    public LocalDateTime getEstimatedDeliveryDate() {
         return this.estimatedDeliveryDate;
     }
 
-    public Shipment estimatedDeliveryDate(Instant estimatedDeliveryDate) {
+    public Shipment estimatedDeliveryDate(LocalDateTime estimatedDeliveryDate) {
         this.setEstimatedDeliveryDate(estimatedDeliveryDate);
         return this;
     }
 
-    public void setEstimatedDeliveryDate(Instant estimatedDeliveryDate) {
+    public void setEstimatedDeliveryDate(LocalDateTime estimatedDeliveryDate) {
         this.estimatedDeliveryDate = estimatedDeliveryDate;
     }
 
-    public Instant getActualDeliveryDate() {
+    public LocalDateTime getActualDeliveryDate() {
         return this.actualDeliveryDate;
     }
 
-    public Shipment actualDeliveryDate(Instant actualDeliveryDate) {
+    public Shipment actualDeliveryDate(LocalDateTime actualDeliveryDate) {
         this.setActualDeliveryDate(actualDeliveryDate);
         return this;
     }
 
-    public void setActualDeliveryDate(Instant actualDeliveryDate) {
+    public void setActualDeliveryDate(LocalDateTime actualDeliveryDate) {
         this.actualDeliveryDate = actualDeliveryDate;
     }
 
@@ -225,28 +262,44 @@ public class Shipment extends AbstractAuditingEntity<Long> implements Serializab
         this.notes = notes;
     }
 
-    // Inherited createdBy methods
-    public Shipment createdBy(String createdBy) {
-        this.setCreatedBy(createdBy);
+    // NEW FIELD GETTERS/SETTERS for Yalidine integration
+    public String getYalidineShipmentId() {
+        return this.yalidineShipmentId;
+    }
+
+    public Shipment yalidineShipmentId(String yalidineShipmentId) {
+        this.setYalidineShipmentId(yalidineShipmentId);
         return this;
     }
 
-    // Inherited createdDate methods
-    public Shipment createdDate(Instant createdDate) {
-        this.setCreatedDate(createdDate);
+    public void setYalidineShipmentId(String yalidineShipmentId) {
+        this.yalidineShipmentId = yalidineShipmentId;
+    }
+
+    public String getYalidineTrackingUrl() {
+        return this.yalidineTrackingUrl;
+    }
+
+    public Shipment yalidineTrackingUrl(String yalidineTrackingUrl) {
+        this.setYalidineTrackingUrl(yalidineTrackingUrl);
         return this;
     }
 
-    // Inherited lastModifiedBy methods
-    public Shipment lastModifiedBy(String lastModifiedBy) {
-        this.setLastModifiedBy(lastModifiedBy);
+    public void setYalidineTrackingUrl(String yalidineTrackingUrl) {
+        this.yalidineTrackingUrl = yalidineTrackingUrl;
+    }
+
+    public JsonNode getYalidineResponseData() {
+        return this.yalidineResponseData;
+    }
+
+    public Shipment yalidineResponseData(JsonNode yalidineResponseData) {
+        this.setYalidineResponseData(yalidineResponseData);
         return this;
     }
 
-    // Inherited lastModifiedDate methods
-    public Shipment lastModifiedDate(Instant lastModifiedDate) {
-        this.setLastModifiedDate(lastModifiedDate);
-        return this;
+    public void setYalidineResponseData(JsonNode yalidineResponseData) {
+        this.yalidineResponseData = yalidineResponseData;
     }
 
     @PostLoad
@@ -255,16 +308,14 @@ public class Shipment extends AbstractAuditingEntity<Long> implements Serializab
         this.setIsPersisted();
     }
 
-    @org.springframework.data.annotation.Transient
-    @Transient
-    @Override
-    public boolean isNew() {
-        return !this.isPersisted;
-    }
-
     public Shipment setIsPersisted() {
         this.isPersisted = true;
         return this;
+    }
+
+    @Override
+    public boolean isNew() {
+        return !this.isPersisted;
     }
 
     public SaleOrder getSaleOrder() {
@@ -290,6 +341,19 @@ public class Shipment extends AbstractAuditingEntity<Long> implements Serializab
 
     public Shipment address(Address address) {
         this.setAddress(address);
+        return this;
+    }
+
+    public ClientAccount getClientAccount() {
+        return this.clientAccount;
+    }
+
+    public void setClientAccount(ClientAccount clientAccount) {
+        this.clientAccount = clientAccount;
+    }
+
+    public Shipment clientAccount(ClientAccount clientAccount) {
+        this.setClientAccount(clientAccount);
         return this;
     }
 
@@ -327,10 +391,8 @@ public class Shipment extends AbstractAuditingEntity<Long> implements Serializab
             ", shippingCost=" + getShippingCost() +
             ", weight=" + getWeight() +
             ", notes='" + getNotes() + "'" +
-            ", createdBy='" + getCreatedBy() + "'" +
-            ", createdDate='" + getCreatedDate() + "'" +
-            ", lastModifiedBy='" + getLastModifiedBy() + "'" +
-            ", lastModifiedDate='" + getLastModifiedDate() + "'" +
+            ", yalidineShipmentId='" + getYalidineShipmentId() + "'" +
+            ", yalidineTrackingUrl='" + getYalidineTrackingUrl() + "'" +
             "}";
     }
 }

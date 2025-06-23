@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
@@ -73,6 +74,27 @@ public class ClientAccount extends AbstractAuditingEntity<Long> implements Seria
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private AccountStatus status;
+
+    @Column(name = "registration_date")
+    private Instant registrationDate;
+
+    @Column(name = "last_activity_date")
+    private Instant lastActivityDate;
+
+    @Column(name = "default_shipping_cost", precision = 21, scale = 2)
+    private BigDecimal defaultShippingCost;
+
+    @Column(name = "reservation_timeout_hours")
+    private Integer reservationTimeoutHours;
+
+    @Column(name = "yalidine_api_key")
+    private String yalidineApiKey;
+
+    @Column(name = "yalidine_api_secret")
+    private String yalidineApiSecret;
+
+    @Column(name = "yalidine_enabled")
+    private Boolean yalidineEnabled;
 
     // Inherited createdBy definition
     // Inherited createdDate definition
@@ -258,6 +280,98 @@ public class ClientAccount extends AbstractAuditingEntity<Long> implements Seria
     public ClientAccount lastModifiedDate(Instant lastModifiedDate) {
         this.setLastModifiedDate(lastModifiedDate);
         return this;
+    }
+
+    public Instant getRegistrationDate() {
+        return this.registrationDate;
+    }
+
+    public ClientAccount registrationDate(Instant registrationDate) {
+        this.setRegistrationDate(registrationDate);
+        return this;
+    }
+
+    public void setRegistrationDate(Instant registrationDate) {
+        this.registrationDate = registrationDate;
+    }
+
+    public Instant getLastActivityDate() {
+        return this.lastActivityDate;
+    }
+
+    public ClientAccount lastActivityDate(Instant lastActivityDate) {
+        this.setLastActivityDate(lastActivityDate);
+        return this;
+    }
+
+    public void setLastActivityDate(Instant lastActivityDate) {
+        this.lastActivityDate = lastActivityDate;
+    }
+
+    // NEW FIELD GETTERS/SETTERS
+    public BigDecimal getDefaultShippingCost() {
+        return this.defaultShippingCost;
+    }
+
+    public ClientAccount defaultShippingCost(BigDecimal defaultShippingCost) {
+        this.setDefaultShippingCost(defaultShippingCost);
+        return this;
+    }
+
+    public void setDefaultShippingCost(BigDecimal defaultShippingCost) {
+        this.defaultShippingCost = defaultShippingCost;
+    }
+
+    public Integer getReservationTimeoutHours() {
+        return this.reservationTimeoutHours;
+    }
+
+    public ClientAccount reservationTimeoutHours(Integer reservationTimeoutHours) {
+        this.setReservationTimeoutHours(reservationTimeoutHours);
+        return this;
+    }
+
+    public void setReservationTimeoutHours(Integer reservationTimeoutHours) {
+        this.reservationTimeoutHours = reservationTimeoutHours;
+    }
+
+    public String getYalidineApiKey() {
+        return this.yalidineApiKey;
+    }
+
+    public ClientAccount yalidineApiKey(String yalidineApiKey) {
+        this.setYalidineApiKey(yalidineApiKey);
+        return this;
+    }
+
+    public void setYalidineApiKey(String yalidineApiKey) {
+        this.yalidineApiKey = yalidineApiKey;
+    }
+
+    public String getYalidineApiSecret() {
+        return this.yalidineApiSecret;
+    }
+
+    public ClientAccount yalidineApiSecret(String yalidineApiSecret) {
+        this.setYalidineApiSecret(yalidineApiSecret);
+        return this;
+    }
+
+    public void setYalidineApiSecret(String yalidineApiSecret) {
+        this.yalidineApiSecret = yalidineApiSecret;
+    }
+
+    public Boolean getYalidineEnabled() {
+        return this.yalidineEnabled;
+    }
+
+    public ClientAccount yalidineEnabled(Boolean yalidineEnabled) {
+        this.setYalidineEnabled(yalidineEnabled);
+        return this;
+    }
+
+    public void setYalidineEnabled(Boolean yalidineEnabled) {
+        this.yalidineEnabled = yalidineEnabled;
     }
 
     @PostLoad

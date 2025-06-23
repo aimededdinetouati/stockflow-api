@@ -13,4 +13,6 @@ public enum TransactionType {
     TRANSFER_OUT,
     DAMAGED,
     EXPIRED,
+    RESERVATION,
+    RESERVATION_RELEASE, // Stock released from cancelled order
 }

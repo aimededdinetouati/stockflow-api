@@ -1,8 +1,10 @@
 package com.adeem.stockflow.service.dto;
 
 import com.adeem.stockflow.domain.enumeration.AccountStatus;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
 
@@ -43,6 +45,20 @@ public class ClientAccountDTO implements Serializable {
     private Long socialCapital;
 
     private AccountStatus status;
+
+    private Instant registrationDate;
+
+    private Instant lastActivityDate;
+
+    private BigDecimal defaultShippingCost;
+
+    private Integer reservationTimeoutHours;
+
+    private String yalidineApiKey;
+
+    private String yalidineApiSecret;
+
+    private Boolean yalidineEnabled;
 
     private String createdBy;
 
@@ -166,6 +182,62 @@ public class ClientAccountDTO implements Serializable {
 
     public void setStatus(AccountStatus status) {
         this.status = status;
+    }
+
+    public Instant getRegistrationDate() {
+        return registrationDate;
+    }
+
+    public void setRegistrationDate(Instant registrationDate) {
+        this.registrationDate = registrationDate;
+    }
+
+    public Instant getLastActivityDate() {
+        return lastActivityDate;
+    }
+
+    public void setLastActivityDate(Instant lastActivityDate) {
+        this.lastActivityDate = lastActivityDate;
+    }
+
+    public BigDecimal getDefaultShippingCost() {
+        return defaultShippingCost;
+    }
+
+    public void setDefaultShippingCost(BigDecimal defaultShippingCost) {
+        this.defaultShippingCost = defaultShippingCost;
+    }
+
+    public Integer getReservationTimeoutHours() {
+        return reservationTimeoutHours;
+    }
+
+    public void setReservationTimeoutHours(Integer reservationTimeoutHours) {
+        this.reservationTimeoutHours = reservationTimeoutHours;
+    }
+
+    public String getYalidineApiKey() {
+        return yalidineApiKey;
+    }
+
+    public void setYalidineApiKey(String yalidineApiKey) {
+        this.yalidineApiKey = yalidineApiKey;
+    }
+
+    public String getYalidineApiSecret() {
+        return yalidineApiSecret;
+    }
+
+    public void setYalidineApiSecret(String yalidineApiSecret) {
+        this.yalidineApiSecret = yalidineApiSecret;
+    }
+
+    public Boolean getYalidineEnabled() {
+        return yalidineEnabled;
+    }
+
+    public void setYalidineEnabled(Boolean yalidineEnabled) {
+        this.yalidineEnabled = yalidineEnabled;
     }
 
     public String getCreatedBy() {

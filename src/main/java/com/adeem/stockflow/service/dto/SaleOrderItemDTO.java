@@ -15,12 +15,15 @@ public class SaleOrderItemDTO implements Serializable {
     private Long id;
 
     @NotNull
+    @Min(1)
     private BigDecimal quantity;
 
     @NotNull
+    @Min(0)
     private BigDecimal unitPrice;
 
     @NotNull
+    @Min(0)
     private BigDecimal total;
 
     private String createdBy;

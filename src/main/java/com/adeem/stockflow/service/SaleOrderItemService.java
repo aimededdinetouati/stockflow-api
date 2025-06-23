@@ -110,4 +110,8 @@ public class SaleOrderItemService {
         LOG.debug("Request to delete SaleOrderItem : {}", id);
         saleOrderItemRepository.deleteById(id);
     }
+
+    public void deleteBySaleOrderId(Long id) {
+        saleOrderItemRepository.deleteBySaleOrderId(id);
+    }
 }

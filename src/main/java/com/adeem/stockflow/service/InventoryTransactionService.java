@@ -1,5 +1,6 @@
 package com.adeem.stockflow.service;
 
+import com.adeem.stockflow.domain.ClientAccount;
 import com.adeem.stockflow.domain.InventoryTransaction;
 import com.adeem.stockflow.domain.Product;
 import com.adeem.stockflow.domain.enumeration.TransactionType;
@@ -9,6 +10,8 @@ import com.adeem.stockflow.service.mapper.InventoryTransactionMapper;
 import com.adeem.stockflow.service.util.DateTimeUtils;
 import com.adeem.stockflow.service.util.GlobalUtils;
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,14 +48,18 @@ public class InventoryTransactionService {
     public void save(Product product, BigDecimal quantity, TransactionType transactionType) {
         LOG.debug("Request to save InventoryTransaction");
 
-        InventoryTransaction inventoryTransaction = new InventoryTransaction();
-        inventoryTransaction.setQuantity(quantity);
-        inventoryTransaction.setTransactionDate(DateTimeUtils.nowAlgeria());
-        inventoryTransaction.setTransactionType(transactionType);
-        inventoryTransaction.setProduct(product);
-        inventoryTransaction.setReferenceNumber(generateReference());
-
+        InventoryTransaction inventoryTransaction = createEntity(
+            quantity,
+            transactionType,
+            product,
+            product.getClientAccount(),
+            generateReference(product.getClientAccount().getId())
+        );
         inventoryTransactionRepository.save(inventoryTransaction);
+    }
+
+    public void saveAll(List<InventoryTransaction> transactionsToSave) {
+        inventoryTransactionRepository.saveAll(transactionsToSave);
     }
 
     /**
@@ -65,26 +72,6 @@ public class InventoryTransactionService {
         LOG.debug("Request to update InventoryTransaction : {}", inventoryTransaction);
         inventoryTransaction.setIsPersisted();
         inventoryTransactionRepository.save(inventoryTransaction);
-    }
-
-    /**
-     * Partially update a inventoryTransaction.
-     *
-     * @param inventoryTransactionDTO the entity to update partially.
-     * @return the persisted entity.
-     */
-    public Optional<InventoryTransactionDTO> partialUpdate(InventoryTransactionDTO inventoryTransactionDTO) {
-        LOG.debug("Request to partially update InventoryTransaction : {}", inventoryTransactionDTO);
-
-        return inventoryTransactionRepository
-            .findById(inventoryTransactionDTO.getId())
-            .map(existingInventoryTransaction -> {
-                inventoryTransactionMapper.partialUpdate(existingInventoryTransaction, inventoryTransactionDTO);
-
-                return existingInventoryTransaction;
-            })
-            .map(inventoryTransactionRepository::save)
-            .map(inventoryTransactionMapper::toDto);
     }
 
     /**
@@ -121,8 +108,25 @@ public class InventoryTransactionService {
         inventoryTransactionRepository.deleteById(id);
     }
 
-    private String generateReference() {
-        String reference = inventoryTransactionRepository.getLastReference().orElse(null);
+    public String generateReference(Long clientAccountId) {
+        String reference = inventoryTransactionRepository.getLastReference(clientAccountId).orElse(null);
         return GlobalUtils.generateReference(reference);
+    }
+
+    public InventoryTransaction createEntity(
+        BigDecimal quantity,
+        TransactionType type,
+        Product product,
+        ClientAccount clientAccount,
+        String reference
+    ) {
+        InventoryTransaction inventoryTransaction = new InventoryTransaction();
+        inventoryTransaction.setQuantity(quantity);
+        inventoryTransaction.setTransactionDate(DateTimeUtils.nowAlgeria());
+        inventoryTransaction.setTransactionType(type);
+        inventoryTransaction.setProduct(product);
+        inventoryTransaction.setClientAccount(clientAccount);
+        inventoryTransaction.setReferenceNumber(reference);
+        return inventoryTransaction;
     }
 }

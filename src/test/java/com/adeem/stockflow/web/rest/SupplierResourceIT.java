@@ -248,7 +248,7 @@ class SupplierResourceIT {
         restSupplierMockMvc
             .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(supplierDTO)))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value(ErrorConstants.ID_EXISTS));
+            .andExpect(jsonPath("$.errorKey").value(ErrorConstants.ID_EXISTS));
 
         assertSameRepositoryCount(databaseSizeBeforeCreate);
     }
@@ -271,7 +271,7 @@ class SupplierResourceIT {
         restSupplierMockMvc
             .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(duplicateSupplierDTO)))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value(ErrorConstants.EMAIL_ALREADY_EXISTS));
+            .andExpect(jsonPath("$.errorKey").value(ErrorConstants.EMAIL_ALREADY_EXISTS));
     }
 
     @Test

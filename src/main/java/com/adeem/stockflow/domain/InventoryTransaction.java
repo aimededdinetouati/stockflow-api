@@ -66,6 +66,10 @@ public class InventoryTransaction extends AbstractAuditingEntity<Long> implement
     @JsonIgnoreProperties(value = { "clientAccount", "product" }, allowSetters = true)
     private Inventory inventory;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnoreProperties(value = { "subscription", "quota", "address", "paymentConfiguration" }, allowSetters = true)
+    private ClientAccount clientAccount;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
     public Long getId() {
@@ -211,6 +215,19 @@ public class InventoryTransaction extends AbstractAuditingEntity<Long> implement
 
     public InventoryTransaction inventory(Inventory inventory) {
         this.setInventory(inventory);
+        return this;
+    }
+
+    public ClientAccount getClientAccount() {
+        return this.clientAccount;
+    }
+
+    public void setClientAccount(ClientAccount clientAccount) {
+        this.clientAccount = clientAccount;
+    }
+
+    public InventoryTransaction clientAccount(ClientAccount clientAccount) {
+        this.setClientAccount(clientAccount);
         return this;
     }
 

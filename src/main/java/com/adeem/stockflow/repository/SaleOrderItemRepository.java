@@ -9,4 +9,6 @@ import org.springframework.stereotype.Repository;
  */
 @SuppressWarnings("unused")
 @Repository
-public interface SaleOrderItemRepository extends JpaRepository<SaleOrderItem, Long> {}
+public interface SaleOrderItemRepository extends JpaRepository<SaleOrderItem, Long> {
+    void deleteBySaleOrderId(Long id);
+}

@@ -10,6 +10,13 @@
     -->
     <changeSet id="20250516093133-2" author="jhipster">
 
+      <addForeignKeyConstraint baseColumnNames="client_account_id"
+                               baseTableName="inventory_transaction"
+                               constraintName="fk_inventory_transaction__client_account_id"
+                               referencedColumnNames="id"
+                               referencedTableName="client_account"
+      />
+
         <addForeignKeyConstraint baseColumnNames="product_id"
                                  baseTableName="inventory_transaction"
                                  constraintName="fk_inventory_transaction__product_id"

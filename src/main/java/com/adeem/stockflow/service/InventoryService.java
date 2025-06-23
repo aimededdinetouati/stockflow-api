@@ -1,6 +1,9 @@
 package com.adeem.stockflow.service;
 
+import static com.adeem.stockflow.service.util.GlobalUtils.generateReference;
+
 import com.adeem.stockflow.domain.Inventory;
+import com.adeem.stockflow.domain.InventoryTransaction;
 import com.adeem.stockflow.domain.enumeration.TransactionType;
 import com.adeem.stockflow.repository.InventoryRepository;
 import com.adeem.stockflow.repository.InventoryTransactionRepository;
@@ -11,11 +14,14 @@ import com.adeem.stockflow.service.criteria.InventoryTransactionSpecification;
 import com.adeem.stockflow.service.dto.*;
 import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
 import com.adeem.stockflow.service.exceptions.ErrorConstants;
+import com.adeem.stockflow.service.exceptions.InsufficientInventoryException;
 import com.adeem.stockflow.service.mapper.InventoryMapper;
 import com.adeem.stockflow.service.mapper.InventoryTransactionMapper;
 import com.adeem.stockflow.service.mapper.ProductMapper;
+import com.adeem.stockflow.service.util.DateTimeUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +76,10 @@ public class InventoryService {
         Inventory inventory = inventoryMapper.toEntity(inventoryDTO);
         inventory = inventoryRepository.save(inventory);
         return inventoryMapper.toDto(inventory);
+    }
+
+    public void saveAll(List<Inventory> inventoriesToSave) {
+        inventoryRepository.saveAll(inventoriesToSave);
     }
 
     @CacheEvict(value = "inventoryStats", key = "#inventoryDTO.clientAccountId")
@@ -410,6 +420,89 @@ public class InventoryService {
         return inventoryMapper.toDto(savedInventory);
     }
 
+    public void updateInventoryQuantities(
+        Inventory inventory,
+        BigDecimal quantity,
+        String transactionReference,
+        TransactionType transactionType,
+        List<Inventory> inventoriesToSave,
+        List<InventoryTransaction> transactionsToSave
+    ) {
+        BigDecimal currentQuantity = inventory.getQuantity();
+        BigDecimal currentAvailable = inventory.getAvailableQuantity();
+
+        switch (transactionType) {
+            case RESERVATION:
+                BigDecimal newAvailable = currentAvailable.subtract(quantity);
+                if (newAvailable.compareTo(BigDecimal.ZERO) < 0) {
+                    throw new InsufficientInventoryException(
+                        String.format(
+                            "Cannot reserve %s units. Only %s available for product %s",
+                            quantity,
+                            currentAvailable,
+                            inventory.getProduct().getName()
+                        )
+                    );
+                }
+                inventory.setAvailableQuantity(newAvailable);
+                break;
+            case RESERVATION_RELEASE:
+                inventory.setAvailableQuantity(currentAvailable.add(quantity));
+                break;
+            case SALE:
+                BigDecimal newQuantity = currentQuantity.subtract(quantity);
+                if (newQuantity.compareTo(BigDecimal.ZERO) < 0) {
+                    throw new InsufficientInventoryException(
+                        String.format(
+                            "Cannot complete sale of %s units. Only %s total for product %s",
+                            quantity,
+                            currentQuantity,
+                            inventory.getProduct().getName()
+                        )
+                    );
+                }
+                inventory.setQuantity(newQuantity);
+                break;
+            case ADJUSTMENT:
+                BigDecimal newAdjQuantity = currentQuantity.add(quantity);
+                BigDecimal newAdjAvailable = currentAvailable.add(quantity);
+
+                if (newAdjQuantity.compareTo(BigDecimal.ZERO) < 0) {
+                    throw new BadRequestAlertException(
+                        "Adjustment would result in negative inventory",
+                        "inventory",
+                        ErrorConstants.QUANTITY_INVALID
+                    );
+                }
+                if (newAdjAvailable.compareTo(BigDecimal.ZERO) < 0) {
+                    throw new BadRequestAlertException(
+                        "Adjustment would result in negative available inventory",
+                        "inventory",
+                        ErrorConstants.INVALID_AVAILABLE_QUANTITY
+                    );
+                }
+
+                inventory.setQuantity(newAdjQuantity);
+                inventory.setAvailableQuantity(newAdjAvailable);
+                break;
+            case INITIAL:
+                inventory.setQuantity(quantity);
+                inventory.setAvailableQuantity(quantity);
+                break;
+        }
+
+        InventoryTransaction transaction = inventoryTransactionService.createEntity(
+            quantity,
+            transactionType,
+            inventory.getProduct(),
+            inventory.getClientAccount(),
+            transactionReference
+        );
+
+        inventoriesToSave.add(inventory);
+        transactionsToSave.add(transaction);
+    }
+
     /**
      * Get inventory transaction history.
      *
@@ -429,5 +522,9 @@ public class InventoryService {
         var specification = InventoryTransactionSpecification.withProductId(inventory.getProduct().getId());
         // Get transactions for this product
         return inventoryTransactionRepository.findAll(specification, pageable).map(inventoryTransactionMapper::toDto);
+    }
+
+    public Optional<Inventory> findByProductIdAndClientAccountId(Long productId, Long currentClientAccountId) {
+        return inventoryRepository.findByProductIdAndClientAccountId(productId, currentClientAccountId);
     }
 }

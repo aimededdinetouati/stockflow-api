@@ -1,14 +1,16 @@
 package com.adeem.stockflow.service.dto;
 
 import com.adeem.stockflow.domain.enumeration.ShippingStatus;
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
  * A DTO for the {@link com.adeem.stockflow.domain.Shipment} entity.
+ * Enhanced to support Yalidine integration and flexible carrier management.
  */
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class ShipmentDTO implements Serializable {
@@ -22,11 +24,11 @@ public class ShipmentDTO implements Serializable {
     @NotNull
     private String carrier;
 
-    private Instant shippingDate;
+    private LocalDateTime shippingDate;
 
-    private Instant estimatedDeliveryDate;
+    private LocalDateTime estimatedDeliveryDate;
 
-    private Instant actualDeliveryDate;
+    private LocalDateTime actualDeliveryDate;
 
     @NotNull
     private ShippingStatus status;
@@ -38,17 +40,19 @@ public class ShipmentDTO implements Serializable {
 
     private String notes;
 
-    private String createdBy;
+    // NEW FIELDS for Yalidine integration
+    private String yalidineShipmentId;
 
-    private Instant createdDate;
+    private String yalidineTrackingUrl;
 
-    private String lastModifiedBy;
+    private JsonNode yalidineResponseData;
 
-    private Instant lastModifiedDate;
-
+    // Relationships
     private SaleOrderDTO saleOrder;
 
     private AddressDTO address;
+
+    private ClientAccountDTO clientAccount;
 
     public Long getId() {
         return id;
@@ -82,27 +86,27 @@ public class ShipmentDTO implements Serializable {
         this.carrier = carrier;
     }
 
-    public Instant getShippingDate() {
+    public LocalDateTime getShippingDate() {
         return shippingDate;
     }
 
-    public void setShippingDate(Instant shippingDate) {
+    public void setShippingDate(LocalDateTime shippingDate) {
         this.shippingDate = shippingDate;
     }
 
-    public Instant getEstimatedDeliveryDate() {
+    public LocalDateTime getEstimatedDeliveryDate() {
         return estimatedDeliveryDate;
     }
 
-    public void setEstimatedDeliveryDate(Instant estimatedDeliveryDate) {
+    public void setEstimatedDeliveryDate(LocalDateTime estimatedDeliveryDate) {
         this.estimatedDeliveryDate = estimatedDeliveryDate;
     }
 
-    public Instant getActualDeliveryDate() {
+    public LocalDateTime getActualDeliveryDate() {
         return actualDeliveryDate;
     }
 
-    public void setActualDeliveryDate(Instant actualDeliveryDate) {
+    public void setActualDeliveryDate(LocalDateTime actualDeliveryDate) {
         this.actualDeliveryDate = actualDeliveryDate;
     }
 
@@ -138,36 +142,29 @@ public class ShipmentDTO implements Serializable {
         this.notes = notes;
     }
 
-    public String getCreatedBy() {
-        return createdBy;
+    // NEW FIELD GETTERS/SETTERS for Yalidine integration
+    public String getYalidineShipmentId() {
+        return yalidineShipmentId;
     }
 
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
+    public void setYalidineShipmentId(String yalidineShipmentId) {
+        this.yalidineShipmentId = yalidineShipmentId;
     }
 
-    public Instant getCreatedDate() {
-        return createdDate;
+    public String getYalidineTrackingUrl() {
+        return yalidineTrackingUrl;
     }
 
-    public void setCreatedDate(Instant createdDate) {
-        this.createdDate = createdDate;
+    public void setYalidineTrackingUrl(String yalidineTrackingUrl) {
+        this.yalidineTrackingUrl = yalidineTrackingUrl;
     }
 
-    public String getLastModifiedBy() {
-        return lastModifiedBy;
+    public JsonNode getYalidineResponseData() {
+        return yalidineResponseData;
     }
 
-    public void setLastModifiedBy(String lastModifiedBy) {
-        this.lastModifiedBy = lastModifiedBy;
-    }
-
-    public Instant getLastModifiedDate() {
-        return lastModifiedDate;
-    }
-
-    public void setLastModifiedDate(Instant lastModifiedDate) {
-        this.lastModifiedDate = lastModifiedDate;
+    public void setYalidineResponseData(JsonNode yalidineResponseData) {
+        this.yalidineResponseData = yalidineResponseData;
     }
 
     public SaleOrderDTO getSaleOrder() {
@@ -184,6 +181,14 @@ public class ShipmentDTO implements Serializable {
 
     public void setAddress(AddressDTO address) {
         this.address = address;
+    }
+
+    public ClientAccountDTO getClientAccount() {
+        return clientAccount;
+    }
+
+    public void setClientAccount(ClientAccountDTO clientAccount) {
+        this.clientAccount = clientAccount;
     }
 
     @Override
@@ -222,12 +227,11 @@ public class ShipmentDTO implements Serializable {
             ", shippingCost=" + getShippingCost() +
             ", weight=" + getWeight() +
             ", notes='" + getNotes() + "'" +
-            ", createdBy='" + getCreatedBy() + "'" +
-            ", createdDate='" + getCreatedDate() + "'" +
-            ", lastModifiedBy='" + getLastModifiedBy() + "'" +
-            ", lastModifiedDate='" + getLastModifiedDate() + "'" +
+            ", yalidineShipmentId='" + getYalidineShipmentId() + "'" +
+            ", yalidineTrackingUrl='" + getYalidineTrackingUrl() + "'" +
             ", saleOrder=" + getSaleOrder() +
             ", address=" + getAddress() +
+            ", clientAccount=" + getClientAccount() +
             "}";
     }
 }

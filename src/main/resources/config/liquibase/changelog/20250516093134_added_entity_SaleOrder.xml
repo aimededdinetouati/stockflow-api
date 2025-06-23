@@ -77,6 +77,24 @@
             <column name="customer_id" type="bigint">
                 <constraints nullable="true" />
             </column>
+          <column name="order_type" type="varchar(255)">
+            <constraints nullable="false"/>
+          </column>
+          <column name="reservation_expires_at" type="${datetimeType}">
+            <constraints nullable="true"/>
+          </column>
+          <column name="customer_notes" type="varchar(1000)">
+            <constraints nullable="true"/>
+          </column>
+          <column name="shipping_cost" type="decimal(21,2)">
+            <constraints nullable="true"/>
+          </column>
+          <column name="stamp_applied" type="boolean">
+            <constraints nullable="false"/>
+          </column>
+          <column name="tva_applied" type="boolean">
+            <constraints nullable="false"/>
+          </column>
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
         </createTable>
         <dropDefaultValue tableName="sale_order" columnName="date" columnDataType="${datetimeType}"/>

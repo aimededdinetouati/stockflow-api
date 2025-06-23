@@ -10,19 +10,14 @@ public class SaleOrderTestSamples {
     private static final AtomicLong longCount = new AtomicLong(random.nextInt() + (2 * Integer.MAX_VALUE));
 
     public static SaleOrder getSaleOrderSample1() {
-        return new SaleOrder().id(1L).reference("reference1").notes("notes1").createdBy("createdBy1").lastModifiedBy("lastModifiedBy1");
+        return new SaleOrder().id(1L).reference("reference1").notes("notes1");
     }
 
     public static SaleOrder getSaleOrderSample2() {
-        return new SaleOrder().id(2L).reference("reference2").notes("notes2").createdBy("createdBy2").lastModifiedBy("lastModifiedBy2");
+        return new SaleOrder().id(2L).reference("reference2").notes("notes2");
     }
 
     public static SaleOrder getSaleOrderRandomSampleGenerator() {
-        return new SaleOrder()
-            .id(longCount.incrementAndGet())
-            .reference(UUID.randomUUID().toString())
-            .notes(UUID.randomUUID().toString())
-            .createdBy(UUID.randomUUID().toString())
-            .lastModifiedBy(UUID.randomUUID().toString());
+        return new SaleOrder().id(longCount.incrementAndGet()).reference(UUID.randomUUID().toString()).notes(UUID.randomUUID().toString());
     }
 }

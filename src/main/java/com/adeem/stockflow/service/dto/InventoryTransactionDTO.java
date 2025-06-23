@@ -42,6 +42,8 @@ public class InventoryTransactionDTO implements Serializable {
 
     private InventoryDTO inventory;
 
+    private Long clientAccountId;
+
     public Long getId() {
         return id;
     }
@@ -136,6 +138,14 @@ public class InventoryTransactionDTO implements Serializable {
 
     public void setInventory(InventoryDTO inventory) {
         this.inventory = inventory;
+    }
+
+    public Long getClientAccountId() {
+        return clientAccountId;
+    }
+
+    public void setClientAccountId(Long clientAccountId) {
+        this.clientAccountId = clientAccountId;
     }
 
     @Override
