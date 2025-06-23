@@ -13,19 +13,17 @@ import tech.jhipster.config.apidoc.customizer.JHipsterOpenApiCustomizer;
 @Profile(JHipsterConstants.SPRING_PROFILE_API_DOCS)
 public class OpenApiConfiguration {
 
-    public static final String API_FIRST_PACKAGE = "com.adeem.stockflow.web.api";
-
     @Bean
-    @ConditionalOnMissingBean(name = "apiFirstGroupedOpenAPI")
-    public GroupedOpenApi apiFirstGroupedOpenAPI(
+    @ConditionalOnMissingBean(name = "allApisGroupedOpenAPI")
+    public GroupedOpenApi allApisGroupedOpenAPI(
         JHipsterOpenApiCustomizer jhipsterOpenApiCustomizer,
         JHipsterProperties jHipsterProperties
     ) {
         JHipsterProperties.ApiDocs properties = jHipsterProperties.getApiDocs();
         return GroupedOpenApi.builder()
-            .group("openapi")
+            .group("stockflow-api")
             .addOpenApiCustomizer(jhipsterOpenApiCustomizer)
-            .packagesToScan(API_FIRST_PACKAGE)
+            .packagesToScan("com.adeem.stockflow.web.rest")
             .pathsToMatch(properties.getDefaultIncludePattern())
             .build();
     }
