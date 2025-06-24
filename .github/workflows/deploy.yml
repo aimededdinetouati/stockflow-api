@@ -6,7 +6,7 @@ on:
   workflow_dispatch: # Allow manual triggering
 
 env:
-  DOCKER_IMAGE: aymu/stockflowapi
+  DOCKER_IMAGE: ${{ secrets.DOCKER_HUB_USERNAME }}/stockflowapi
   DOCKER_TAG: ${{ github.sha }}
 
 jobs:
@@ -44,8 +44,8 @@ jobs:
       - name: Build and Push Docker image to Docker Hub
         run: |
           ./mvnw jib:build -Pprod -DskipTests \
-            -Djib.to.image=${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} \
-            -Djib.to.tags=${{ env.DOCKER_IMAGE }}:latest
+            -Djib.to.image=${{ env.DOCKER_IMAGE }} \
+            -Djib.to.tags=${{ env.DOCKER_TAG }},latest
 
       - name: Copy Docker Compose files to VPS
         uses: appleboy/scp-action@v0.1.7
@@ -72,6 +72,8 @@ jobs:
             mkdir -p /opt/stockflowapi
             cd /opt/stockflowapi
 
+            IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/stockflowapi:${{ github.sha }}"
+
             # Login to Docker Hub on VPS
             echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
 
@@ -86,11 +88,11 @@ jobs:
             sed -i 's/127.0.0.1:5432:5432/5432:5432/g' src/main/docker/postgresql.yml
 
             # Update app.yml to use the Docker Hub image
-            sed -i "s|image: stockflowapi|image: ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}|g" src/main/docker/app.yml
+            sed -i "s|image: stockflowapi|image: $IMAGE|g" src/main/docker/app.yml
 
             # Pull the latest application image from Docker Hub
             echo "Pulling latest application image from Docker Hub..."
-            docker pull ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
+            docker pull $IMAGE
 
             # Start all services (app + database)
             echo "Starting application and database..."
