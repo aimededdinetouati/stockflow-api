@@ -6,7 +6,7 @@ on:
   workflow_dispatch: # Allow manual triggering
 
 env:
-  DOCKER_IMAGE: ${{ secrets.DOCKER_HUB_USERNAME }}/stockflowapi
+  DOCKER_IMAGE: aymu/stockflowapi
   DOCKER_TAG: ${{ github.sha }}
 
 jobs:
