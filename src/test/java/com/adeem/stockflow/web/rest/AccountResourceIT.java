@@ -155,10 +155,9 @@ class AccountResourceIT {
             .perform(post("/api/register").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(validUser)))
             .andExpect(status().isCreated());
 
-        var user = userRepository.findOneByLogin("test-register-valid");
-        assertThat(user).isPresent();
-        assertThat(user.get().getAuthorities()).hasSize(1);
-        assertThat(user.get().getAuthorities().iterator().next().getName()).isEqualTo(AuthoritiesConstants.USER_ADMIN);
+        var user = userRepository.findOneByLogin("test-register-valid").orElseThrow();
+        assertThat(user.getAuthorities()).hasSize(1);
+        assertThat(user.getAuthorities().iterator().next().getName()).isEqualTo(AuthoritiesConstants.USER_ADMIN);
 
         userService.deleteUser("test-register-valid");
     }
@@ -391,7 +390,7 @@ class AccountResourceIT {
         user.setActivated(false);
         user.setActivationKey(activationKey);
         Set<Authority> authorities = new HashSet<>();
-        authorities.add(authorityRepository.findByName(AuthoritiesConstants.USER_ADMIN).get());
+        authorities.add(authorityRepository.findByName(AuthoritiesConstants.USER_ADMIN).orElseThrow());
         user.setAuthorities(authorities);
         userRepository.saveAndFlush(user);
 

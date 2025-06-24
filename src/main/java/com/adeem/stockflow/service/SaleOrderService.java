@@ -405,24 +405,35 @@ public class SaleOrderService {
         OrderItemDTO item,
         Long currentClientAccountId
     ) {
-        Optional<Inventory> inventory = inventoryService.findByProductIdAndClientAccountId(item.getProductId(), currentClientAccountId);
+        return inventoryService
+            .findByProductIdAndClientAccountId(item.getProductId(), currentClientAccountId)
+            .filter(inv -> inv.getAvailableQuantity().compareTo(item.getQuantity()) < 0)
+            .map(inv ->
+                createInventoryError(
+                    item.getProductId(),
+                    inv.getProduct().getName(),
+                    item.getQuantity(),
+                    inv.getAvailableQuantity(),
+                    "Insufficient inventory"
+                )
+            )
+            .orElseGet(() -> {
+                boolean inventoryExists = inventoryService
+                    .findByProductIdAndClientAccountId(item.getProductId(), currentClientAccountId)
+                    .isPresent();
 
-        if (inventory.isEmpty()) {
-            return createInventoryError(item.getProductId(), null, item.getQuantity(), BigDecimal.ZERO, "Product not found in inventory");
-        }
+                if (!inventoryExists) {
+                    return createInventoryError(
+                        item.getProductId(),
+                        null,
+                        item.getQuantity(),
+                        BigDecimal.ZERO,
+                        "Product not found in inventory"
+                    );
+                }
 
-        Inventory inv = inventory.get();
-        if (inv.getAvailableQuantity().compareTo(item.getQuantity()) < 0) {
-            return createInventoryError(
-                item.getProductId(),
-                inv.getProduct().getName(),
-                item.getQuantity(),
-                inv.getAvailableQuantity(),
-                "Insufficient inventory"
-            );
-        }
-
-        return null;
+                return null; // ✅ No error — enough stock
+            });
     }
 
     private InventoryValidationDTO.InventoryValidationErrorDTO createInventoryError(
@@ -606,22 +617,15 @@ public class SaleOrderService {
 
     private void validateInventoryAvailability(SaleOrder saleOrder) {
         for (SaleOrderItem item : saleOrder.getOrderItems()) {
-            Optional<Inventory> inventory = inventoryService.findByProductIdAndClientAccountId(
-                item.getProduct().getId(),
-                saleOrder.getClientAccount().getId()
-            );
+            Inventory inventory = inventoryService
+                .findByProductIdAndClientAccountId(item.getProduct().getId(), saleOrder.getClientAccount().getId())
+                .orElseThrow(() ->
+                    new InsufficientInventoryException(String.format("Product %s not found in inventory", item.getProduct().getName()))
+                );
 
-            if (inventory.isEmpty()) {
-                throw new InsufficientInventoryException(String.format("Product %s not found in inventory", item.getProduct().getName()));
-            }
-
-            if (inventory.get().getAvailableQuantity().compareTo(item.getQuantity()) < 0) {
+            if (inventory.getAvailableQuantity().compareTo(item.getQuantity()) < 0) {
                 throw new InsufficientInventoryException(
-                    String.format(
-                        "Product %s has only %s units available",
-                        item.getProduct().getName(),
-                        inventory.get().getAvailableQuantity()
-                    )
+                    String.format("Product %s has only %s units available", item.getProduct().getName(), inventory.getAvailableQuantity())
                 );
             }
         }

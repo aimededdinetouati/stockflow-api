@@ -644,7 +644,7 @@ class SaleOrderResourceIT {
 
         restSaleOrderMockMvc
             .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsBytes(saleOrderDTO)))
-            .andExpect(status().is5xxServerError());
+            .andExpect(status().isForbidden());
     }
 
     // ===============================

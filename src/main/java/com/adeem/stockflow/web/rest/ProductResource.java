@@ -1,5 +1,6 @@
 package com.adeem.stockflow.web.rest;
 
+import com.adeem.stockflow.config.Constants;
 import com.adeem.stockflow.domain.Product;
 import com.adeem.stockflow.repository.ProductRepository;
 import com.adeem.stockflow.security.SecurityUtils;
@@ -28,6 +29,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -181,18 +183,16 @@ public class ProductResource {
         Long clientAccountId = SecurityUtils.getCurrentClientAccountId();
 
         // Get product and verify it belongs to the current client account
-        Optional<ProductDTO> productDTO = productService.findOneForClientAccount(id, clientAccountId);
-
-        if (productDTO.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+        ProductDTO productDTO = productService
+            .findOneForClientAccount(id, clientAccountId)
+            .orElseThrow(() -> new AccessDeniedException(Constants.NOT_ALLOWED));
 
         // Get inventory information for the product
         Optional<InventoryDTO> inventoryDTO = inventoryService.findOne(InventorySpecification.withProductId(id));
 
         // Combine product and inventory information
         ProductWithInventoryDTO result = new ProductWithInventoryDTO();
-        result.setProduct(productDTO.get());
+        result.setProduct(productDTO);
         inventoryDTO.ifPresent(result::setInventory);
 
         return ResponseEntity.ok(result);

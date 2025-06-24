@@ -778,7 +778,7 @@ class ProductResourceIT {
     @WithMockClientAccount
     void getNonExistingProduct() throws Exception {
         // Get the product
-        restProductMockMvc.perform(get(ENTITY_API_URL_ID, Long.MAX_VALUE)).andExpect(status().isNotFound());
+        restProductMockMvc.perform(get(ENTITY_API_URL_ID, Long.MAX_VALUE)).andExpect(status().isForbidden());
     }
 
     @Test

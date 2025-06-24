@@ -486,7 +486,7 @@ public class CustomerService {
     public boolean canManageCustomer(Long customerId, Long clientAccountId) {
         // Can manage if customer was created by current company AND customer has no user account
         Optional<Customer> customer = customerRepository.findByIdAndCreatedByClientAccountId(customerId, clientAccountId);
-        return customer.isPresent() && customer.get().getUser() == null;
+        return customer.map(c -> c.getUser() == null).orElse(false);
     }
 
     /**

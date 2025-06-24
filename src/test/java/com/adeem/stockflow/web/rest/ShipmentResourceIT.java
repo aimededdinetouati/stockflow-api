@@ -195,6 +195,8 @@ class ShipmentResourceIT {
     private void createTestData() {
         // Create client account
         clientAccount = new ClientAccount();
+        clientAccount.phone("0676811436");
+        clientAccount.setEmail("mail@mail.com");
         clientAccount.setCompanyName("Test Company");
         clientAccount.setStatus(AccountStatus.ENABLED);
         clientAccount.setDefaultShippingCost(DEFAULT_SHIPPING_COST);

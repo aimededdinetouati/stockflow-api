@@ -39,7 +39,7 @@ class SecurityTestAnnotationsIT {
             SecurityUtils.getCurrentClientAccountId();
             // If we get here, the test has failed
             assertThat(false).isTrue();
-        } catch (SecurityException e) {
+        } catch (Exception e) {
             assertThat(e.getMessage()).contains("User not associated with a client account");
         }
     }

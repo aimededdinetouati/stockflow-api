@@ -92,7 +92,7 @@ class AuthenticateControllerIT {
         user.setActivated(true);
         user.setPassword(passwordEncoder.encode("test2"));
         Set<Authority> authorities = new HashSet<>();
-        authorities.add(authorityRepository.findByName(AuthoritiesConstants.USER_ADMIN).get());
+        authorities.add(authorityRepository.findByName(AuthoritiesConstants.USER_ADMIN).orElseThrow());
         user.setAuthorities(authorities);
         userRepository.saveAndFlush(user);
 

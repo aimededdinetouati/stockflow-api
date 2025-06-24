@@ -4,7 +4,9 @@ import com.adeem.stockflow.service.batch.HeaderDetecterService;
 import com.adeem.stockflow.service.dto.batch.ProductImportRow;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
+import java.nio.file.Files;
 import java.util.Iterator;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
@@ -67,7 +69,7 @@ public class ExcelProductItemReader extends AbstractItemCountingItemStreamItemRe
         LOG.debug("Reading file from: {}", filePath);
 
         // Open the workbook based on file extension
-        try (FileInputStream fis = new FileInputStream(filePath.toFile())) {
+        try (InputStream fis = Files.newInputStream(filePath)) {
             if (fileName.toLowerCase().endsWith(".xlsx")) {
                 workbook = new XSSFWorkbook(fis);
             } else if (fileName.toLowerCase().endsWith(".xls")) {
