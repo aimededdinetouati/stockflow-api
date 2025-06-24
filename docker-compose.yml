@@ -21,11 +21,13 @@ services:
         - http://localhost:8080/management/health
       interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 10
       start_period: 60s
     depends_on:
       stockflow-db:
         condition: service_healthy
+    networks:
+      - stockflow-network
     restart: unless-stopped
 
   stockflow-db:
@@ -41,12 +43,18 @@ services:
       test: ['CMD-SHELL', 'pg_isready -U stockflowApi -d stockflowApi']
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
       start_period: 30s
     volumes:
       - stockflow_postgres_data:/var/lib/postgresql/data
+    networks:
+      - stockflow-network
     restart: unless-stopped
 
 volumes:
   stockflow_postgres_data:
     driver: local
+
+networks:
+  stockflow-network:
+    external: true
