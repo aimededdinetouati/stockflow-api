@@ -37,7 +37,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          ./mvnw jib:dockerBuild -Pprod -DskipTests
+          ./mvnw jib:dockerBuild -Pprod -DskipTests -Dmaven.compiler.target=21 -Dmaven.compiler.source=21
           docker tag ${{ env.DOCKER_IMAGE }}:latest ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
 
       - name: Save Docker image
@@ -75,16 +75,16 @@ jobs:
 
             # Stop existing services
             echo "Stopping existing services..."
-            docker-compose -f src/main/docker/app.yml down 2>/dev/null || true
+            docker compose -f src/main/docker/app.yml down 2>/dev/null || true
 
             # Update app.yml to expose on all interfaces (not just localhost)
             echo "Configuring for production..."
             sed -i 's/127.0.0.1:8080:8080/8080:8080/g' src/main/docker/app.yml
             sed -i 's/127.0.0.1:5432:5432/5432:5432/g' src/main/docker/postgresql.yml
 
-            # Start services with docker-compose
+            # Start services with docker compose
             echo "Starting application and database..."
-            docker-compose -f src/main/docker/app.yml up -d
+            docker compose -f src/main/docker/app.yml up -d
 
             # Wait for services to be healthy
             echo "Waiting for services to start..."
@@ -92,7 +92,7 @@ jobs:
 
             # Check if services are running
             echo "Checking service status..."
-            docker-compose -f src/main/docker/app.yml ps
+            docker compose -f src/main/docker/app.yml ps
 
             # Cleanup old images
             echo "Cleaning up old images..."
