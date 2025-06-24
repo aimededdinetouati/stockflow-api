@@ -655,7 +655,7 @@
                             </platforms>
                         </from>
                         <to>
-                            <image>stockflowapi:latest</image>
+                            <image>stockflow-api:latest</image>
                         </to>
                         <container>
                             <entrypoint>

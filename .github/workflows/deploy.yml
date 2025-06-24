@@ -6,7 +6,7 @@ on:
   workflow_dispatch: # Allow manual triggering
 
 env:
-  DOCKER_IMAGE: ${{ secrets.DOCKER_HUB_USERNAME }}/stockflowapi
+  DOCKER_IMAGE: ${{ secrets.DOCKER_HUB_USERNAME }}/stockflow-api
   DOCKER_TAG: ${{ github.sha }}
 
 jobs:
@@ -47,15 +47,15 @@ jobs:
             -Djib.to.image=${{ env.DOCKER_IMAGE }} \
             -Djib.to.tags=${{ env.DOCKER_TAG }},latest
 
-      - name: Copy Docker Compose files to VPS
+      - name: Copy Docker Compose file to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
-          source: 'src/main/docker/'
-          target: /opt/stockflowapi/
+          source: 'docker-compose.yml'
+          target: /root/stockflow/
           strip_components: 0
 
       - name: Deploy to VPS
@@ -69,26 +69,20 @@ jobs:
             echo "Starting deployment..."
 
             # Create app directory and navigate
-            mkdir -p /opt/stockflowapi
-            cd /opt/stockflowapi
+            mkdir -p /root/stockflow
+            cd /root/stockflow
 
-            IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/stockflowapi:${{ github.sha }}"
+            IMAGE="${{ secrets.DOCKER_HUB_USERNAME }}/stockflow-api:${{ github.sha }}"
 
             # Login to Docker Hub on VPS
             echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
 
             # Stop existing services gracefully
             echo "Stopping existing services..."
-            docker compose -f src/main/docker/app.yml down 2>/dev/null || true
+            docker-compose down 2>/dev/null || true
 
-            # Configure for production deployment (your custom ports)
-            echo "Configuring for production with custom ports..."
-            # Update to use your custom ports: App=8081, PostgreSQL=5433
-            sed -i 's/127.0.0.1:8081:8080/8081:8080/g' src/main/docker/app.yml
-            sed -i 's/127.0.0.1:5433:5432/5433:5432/g' src/main/docker/postgresql.yml
-
-            # Update app.yml to use the Docker Hub image
-            sed -i "s|image: stockflowapi|image: $IMAGE|g" src/main/docker/app.yml
+            # Update docker-compose.yml to use the Docker Hub image
+            sed -i "s|image: stockflow-api|image: $IMAGE|g" docker-compose.yml
 
             # Pull the latest application image from Docker Hub
             echo "Pulling latest application image from Docker Hub..."
@@ -96,20 +90,26 @@ jobs:
 
             # Start all services (app + database)
             echo "Starting application and database..."
-            docker compose -f src/main/docker/app.yml up -d
+            docker-compose up -d
 
             # Wait for services to fully start
             echo "Waiting for services to start..."
-            sleep 30
+            sleep 40
 
             # Display service status
             echo "Checking service status..."
-            docker compose -f src/main/docker/app.yml ps
+            docker-compose ps
 
-            # Check application health on the correct port
+            # Check application health
             echo "Checking application health..."
             sleep 10
             curl -f http://localhost:8081/management/health || echo "Health check failed - app may still be starting"
+
+            # Show container logs if health check fails
+            if ! curl -s http://localhost:8081/management/health > /dev/null; then
+              echo "Showing application logs..."
+              docker-compose logs stockflow-api --tail=20
+            fi
 
             # Cleanup old unused images to save disk space
             echo "Cleaning up old images..."
@@ -126,8 +126,11 @@ jobs:
             echo "Health Check: http://$PUBLIC_IP:8081/management/health"
             echo "PostgreSQL: $PUBLIC_IP:5433"
             echo ""
+            echo "Container Status:"
+            docker-compose ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+            echo ""
             echo "Service Ports:"
-            echo "- StockFlow App: 8081"
+            echo "- StockFlow API: 8081"
             echo "- StockFlow DB:  5433"
             echo "- IMS App:       8080 (existing)"
             echo "- IMS DB:        5432 (existing)"
