@@ -44,6 +44,16 @@ jobs:
         run: |
           docker save ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} | gzip > stockflowapi-image.tar.gz
 
+      - name: Copy Docker image to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          source: stockflowapi-image.tar.gz
+          target: /tmp/
+
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -52,5 +62,23 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
           script: |
-            echo "Connected to VPS successfully"
-            # We'll add deployment commands here in the next step
+            echo "Starting deployment..."
+
+            # Create app directory
+            mkdir -p /opt/stockflowapi
+            cd /opt/stockflowapi
+
+            # Load the new Docker image
+            echo "Loading Docker image..."
+            docker load < /tmp/stockflowapi-image.tar.gz
+
+            # Stop and remove existing container if it exists
+            echo "Stopping existing container..."
+            docker stop stockflowapi-container 2>/dev/null || true
+            docker rm stockflowapi-container 2>/dev/null || true
+
+            # Remove old image (keep only latest 2 versions)
+            echo "Cleaning up old images..."
+            docker images stockflowapi --format "table {{.Repository}}:{{.Tag}}" | tail -n +3 | xargs -r docker rmi || true
+
+            echo "Deployment completed successfully!"
