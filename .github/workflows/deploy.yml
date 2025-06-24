@@ -81,11 +81,11 @@ jobs:
             echo "Stopping existing services..."
             docker compose -f src/main/docker/app.yml down 2>/dev/null || true
 
-            # Configure for production deployment
-            echo "Configuring for production..."
-            # Make app accessible from internet (not just localhost)
-            sed -i 's/127.0.0.1:8080:8080/8080:8080/g' src/main/docker/app.yml
-            sed -i 's/127.0.0.1:5432:5432/5432:5432/g' src/main/docker/postgresql.yml
+            # Configure for production deployment (your custom ports)
+            echo "Configuring for production with custom ports..."
+            # Update to use your custom ports: App=8081, PostgreSQL=5433
+            sed -i 's/127.0.0.1:8081:8080/8081:8080/g' src/main/docker/app.yml
+            sed -i 's/127.0.0.1:5433:5432/5433:5432/g' src/main/docker/postgresql.yml
 
             # Update app.yml to use the Docker Hub image
             sed -i "s|image: stockflowapi|image: $IMAGE|g" src/main/docker/app.yml
@@ -106,10 +106,10 @@ jobs:
             echo "Checking service status..."
             docker compose -f src/main/docker/app.yml ps
 
-            # Check application health
+            # Check application health on the correct port
             echo "Checking application health..."
             sleep 10
-            curl -f http://localhost:8080/management/health || echo "Health check failed - app may still be starting"
+            curl -f http://localhost:8081/management/health || echo "Health check failed - app may still be starting"
 
             # Cleanup old unused images to save disk space
             echo "Cleaning up old images..."
@@ -122,6 +122,13 @@ jobs:
             PUBLIC_IP=$(curl -s ifconfig.me)
             echo "=================================="
             echo "Deployment completed successfully!"
-            echo "Application URL: http://$PUBLIC_IP:8080"
-            echo "Health Check: http://$PUBLIC_IP:8080/management/health"
+            echo "Application URL: http://$PUBLIC_IP:8081"
+            echo "Health Check: http://$PUBLIC_IP:8081/management/health"
+            echo "PostgreSQL: $PUBLIC_IP:5433"
+            echo ""
+            echo "Service Ports:"
+            echo "- StockFlow App: 8081"
+            echo "- StockFlow DB:  5433"
+            echo "- IMS App:       8080 (existing)"
+            echo "- IMS DB:        5432 (existing)"
             echo "=================================="
