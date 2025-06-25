@@ -8,7 +8,7 @@
     <!--
         Added the constraints for entity Address.
     -->
-    <changeSet id="20250516093119-2" author="jhipster">
+    <changeSet runOnChange="true" id="20250516093119-2" author="jhipster">
 
         <addForeignKeyConstraint baseColumnNames="customer_id"
                                  baseTableName="address"

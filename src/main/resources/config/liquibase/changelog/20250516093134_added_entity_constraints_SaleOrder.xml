@@ -8,7 +8,7 @@
     <!--
         Added the constraints for entity SaleOrder.
     -->
-    <changeSet id="20250516093134-2" author="jhipster">
+    <changeSet runOnChange="true" id="20250516093134-2" author="jhipster">
 
         <addForeignKeyConstraint baseColumnNames="payment_id"
                                  baseTableName="sale_order"

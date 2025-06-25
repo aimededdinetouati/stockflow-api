@@ -9,7 +9,7 @@
     <!--
         Added the entity PlanFeature.
     -->
-    <changeSet id="20250516093126-1" author="jhipster">
+    <changeSet runOnChange="true" id="20250516093126-1" author="jhipster">
         <createTable tableName="plan_feature">
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
@@ -54,7 +54,7 @@
           This can be customized by adding or removing 'faker' in the 'spring.liquibase.contexts'
           Spring Boot configuration key.
     -->
-    <changeSet id="20250516093126-1-data" author="jhipster" context="faker">
+    <changeSet runOnChange="true" id="20250516093126-1-data" author="jhipster" context="faker">
         <loadData
                   file="config/liquibase/fake-data/plan_feature.csv"
                   separator=";"

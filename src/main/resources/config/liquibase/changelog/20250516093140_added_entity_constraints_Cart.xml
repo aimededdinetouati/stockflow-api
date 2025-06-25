@@ -8,7 +8,7 @@
     <!--
         Added the constraints for entity Cart.
     -->
-    <changeSet id="20250516093140-2" author="jhipster">
+    <changeSet runOnChange="true" id="20250516093140-2" author="jhipster">
 
         <addForeignKeyConstraint baseColumnNames="customer_id"
                                  baseTableName="cart"

@@ -8,7 +8,7 @@
     <!--
         Added the constraints for entity InventoryTransaction.
     -->
-    <changeSet id="20250516093133-2" author="jhipster">
+    <changeSet runOnChange="true" id="20250516093133-2" author="jhipster">
 
       <addForeignKeyConstraint baseColumnNames="client_account_id"
                                baseTableName="inventory_transaction"

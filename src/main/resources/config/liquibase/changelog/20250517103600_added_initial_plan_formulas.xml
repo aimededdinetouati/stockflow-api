@@ -4,7 +4,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-  <changeSet id="20250517000001-1" author="system">
+  <changeSet runOnChange="true" id="20250517000001-1" author="system">
     <comment>Adding initial plan formula with unlimited resources</comment>
 
     <!-- Insert Plan Formula -->
@@ -81,7 +81,7 @@
   </changeSet>
 
   <!-- Add a sequence reset to ensure new records don't conflict with our initial data -->
-  <changeSet id="20250517000001-2" author="system" dbms="postgresql">
+  <changeSet runOnChange="true" id="20250517000001-2" author="system" dbms="postgresql">
     <sql>
       SELECT setval('plan_formula_id_seq', 2, false);
       SELECT setval('plan_feature_id_seq', 2, false);

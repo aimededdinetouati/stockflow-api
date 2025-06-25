@@ -6,7 +6,7 @@
   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
                         http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 
-  <changeSet id="20250516093116-1" author="jhipster">
+  <changeSet runOnChange="true" id="20250516093116-1" author="jhipster">
     <createTable tableName="client_account">
       <column name="id" type="bigint">
         <constraints primaryKey="true" nullable="false"/>
@@ -63,7 +63,7 @@
     <dropDefaultValue tableName="client_account" columnName="last_modified_date" columnDataType="${datetimeType}"/>
   </changeSet>
 
-  <changeSet id="20250516093116-1-data" author="jhipster" context="faker">
+  <changeSet runOnChange="true" id="20250516093116-1-data" author="jhipster" context="faker">
     <loadData
       file="config/liquibase/fake-data/client_account.csv"
       separator=";"

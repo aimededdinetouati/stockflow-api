@@ -8,7 +8,7 @@
     <!--
         Added the constraints for entity UserRole.
     -->
-    <changeSet id="20250516093124-2" author="jhipster">
+    <changeSet runOnChange="true" id="20250516093124-2" author="jhipster">
 
         <addForeignKeyConstraint baseColumnNames="admin_id"
                                  baseTableName="user_role"

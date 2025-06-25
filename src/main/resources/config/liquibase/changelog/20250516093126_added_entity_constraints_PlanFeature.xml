@@ -8,7 +8,7 @@
     <!--
         Added the constraints for entity PlanFeature.
     -->
-    <changeSet id="20250516093126-2" author="jhipster">
+    <changeSet runOnChange="true" id="20250516093126-2" author="jhipster">
 
         <addForeignKeyConstraint baseColumnNames="plan_formula_id"
                                  baseTableName="plan_feature"

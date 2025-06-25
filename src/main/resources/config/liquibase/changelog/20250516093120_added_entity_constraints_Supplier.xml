@@ -8,7 +8,7 @@
     <!--
         Added the constraints for entity Supplier.
     -->
-    <changeSet id="20250516093120-2" author="jhipster">
+    <changeSet runOnChange="true" id="20250516093120-2" author="jhipster">
 
         <addForeignKeyConstraint baseColumnNames="address_id"
                                  baseTableName="supplier"
