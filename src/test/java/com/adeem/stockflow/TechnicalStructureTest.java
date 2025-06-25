@@ -23,7 +23,7 @@ class TechnicalStructureTest {
         .layer("Config").definedBy("..config..")
         .layer("Web").definedBy("..web..")
         .optionalLayer("Service").definedBy("..service..")
-        .optionalLayer("Batch").definedBy("..batch..")  // Add batch layer
+        .layer("Batch").definedBy("..batch.listener..", "..batch.reader..", "..batch.writer..", "..batch.processor..", "..batch.config..")
         .layer("Security").definedBy("..security..")
         .optionalLayer("Persistence").definedBy("..repository..")
         .layer("Domain").definedBy("..domain..")

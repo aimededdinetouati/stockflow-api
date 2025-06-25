@@ -90,11 +90,7 @@ public class InventoryService {
         InventoryDTO savedInventory = save(inventoryDTO);
 
         // Record the initial inventory transaction
-        inventoryTransactionService.save(
-            productMapper.toEntity(savedInventory.getProduct()),
-            savedInventory.getQuantity(),
-            TransactionType.INITIAL
-        );
+        inventoryTransactionService.save(savedInventory.getProduct().getId(), savedInventory.getQuantity(), TransactionType.INITIAL);
 
         return savedInventory;
     }
@@ -119,11 +115,7 @@ public class InventoryService {
         inventory = inventoryRepository.save(inventory);
 
         // Record inventory transaction
-        inventoryTransactionService.save(
-            productMapper.toEntity(inventoryDTO.getProduct()),
-            inventoryDTO.getQuantity(),
-            TransactionType.ADJUSTMENT
-        );
+        inventoryTransactionService.save(inventoryDTO.getProduct().getId(), inventoryDTO.getQuantity(), TransactionType.ADJUSTMENT);
 
         return inventoryMapper.toDto(inventory);
     }
@@ -415,7 +407,7 @@ public class InventoryService {
         Inventory savedInventory = inventoryRepository.save(inventory);
 
         BigDecimal quantityChange = newQuantity.subtract(oldQuantity);
-        inventoryTransactionService.save(inventory.getProduct(), quantityChange, TransactionType.ADJUSTMENT);
+        inventoryTransactionService.save(inventory.getProduct().getId(), quantityChange, TransactionType.ADJUSTMENT);
 
         return inventoryMapper.toDto(savedInventory);
     }

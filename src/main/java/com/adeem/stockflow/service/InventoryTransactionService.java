@@ -5,6 +5,7 @@ import com.adeem.stockflow.domain.InventoryTransaction;
 import com.adeem.stockflow.domain.Product;
 import com.adeem.stockflow.domain.enumeration.TransactionType;
 import com.adeem.stockflow.repository.InventoryTransactionRepository;
+import com.adeem.stockflow.repository.ProductRepository;
 import com.adeem.stockflow.service.dto.InventoryTransactionDTO;
 import com.adeem.stockflow.service.mapper.InventoryTransactionMapper;
 import com.adeem.stockflow.service.util.DateTimeUtils;
@@ -29,14 +30,16 @@ public class InventoryTransactionService {
 
     private static final Logger LOG = LoggerFactory.getLogger(InventoryTransactionService.class);
 
+    private final ProductRepository productRepository;
     private final InventoryTransactionRepository inventoryTransactionRepository;
-
     private final InventoryTransactionMapper inventoryTransactionMapper;
 
     public InventoryTransactionService(
+        ProductRepository productRepository,
         InventoryTransactionRepository inventoryTransactionRepository,
         InventoryTransactionMapper inventoryTransactionMapper
     ) {
+        this.productRepository = productRepository;
         this.inventoryTransactionRepository = inventoryTransactionRepository;
         this.inventoryTransactionMapper = inventoryTransactionMapper;
     }
@@ -45,15 +48,17 @@ public class InventoryTransactionService {
      * Save a inventoryTransaction.
      *
      */
-    public void save(Product product, BigDecimal quantity, TransactionType transactionType) {
+    public void save(Long productId, BigDecimal quantity, TransactionType transactionType) {
         LOG.debug("Request to save InventoryTransaction");
+        Product product = productRepository.findById(productId).orElseThrow();
+        ClientAccount clientAccount = product.getClientAccount();
 
         InventoryTransaction inventoryTransaction = createEntity(
             quantity,
             transactionType,
             product,
-            product.getClientAccount(),
-            generateReference(product.getClientAccount().getId())
+            clientAccount,
+            generateReference(clientAccount.getId())
         );
         inventoryTransactionRepository.save(inventoryTransaction);
     }

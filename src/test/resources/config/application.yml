@@ -103,7 +103,7 @@ application:
     progress-tracking:
       update-interval-seconds: 1
     file-storage:
-      temp-directory: ${java.io.tmpdir}/stockflow-test-imports
+      temp-directory: ${java.io.tmpdir}/stockflow-imports
       cleanup-enabled: true
 management:
   health:
