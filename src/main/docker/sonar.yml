@@ -1,5 +1,5 @@
 # This configuration is intended for development purpose, it's **your** responsibility to harden it for production
-name: stockflowapi
+name: stockflow-api
 services:
   sonar:
     container_name: sonarqube
