@@ -60,12 +60,6 @@ public class ShipmentAsserts {
             .satisfies(a -> assertThat(a.getActualDeliveryDate()).as("check actualDeliveryDate").isEqualTo(expected.getActualDeliveryDate())
             )
             .satisfies(a -> assertThat(a.getStatus()).as("check status").isEqualTo(expected.getStatus()))
-            .satisfies(a ->
-                assertThat(a.getShippingCost())
-                    .as("check shippingCost")
-                    .usingComparator(bigDecimalCompareTo)
-                    .isEqualTo(expected.getShippingCost())
-            )
             .satisfies(a -> assertThat(a.getWeight()).as("check weight").isEqualTo(expected.getWeight()))
             .satisfies(a -> assertThat(a.getNotes()).as("check notes").isEqualTo(expected.getNotes()));
     }

@@ -1,8 +1,10 @@
 package com.adeem.stockflow.security;
 
+import com.adeem.stockflow.config.Constants;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -76,10 +78,7 @@ public final class SecurityUtils {
 
     public static Long getCurrentUserId() {
         Optional<Long> userId = SecurityUtils.getCurrentOptUserId();
-        if (userId.isEmpty()) {
-            throw new SecurityException("User not associated with a client account");
-        }
-        return userId.get();
+        return userId.orElseThrow(() -> new AccessDeniedException("User not authenticated"));
     }
 
     public static Optional<Long> getCurrentOptClientAccountId() {
@@ -92,10 +91,7 @@ public final class SecurityUtils {
 
     public static Long getCurrentClientAccountId() {
         Optional<Long> clientAccountId = SecurityUtils.getCurrentOptClientAccountId();
-        if (clientAccountId.isEmpty()) {
-            throw new SecurityException("User not associated with a client account");
-        }
-        return clientAccountId.get();
+        return clientAccountId.orElseThrow(() -> new AccessDeniedException("User not associated with a client account"));
     }
 
     /**

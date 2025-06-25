@@ -288,24 +288,24 @@ public class ProductImportProcessor implements ItemProcessor<ProductImportRow, P
             .stream()
             .findFirst();
 
-        if (existingFamily.isPresent()) {
-            return productFamilyMapper.toDto(existingFamily.get());
-        }
+        return existingFamily
+            .map(productFamilyMapper::toDto)
+            .orElseGet(() -> {
+                // Create new family
+                ProductFamily newFamily = new ProductFamily();
+                newFamily.setName(familyName);
 
-        // Create new family
-        ProductFamily newFamily = new ProductFamily();
-        newFamily.setName(familyName);
+                // Set client account
+                ClientAccount clientAccount = clientAccountRepository
+                    .findById(clientAccountId)
+                    .orElseThrow(() -> new IllegalStateException("Client account not found: " + clientAccountId));
+                newFamily.setClientAccount(clientAccount);
 
-        // Set client account
-        ClientAccount clientAccount = clientAccountRepository
-            .findById(clientAccountId)
-            .orElseThrow(() -> new IllegalStateException("Client account not found: " + clientAccountId));
-        newFamily.setClientAccount(clientAccount);
+                ProductFamily savedFamily = productFamilyRepository.save(newFamily);
+                LOG.debug("Created new product family: {} for client account: {}", familyName, clientAccountId);
 
-        ProductFamily savedFamily = productFamilyRepository.save(newFamily);
-        LOG.debug("Created new product family: {} for client account: {}", familyName, clientAccountId);
-
-        return productFamilyMapper.toDto(savedFamily);
+                return productFamilyMapper.toDto(savedFamily);
+            });
     }
 
     /**

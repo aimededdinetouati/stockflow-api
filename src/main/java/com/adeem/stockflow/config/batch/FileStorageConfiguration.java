@@ -17,7 +17,7 @@ public class FileStorageConfiguration {
     @Bean
     public Path tempFileStoragePath() {
         String tempDir = applicationProperties.getImport().getFileStorage().getTempDirectory();
-        Path path = Paths.get(tempDir);
+        Path path = Path.of(tempDir);
 
         // Create directory if it doesn't exist
         File directory = path.toFile();

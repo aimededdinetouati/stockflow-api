@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -289,34 +290,34 @@ public class SupplierService {
         SupplierStatsDTO stats = new SupplierStatsDTO();
 
         // Query 1: Get comprehensive supplier overview statistics in one query
-        Optional<SupplierStatsProjection> projectionOpt = supplierRepository.getComprehensiveSupplierStats(clientAccountId);
-        if (projectionOpt.isPresent()) {
-            SupplierStatsProjection projection = projectionOpt.get();
-
-            // Set all basic statistics from single query
-            stats.setTotalSuppliers(projection.getTotalSuppliers());
-            stats.setActiveSuppliers(projection.getActiveSuppliers());
-            stats.setInactiveSuppliers(projection.getInactiveSuppliers());
-            stats.setSuppliersWithAddresses(projection.getSuppliersWithAddresses());
-            stats.setSuppliersWithoutAddresses(projection.getSuppliersWithoutAddresses());
-            stats.setSuppliersAddedThisWeek(projection.getSuppliersAddedThisWeek());
-            stats.setSuppliersAddedThisMonth(projection.getSuppliersAddedThisMonth());
-            stats.setSuppliersWithPurchaseOrders(projection.getSuppliersWithPurchaseOrders());
-            stats.setTotalPurchaseOrderValue(projection.getTotalPurchaseOrderValue());
-            stats.setLastSupplierCreated(projection.getLastSupplierCreated());
-            stats.setLastSupplierModified(projection.getLastSupplierModified());
-        } else {
-            // Set default values if no data found
-            stats.setTotalSuppliers(0L);
-            stats.setActiveSuppliers(0L);
-            stats.setInactiveSuppliers(0L);
-            stats.setSuppliersWithAddresses(0L);
-            stats.setSuppliersWithoutAddresses(0L);
-            stats.setSuppliersAddedThisWeek(0L);
-            stats.setSuppliersAddedThisMonth(0L);
-            stats.setSuppliersWithPurchaseOrders(0L);
-            stats.setTotalPurchaseOrderValue(BigDecimal.ZERO);
-        }
+        supplierRepository
+            .getComprehensiveSupplierStats(clientAccountId)
+            .ifPresentOrElse(
+                projection -> {
+                    stats.setTotalSuppliers(projection.getTotalSuppliers());
+                    stats.setActiveSuppliers(projection.getActiveSuppliers());
+                    stats.setInactiveSuppliers(projection.getInactiveSuppliers());
+                    stats.setSuppliersWithAddresses(projection.getSuppliersWithAddresses());
+                    stats.setSuppliersWithoutAddresses(projection.getSuppliersWithoutAddresses());
+                    stats.setSuppliersAddedThisWeek(projection.getSuppliersAddedThisWeek());
+                    stats.setSuppliersAddedThisMonth(projection.getSuppliersAddedThisMonth());
+                    stats.setSuppliersWithPurchaseOrders(projection.getSuppliersWithPurchaseOrders());
+                    stats.setTotalPurchaseOrderValue(projection.getTotalPurchaseOrderValue());
+                    stats.setLastSupplierCreated(projection.getLastSupplierCreated());
+                    stats.setLastSupplierModified(projection.getLastSupplierModified());
+                },
+                () -> {
+                    stats.setTotalSuppliers(0L);
+                    stats.setActiveSuppliers(0L);
+                    stats.setInactiveSuppliers(0L);
+                    stats.setSuppliersWithAddresses(0L);
+                    stats.setSuppliersWithoutAddresses(0L);
+                    stats.setSuppliersAddedThisWeek(0L);
+                    stats.setSuppliersAddedThisMonth(0L);
+                    stats.setSuppliersWithPurchaseOrders(0L);
+                    stats.setTotalPurchaseOrderValue(BigDecimal.ZERO);
+                }
+            );
 
         // Query 2: Get top suppliers data for both rankings in one query
         List<TopSuppliersProjection> topSuppliersProjections = supplierRepository.getTopSuppliersStats(clientAccountId, 5);
@@ -409,10 +410,13 @@ public class SupplierService {
 
         // Validate email uniqueness
         if (supplierDTO.getEmail() != null && !supplierDTO.getEmail().trim().isEmpty()) {
-            Optional<Supplier> existingByEmail = supplierRepository.findByEmailAndClientAccountId(supplierDTO.getEmail(), clientAccountId);
-            if (existingByEmail.isPresent() && !existingByEmail.get().getId().equals(excludeId)) {
-                throw new BadRequestAlertException("Email already exists", "supplier", ErrorConstants.EMAIL_ALREADY_EXISTS);
-            }
+            supplierRepository
+                .findByEmailAndClientAccountId(supplierDTO.getEmail(), clientAccountId)
+                .ifPresent(existing -> {
+                    if (!Objects.equals(existing.getId(), excludeId)) {
+                        throw new BadRequestAlertException("Email already exists", "supplier", ErrorConstants.EMAIL_ALREADY_EXISTS);
+                    }
+                });
         }
 
         // Validate required fields

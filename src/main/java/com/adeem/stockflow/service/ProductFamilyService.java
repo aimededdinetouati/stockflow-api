@@ -281,9 +281,7 @@ public class ProductFamilyService {
 
         // Query 1: Get comprehensive family overview statistics
         Optional<ProductFamilyStatsProjection> projectionOpt = productFamilyRepository.getComprehensiveOverviewStats(clientAccountId);
-        if (projectionOpt.isPresent()) {
-            ProductFamilyStatsProjection projection = projectionOpt.get();
-
+        projectionOpt.ifPresent(projection -> {
             stats.setTotalFamilies(projection.getTotalFamilies());
             stats.setTotalProducts(projection.getTotalProducts());
             stats.setFamiliesWithProducts(projection.getFamiliesWithProducts());
@@ -314,7 +312,7 @@ public class ProductFamilyService {
             } else {
                 stats.setAverageProductsPerFamily(BigDecimal.ZERO);
             }
-        }
+        });
 
         // Query 2: Get top families by products and value - NO MORE MANUAL SORTING!
         List<FamilyDetailStatsProjection> topFamiliesProjections = productFamilyRepository.getTopFamiliesStats(clientAccountId, 5);

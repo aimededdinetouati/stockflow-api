@@ -12,10 +12,7 @@ import com.adeem.stockflow.security.SecurityUtils;
 import com.adeem.stockflow.service.dto.CustomerAssociationDTO;
 import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
 import com.adeem.stockflow.service.mapper.CustomerAssociationMapper;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -157,19 +154,13 @@ public class CustomerAssociationService {
     public Page<CustomerAssociationDTO> findAll(Pageable pageable) {
         LOG.debug("Request to get all CustomerAssociations");
 
-        // Try to get customer ID from current user
-        Optional<Long> currentUserId = SecurityUtils.getCurrentOptUserId();
-        if (currentUserId.isPresent()) {
-            Optional<Customer> customer = customerRepository.findByUserId(currentUserId.get());
-            if (customer.isPresent()) {
-                // Current user is a customer - return their associations
-                return findAllByCustomerId(customer.get().getId(), pageable);
-            }
-        }
-
-        // Current user is company admin - return company associations
-        Long clientAccountId = SecurityUtils.getCurrentClientAccountId();
-        return findAllByClientAccountId(clientAccountId, pageable);
+        return SecurityUtils.getCurrentOptUserId()
+            .flatMap(customerRepository::findByUserId)
+            .map(customer -> findAllByCustomerId(customer.getId(), pageable))
+            .orElseGet(() -> {
+                Long clientAccountId = SecurityUtils.getCurrentClientAccountId();
+                return findAllByClientAccountId(clientAccountId, pageable);
+            });
     }
 
     /**
@@ -396,23 +387,15 @@ public class CustomerAssociationService {
      * Validate access to association operations.
      */
     private void validateAssociationAccess(Long customerId, Long clientAccountId) {
-        Optional<Long> currentUserId = SecurityUtils.getCurrentOptUserId();
+        Long currentUserId = SecurityUtils.getCurrentUserId(); // throws if not authenticated
         Optional<Long> currentClientAccountId = SecurityUtils.getCurrentOptClientAccountId();
 
-        boolean hasAccess = false;
+        boolean hasAccess = customerRepository
+            .findByUserId(currentUserId)
+            .map(customer -> Objects.equals(customer.getId(), customerId))
+            .orElse(false);
 
-        // Check if current user is the customer
-        if (currentUserId.isPresent()) {
-            Optional<Customer> customer = customerRepository.findByUserId(currentUserId.get());
-            if (customer.isPresent() && customer.get().getId().equals(customerId)) {
-                hasAccess = true;
-            }
-        }
-
-        // Check if current user is admin of the client account
-        if (!hasAccess && currentClientAccountId.isPresent() && currentClientAccountId.get().equals(clientAccountId)) {
-            hasAccess = true;
-        }
+        hasAccess = hasAccess || currentClientAccountId.map(id -> Objects.equals(id, clientAccountId)).orElse(false);
 
         if (!hasAccess) {
             throw new AccessDeniedException("Cannot access this association");
@@ -423,30 +406,23 @@ public class CustomerAssociationService {
      * Validate access to customer association operations.
      */
     private void validateCustomerAssociationAccess(Long customerId) {
-        Optional<Long> currentUserId = SecurityUtils.getCurrentOptUserId();
-
-        // Check if current user is the customer
-        if (currentUserId.isPresent()) {
-            Optional<Customer> customer = customerRepository.findByUserId(currentUserId.get());
-            if (customer.isPresent() && customer.get().getId().equals(customerId)) {
-                return; // Access granted
-            }
-        }
-
-        // Check if current user is admin of a company that has associations with this customer
+        Long currentUserId = SecurityUtils.getCurrentUserId();
         Optional<Long> currentClientAccountId = SecurityUtils.getCurrentOptClientAccountId();
-        if (currentClientAccountId.isPresent()) {
-            boolean hasAssociation = associationRepository.existsByCustomerIdAndClientAccountIdAndStatus(
-                customerId,
-                currentClientAccountId.get(),
-                AssociationStatus.ACTIVE
-            );
-            if (hasAssociation) {
-                return; // Access granted
-            }
-        }
 
-        throw new AccessDeniedException("Cannot access associations for this customer");
+        boolean isCustomerSelf = customerRepository
+            .findByUserId(currentUserId)
+            .map(customer -> Objects.equals(customer.getId(), customerId))
+            .orElse(false);
+
+        boolean isAdminWithAssociation = currentClientAccountId
+            .map(clientAccountId ->
+                associationRepository.existsByCustomerIdAndClientAccountIdAndStatus(customerId, clientAccountId, AssociationStatus.ACTIVE)
+            )
+            .orElse(false);
+
+        if (!isCustomerSelf && !isAdminWithAssociation) {
+            throw new AccessDeniedException("Cannot access associations for this customer");
+        }
     }
 
     /**

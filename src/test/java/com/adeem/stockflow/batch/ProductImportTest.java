@@ -37,7 +37,7 @@ import org.springframework.test.context.TestPropertySource;
     properties = {
         "spring.batch.job.enabled=false",
         "application.import.chunk-size=5",
-        "application.import.file-storage.temp-directory=${java.io.tmpdir}/stockflow-test-imports",
+        "application.import.file-storage.temp-directory=${java.io.tmpdir}/stockflow-imports",
     }
 )
 class ProductImportBatchTest {
@@ -207,7 +207,7 @@ class ProductImportBatchTest {
     }
 
     private Path createBatchTempDirectory() throws IOException {
-        Path batchTempDir = Path.of(System.getProperty("java.io.tmpdir"), "stockflow-test-imports");
+        Path batchTempDir = Path.of(System.getProperty("java.io.tmpdir"), "stockflow-imports");
         if (!Files.exists(batchTempDir)) {
             Files.createDirectories(batchTempDir);
         }

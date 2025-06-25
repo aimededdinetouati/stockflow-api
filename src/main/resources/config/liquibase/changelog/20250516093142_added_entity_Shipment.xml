@@ -9,67 +9,76 @@
     <!--
         Added the entity Shipment.
     -->
-    <changeSet id="20250516093142-1" author="jhipster">
-        <createTable tableName="shipment">
-            <column name="id" type="bigint">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="reference" type="varchar(255)">
-                <constraints nullable="true" unique="true" uniqueConstraintName="ux_shipment__reference" />
-            </column>
-            <column name="tracking_number" type="varchar(255)">
-                <constraints nullable="true" unique="true" uniqueConstraintName="ux_shipment__tracking_number" />
-            </column>
-            <column name="carrier" type="varchar(255)">
-                <constraints nullable="false" />
-            </column>
-            <column name="shipping_date" type="${datetimeType}">
-                <constraints nullable="true" />
-            </column>
-            <column name="estimated_delivery_date" type="${datetimeType}">
-                <constraints nullable="true" />
-            </column>
-            <column name="actual_delivery_date" type="${datetimeType}">
-                <constraints nullable="true" />
-            </column>
-            <column name="status" type="varchar(255)">
-                <constraints nullable="false" />
-            </column>
-            <column name="shipping_cost" type="decimal(21,2)">
-                <constraints nullable="false" />
-            </column>
-            <column name="weight" type="double">
-                <constraints nullable="true" />
-            </column>
-            <column name="notes" type="varchar(255)">
-                <constraints nullable="true" />
-            </column>
-            <column name="created_by" type="varchar(50)">
-                <constraints nullable="false" />
-            </column>
-            <column name="created_date" type="${datetimeType}">
-                <constraints nullable="false" />
-            </column>
-            <column name="last_modified_by" type="varchar(50)">
-                <constraints nullable="false" />
-            </column>
-            <column name="last_modified_date" type="${datetimeType}">
-                <constraints nullable="false" />
-            </column>
-            <column name="sale_order_id" type="bigint">
-                <constraints nullable="true" unique="true" uniqueConstraintName="ux_shipment__sale_order_id" />
-            </column>
-            <column name="address_id" type="bigint">
-                <constraints nullable="true" />
-            </column>
-            <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
-        </createTable>
-        <dropDefaultValue tableName="shipment" columnName="shipping_date" columnDataType="${datetimeType}"/>
-        <dropDefaultValue tableName="shipment" columnName="estimated_delivery_date" columnDataType="${datetimeType}"/>
-        <dropDefaultValue tableName="shipment" columnName="actual_delivery_date" columnDataType="${datetimeType}"/>
-        <dropDefaultValue tableName="shipment" columnName="created_date" columnDataType="${datetimeType}"/>
-        <dropDefaultValue tableName="shipment" columnName="last_modified_date" columnDataType="${datetimeType}"/>
-    </changeSet>
+  <changeSet id="20250516093142-1" author="jhipster">
+    <createTable tableName="shipment">
+      <column name="id" type="bigint">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="reference" type="varchar(255)">
+        <constraints nullable="true" unique="true" uniqueConstraintName="ux_shipment__reference" />
+      </column>
+      <column name="tracking_number" type="varchar(255)">
+        <constraints nullable="true" unique="true" uniqueConstraintName="ux_shipment__tracking_number" />
+      </column>
+      <column name="carrier" type="varchar(255)">
+        <constraints nullable="false" />
+      </column>
+      <column name="shipping_date" type="${datetimeType}">
+        <constraints nullable="true" />
+      </column>
+      <column name="estimated_delivery_date" type="${datetimeType}">
+        <constraints nullable="true" />
+      </column>
+      <column name="actual_delivery_date" type="${datetimeType}">
+        <constraints nullable="true" />
+      </column>
+      <column name="status" type="varchar(255)">
+        <constraints nullable="false" />
+      </column>
+      <column name="weight" type="double">
+        <constraints nullable="true" />
+      </column>
+      <column name="notes" type="varchar(255)">
+        <constraints nullable="true" />
+      </column>
+      <column name="yalidine_shipment_id" type="varchar(255)">
+        <constraints nullable="true" />
+      </column>
+      <column name="yalidine_tracking_url" type="varchar(255)">
+        <constraints nullable="true" />
+      </column>
+      <column name="yalidine_response_data" type="jsonb">
+        <constraints nullable="true" />
+      </column>
+      <column name="created_by" type="varchar(50)">
+        <constraints nullable="false" />
+      </column>
+      <column name="created_date" type="${datetimeType}">
+        <constraints nullable="false" />
+      </column>
+      <column name="last_modified_by" type="varchar(50)">
+        <constraints nullable="false" />
+      </column>
+      <column name="last_modified_date" type="${datetimeType}">
+        <constraints nullable="false" />
+      </column>
+      <column name="sale_order_id" type="bigint">
+        <constraints nullable="true" unique="true" uniqueConstraintName="ux_shipment__sale_order_id" />
+      </column>
+      <column name="address_id" type="bigint">
+        <constraints nullable="true" />
+      </column>
+      <column name="client_account_id" type="bigint">
+        <constraints nullable="true" />
+      </column>
+      <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
+    </createTable>
+    <dropDefaultValue tableName="shipment" columnName="shipping_date" columnDataType="${datetimeType}"/>
+    <dropDefaultValue tableName="shipment" columnName="estimated_delivery_date" columnDataType="${datetimeType}"/>
+    <dropDefaultValue tableName="shipment" columnName="actual_delivery_date" columnDataType="${datetimeType}"/>
+    <dropDefaultValue tableName="shipment" columnName="created_date" columnDataType="${datetimeType}"/>
+    <dropDefaultValue tableName="shipment" columnName="last_modified_date" columnDataType="${datetimeType}"/>
+  </changeSet>
 
     <!-- jhipster-needle-liquibase-add-changeset - JHipster will add changesets here -->
 
@@ -95,7 +104,6 @@
             <column name="estimated_delivery_date" type="date"/>
             <column name="actual_delivery_date" type="date"/>
             <column name="status" type="string"/>
-            <column name="shipping_cost" type="numeric"/>
             <column name="weight" type="numeric"/>
             <column name="notes" type="string"/>
             <column name="created_by" type="string"/>
