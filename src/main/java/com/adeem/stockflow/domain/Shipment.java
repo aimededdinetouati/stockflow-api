@@ -57,10 +57,6 @@ public class Shipment extends AbstractAuditingEntity<Long> implements Serializab
     @Column(name = "status", nullable = false)
     private ShippingStatus status;
 
-    @NotNull
-    @Column(name = "shipping_cost", precision = 21, scale = 2, nullable = false)
-    private BigDecimal shippingCost;
-
     @Column(name = "weight")
     private Double weight;
 
@@ -223,19 +219,6 @@ public class Shipment extends AbstractAuditingEntity<Long> implements Serializab
         this.status = status;
     }
 
-    public BigDecimal getShippingCost() {
-        return this.shippingCost;
-    }
-
-    public Shipment shippingCost(BigDecimal shippingCost) {
-        this.setShippingCost(shippingCost);
-        return this;
-    }
-
-    public void setShippingCost(BigDecimal shippingCost) {
-        this.shippingCost = shippingCost;
-    }
-
     public Double getWeight() {
         return this.weight;
     }
@@ -388,7 +371,6 @@ public class Shipment extends AbstractAuditingEntity<Long> implements Serializab
             ", estimatedDeliveryDate='" + getEstimatedDeliveryDate() + "'" +
             ", actualDeliveryDate='" + getActualDeliveryDate() + "'" +
             ", status='" + getStatus() + "'" +
-            ", shippingCost=" + getShippingCost() +
             ", weight=" + getWeight() +
             ", notes='" + getNotes() + "'" +
             ", yalidineShipmentId='" + getYalidineShipmentId() + "'" +

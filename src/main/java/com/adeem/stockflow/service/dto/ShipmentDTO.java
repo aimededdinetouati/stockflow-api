@@ -33,9 +33,6 @@ public class ShipmentDTO implements Serializable {
     @NotNull
     private ShippingStatus status;
 
-    @NotNull
-    private BigDecimal shippingCost;
-
     private Double weight;
 
     private String notes;
@@ -116,14 +113,6 @@ public class ShipmentDTO implements Serializable {
 
     public void setStatus(ShippingStatus status) {
         this.status = status;
-    }
-
-    public BigDecimal getShippingCost() {
-        return shippingCost;
-    }
-
-    public void setShippingCost(BigDecimal shippingCost) {
-        this.shippingCost = shippingCost;
     }
 
     public Double getWeight() {
@@ -224,7 +213,6 @@ public class ShipmentDTO implements Serializable {
             ", estimatedDeliveryDate='" + getEstimatedDeliveryDate() + "'" +
             ", actualDeliveryDate='" + getActualDeliveryDate() + "'" +
             ", status='" + getStatus() + "'" +
-            ", shippingCost=" + getShippingCost() +
             ", weight=" + getWeight() +
             ", notes='" + getNotes() + "'" +
             ", yalidineShipmentId='" + getYalidineShipmentId() + "'" +

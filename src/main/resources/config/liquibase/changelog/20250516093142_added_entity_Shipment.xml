@@ -35,9 +35,6 @@
       <column name="status" type="varchar(255)">
         <constraints nullable="false" />
       </column>
-      <column name="shipping_cost" type="decimal(21,2)">
-        <constraints nullable="false" />
-      </column>
       <column name="weight" type="double">
         <constraints nullable="true" />
       </column>
@@ -107,7 +104,6 @@
             <column name="estimated_delivery_date" type="date"/>
             <column name="actual_delivery_date" type="date"/>
             <column name="status" type="string"/>
-            <column name="shipping_cost" type="numeric"/>
             <column name="weight" type="numeric"/>
             <column name="notes" type="string"/>
             <column name="created_by" type="string"/>
