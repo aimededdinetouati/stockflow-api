@@ -36,37 +36,61 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, MvcRequestMatcher.Builder mvc) throws Exception {
         http
+            // CORS must be configured FIRST before other security rules
             .cors(withDefaults())
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authz ->
-                // prettier-ignore
                 authz
                     // Public authentication endpoints
-                    .requestMatchers(mvc.pattern(HttpMethod.POST, "/api/authenticate")).permitAll()
-                    .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/authenticate")).permitAll()
-                    .requestMatchers(mvc.pattern("/api/register")).permitAll()
-                    .requestMatchers(mvc.pattern("/api/activate")).permitAll()
-                    .requestMatchers(mvc.pattern("/api/account/reset-password/init")).permitAll()
-                    .requestMatchers(mvc.pattern("/api/account/reset-password/finish")).permitAll()
-
+                    .requestMatchers(mvc.pattern(HttpMethod.POST, "/api/authenticate"))
+                    .permitAll()
+                    .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/authenticate"))
+                    .permitAll()
+                    .requestMatchers(mvc.pattern("/api/register"))
+                    .permitAll()
+                    .requestMatchers(mvc.pattern("/api/activate"))
+                    .permitAll()
+                    .requestMatchers(mvc.pattern("/api/account/reset-password/init"))
+                    .permitAll()
+                    .requestMatchers(mvc.pattern("/api/account/reset-password/finish"))
+                    .permitAll()
                     // ADD THESE LINES FOR PUBLIC SWAGGER ACCESS
-                    .requestMatchers(mvc.pattern("/swagger-ui/**")).permitAll()
-                    .requestMatchers(mvc.pattern("/swagger-ui.html")).permitAll()
-                    .requestMatchers(mvc.pattern("/v3/api-docs/**")).permitAll()
-                    .requestMatchers(mvc.pattern("/v3/api-docs.yaml")).permitAll()
-                    .requestMatchers(mvc.pattern("/v3/api-docs")).permitAll()
-                    .requestMatchers(mvc.pattern("/swagger-resources/**")).permitAll()
-                    .requestMatchers(mvc.pattern("/webjars/**")).permitAll()
-
+                    .requestMatchers(mvc.pattern("/swagger-ui/**"))
+                    .permitAll()
+                    .requestMatchers(mvc.pattern("/swagger-ui.html"))
+                    .permitAll()
+                    .requestMatchers(mvc.pattern("/v3/api-docs/**"))
+                    .permitAll()
+                    .requestMatchers(mvc.pattern("/v3/api-docs.yaml"))
+                    .permitAll()
+                    .requestMatchers(mvc.pattern("/v3/api-docs"))
+                    .permitAll()
+                    .requestMatchers(mvc.pattern("/swagger-resources/**"))
+                    .permitAll()
+                    .requestMatchers(mvc.pattern("/webjars/**"))
+                    .permitAll()
+                    // OPTIONS requests (CORS preflight) - CRITICAL for CORS
+                    .requestMatchers(mvc.pattern(HttpMethod.OPTIONS, "/**"))
+                    .permitAll()
                     // Admin and protected endpoints
-                    .requestMatchers(mvc.pattern("/api/admin/**")).hasAuthority(AuthoritiesConstants.ADMIN)
-                    .requestMatchers(mvc.pattern("/api/**")).authenticated()
-                    .requestMatchers(mvc.pattern("/websocket/**")).authenticated()
-                    .requestMatchers(mvc.pattern("/management/health")).permitAll()
-                    .requestMatchers(mvc.pattern("/management/health/**")).permitAll()
-                    .requestMatchers(mvc.pattern("/management/info")).permitAll()
-                    .requestMatchers(mvc.pattern("/management/prometheus")).permitAll()
-                    .requestMatchers(mvc.pattern("/management/**")).hasAuthority(AuthoritiesConstants.ADMIN)
+                    .requestMatchers(mvc.pattern("/api/admin/**"))
+                    .hasAuthority(AuthoritiesConstants.ADMIN)
+                    .requestMatchers(mvc.pattern("/api/**"))
+                    .authenticated()
+                    .requestMatchers(mvc.pattern("/api/public/**"))
+                    .permitAll()
+                    .requestMatchers(mvc.pattern("/websocket/**"))
+                    .authenticated()
+                    .requestMatchers(mvc.pattern("/management/health"))
+                    .permitAll()
+                    .requestMatchers(mvc.pattern("/management/health/**"))
+                    .permitAll()
+                    .requestMatchers(mvc.pattern("/management/info"))
+                    .permitAll()
+                    .requestMatchers(mvc.pattern("/management/prometheus"))
+                    .permitAll()
+                    .requestMatchers(mvc.pattern("/management/**"))
+                    .hasAuthority(AuthoritiesConstants.ADMIN)
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(exceptions ->
@@ -77,40 +101,6 @@ public class SecurityConfiguration {
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()));
         return http.build();
     }
-
-    //    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity http, MvcRequestMatcher.Builder mvc) throws Exception {
-//        http
-//            .cors(withDefaults())
-//            .csrf(csrf -> csrf.disable())
-//            .authorizeHttpRequests(authz ->
-//                // prettier-ignore
-//                authz
-//                    .requestMatchers(mvc.pattern(HttpMethod.POST, "/api/authenticate")).permitAll()
-//                    .requestMatchers(mvc.pattern(HttpMethod.GET, "/api/authenticate")).permitAll()
-//                    .requestMatchers(mvc.pattern("/api/register")).permitAll()
-//                    .requestMatchers(mvc.pattern("/api/activate")).permitAll()
-//                    .requestMatchers(mvc.pattern("/api/account/reset-password/init")).permitAll()
-//                    .requestMatchers(mvc.pattern("/api/account/reset-password/finish")).permitAll()
-//                    .requestMatchers(mvc.pattern("/api/admin/**")).hasAuthority(AuthoritiesConstants.ADMIN)
-//                    .requestMatchers(mvc.pattern("/api/**")).authenticated()
-//                    .requestMatchers(mvc.pattern("/websocket/**")).authenticated()
-//                    .requestMatchers(mvc.pattern("/v3/api-docs/**")).hasAuthority(AuthoritiesConstants.ADMIN)
-//                    .requestMatchers(mvc.pattern("/management/health")).permitAll()
-//                    .requestMatchers(mvc.pattern("/management/health/**")).permitAll()
-//                    .requestMatchers(mvc.pattern("/management/info")).permitAll()
-//                    .requestMatchers(mvc.pattern("/management/prometheus")).permitAll()
-//                    .requestMatchers(mvc.pattern("/management/**")).hasAuthority(AuthoritiesConstants.ADMIN)
-//            )
-//            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//            .exceptionHandling(exceptions ->
-//                exceptions
-//                    .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
-//                    .accessDeniedHandler(new BearerTokenAccessDeniedHandler())
-//            )
-//            .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()));
-//        return http.build();
-//    }
 
     @Bean
     MvcRequestMatcher.Builder mvc(HandlerMappingIntrospector introspector) {
