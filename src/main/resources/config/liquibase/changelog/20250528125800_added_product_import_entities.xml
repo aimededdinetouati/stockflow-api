@@ -11,7 +11,7 @@
   -->
 
   <!-- Product Import Job Table -->
-  <changeSet runOnChange="true" id="20241128000001-1" author="aimed">
+  <changeSet id="20241128000001-1" author="aimed">
     <createTable tableName="product_import_job">
       <column name="id" type="bigint" autoIncrement="true">
         <constraints primaryKey="true" nullable="false"/>
@@ -64,7 +64,7 @@
   </changeSet>
 
   <!-- Product Import Error Table -->
-  <changeSet runOnChange="true" id="20241128000002-1" author="aimed">
+  <changeSet id="20241128000002-1" author="aimed">
     <createTable tableName="product_import_error">
       <column name="id" type="bigint" autoIncrement="true">
         <constraints primaryKey="true" nullable="false"/>
@@ -105,7 +105,7 @@
   </changeSet>
 
   <!-- Add Foreign Key Constraints -->
-  <changeSet runOnChange="true" id="20241128000003-1" author="aimed">
+  <changeSet id="20241128000003-1" author="aimed">
     <addForeignKeyConstraint
       baseColumnNames="client_account_id"
       baseTableName="product_import_job"
@@ -114,7 +114,7 @@
       referencedTableName="client_account"/>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241128000004-1" author="aimed">
+  <changeSet id="20241128000004-1" author="aimed">
     <addForeignKeyConstraint
       baseColumnNames="import_job_id"
       baseTableName="product_import_error"
@@ -124,70 +124,70 @@
   </changeSet>
 
   <!-- Add Indexes for Performance -->
-  <changeSet runOnChange="true" id="20241128000005-1" author="aimed">
+  <changeSet id="20241128000005-1" author="aimed">
     <createIndex indexName="idx_product_import_job_client_account" tableName="product_import_job">
       <column name="client_account_id"/>
     </createIndex>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241128000006-1" author="aimed">
+  <changeSet id="20241128000006-1" author="aimed">
     <createIndex indexName="idx_product_import_job_execution_id" tableName="product_import_job">
       <column name="job_execution_id"/>
     </createIndex>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241128000007-1" author="aimed">
+  <changeSet id="20241128000007-1" author="aimed">
     <createIndex indexName="idx_product_import_job_status" tableName="product_import_job">
       <column name="status"/>
     </createIndex>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241128000008-1" author="aimed">
+  <changeSet id="20241128000008-1" author="aimed">
     <createIndex indexName="idx_product_import_job_start_time" tableName="product_import_job">
       <column name="start_time"/>
     </createIndex>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241128000009-1" author="aimed">
+  <changeSet id="20241128000009-1" author="aimed">
     <createIndex indexName="idx_product_import_error_import_job" tableName="product_import_error">
       <column name="import_job_id"/>
     </createIndex>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241128000010-1" author="aimed">
+  <changeSet id="20241128000010-1" author="aimed">
     <createIndex indexName="idx_product_import_error_row_number" tableName="product_import_error">
       <column name="row_number"/>
     </createIndex>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241128000011-1" author="aimed">
+  <changeSet id="20241128000011-1" author="aimed">
     <createIndex indexName="idx_product_import_error_type" tableName="product_import_error">
       <column name="error_type"/>
     </createIndex>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241128000012-1" author="aimed">
+  <changeSet id="20241128000012-1" author="aimed">
     <createIndex indexName="idx_product_import_error_field_name" tableName="product_import_error">
       <column name="field_name"/>
     </createIndex>
   </changeSet>
 
   <!-- Add Composite Indexes for Common Queries -->
-  <changeSet runOnChange="true" id="20241128000013-1" author="aimed">
+  <changeSet id="20241128000013-1" author="aimed">
     <createIndex indexName="idx_product_import_job_client_status" tableName="product_import_job">
       <column name="client_account_id"/>
       <column name="status"/>
     </createIndex>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241128000014-1" author="aimed">
+  <changeSet id="20241128000014-1" author="aimed">
     <createIndex indexName="idx_product_import_job_client_start_time" tableName="product_import_job">
       <column name="client_account_id"/>
       <column name="start_time"/>
     </createIndex>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241128000015-1" author="aimed">
+  <changeSet id="20241128000015-1" author="aimed">
     <createIndex indexName="idx_product_import_error_job_type" tableName="product_import_error">
       <column name="import_job_id"/>
       <column name="error_type"/>
@@ -195,18 +195,18 @@
   </changeSet>
 
   <!-- Add Comments for Documentation -->
-  <changeSet runOnChange="true" id="20241128000016-1" author="aimed">
+  <changeSet id="20241128000016-1" author="aimed">
     <setTableRemarks tableName="product_import_job"
                      remarks="Tracks Excel product import jobs with progress and status information"/>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241128000017-1" author="aimed">
+  <changeSet id="20241128000017-1" author="aimed">
     <setTableRemarks tableName="product_import_error"
                      remarks="Stores detailed error information for each failed row in product import jobs"/>
   </changeSet>
 
   <!-- Add Column Comments -->
-  <changeSet runOnChange="true" id="20241128000018-1" author="aimed">
+  <changeSet id="20241128000018-1" author="aimed">
     <setColumnRemarks tableName="product_import_job" columnName="job_execution_id"
                       remarks="Spring Batch job execution ID for correlation"/>
     <setColumnRemarks tableName="product_import_job" columnName="file_name"
@@ -227,7 +227,7 @@
                       remarks="Current processing phase description"/>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241128000019-1" author="aimed">
+  <changeSet id="20241128000019-1" author="aimed">
     <setColumnRemarks tableName="product_import_error" columnName="row_number"
                       remarks="Excel row number (1-based, including header)"/>
     <setColumnRemarks tableName="product_import_error" columnName="data_row_number"
@@ -245,7 +245,7 @@
   </changeSet>
 
   <!-- Add Check Constraints for Data Integrity -->
-  <changeSet runOnChange="true" id="20241128000020-1" author="aimed">
+  <changeSet id="20241128000020-1" author="aimed">
     <sql>
       ALTER TABLE product_import_job
         ADD CONSTRAINT chk_product_import_job_status
@@ -253,7 +253,7 @@
     </sql>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241128000021-1" author="aimed">
+  <changeSet id="20241128000021-1" author="aimed">
     <sql>
       ALTER TABLE product_import_job
         ADD CONSTRAINT chk_product_import_job_rows
@@ -261,7 +261,7 @@
     </sql>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241128000022-1" author="aimed">
+  <changeSet id="20241128000022-1" author="aimed">
     <sql>
       ALTER TABLE product_import_job
         ADD CONSTRAINT chk_product_import_job_successful_rows
@@ -269,7 +269,7 @@
     </sql>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241128000023-1" author="aimed">
+  <changeSet id="20241128000023-1" author="aimed">
     <sql>
       ALTER TABLE product_import_job
         ADD CONSTRAINT chk_product_import_job_failed_rows
@@ -277,7 +277,7 @@
     </sql>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241128000024-1" author="aimed">
+  <changeSet id="20241128000024-1" author="aimed">
     <sql>
       ALTER TABLE product_import_job
         ADD CONSTRAINT chk_product_import_job_file_size
@@ -285,7 +285,7 @@
     </sql>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241128000025-1" author="aimed">
+  <changeSet id="20241128000025-1" author="aimed">
     <sql>
       ALTER TABLE product_import_error
         ADD CONSTRAINT chk_product_import_error_type
@@ -294,7 +294,7 @@
     </sql>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241128000026-1" author="aimed">
+  <changeSet id="20241128000026-1" author="aimed">
     <sql>
       ALTER TABLE product_import_error
         ADD CONSTRAINT chk_product_import_error_row_number
@@ -302,7 +302,7 @@
     </sql>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241128000027-1" author="aimed">
+  <changeSet id="20241128000027-1" author="aimed">
     <sql>
       ALTER TABLE product_import_error
         ADD CONSTRAINT chk_product_import_error_data_row_number

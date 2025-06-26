@@ -8,7 +8,7 @@
     <!--
         Added the constraints for entity PaymentReceipt.
     -->
-    <changeSet runOnChange="true" id="20250516093144-2" author="jhipster">
+    <changeSet id="20250516093144-2" author="jhipster">
 
         <addForeignKeyConstraint baseColumnNames="payment_id"
                                  baseTableName="payment_receipt"

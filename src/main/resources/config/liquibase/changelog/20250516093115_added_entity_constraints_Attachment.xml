@@ -8,7 +8,7 @@
     <!--
         Added the constraints for entity Attachment.
     -->
-    <changeSet runOnChange="true" id="20250516093115-2" author="jhipster">
+    <changeSet id="20250516093115-2" author="jhipster">
 
         <addForeignKeyConstraint baseColumnNames="client_account_id"
                                  baseTableName="attachment"

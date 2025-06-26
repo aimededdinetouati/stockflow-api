@@ -9,7 +9,7 @@
     <!--
         Added the entity InventoryTransaction.
     -->
-    <changeSet runOnChange="true" id="20250516093133-1" author="jhipster">
+    <changeSet id="20250516093133-1" author="jhipster">
         <createTable tableName="inventory_transaction">
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
@@ -67,7 +67,7 @@
           This can be customized by adding or removing 'faker' in the 'spring.liquibase.contexts'
           Spring Boot configuration key.
     -->
-    <changeSet runOnChange="true" id="20250516093133-1-data" author="jhipster" context="faker">
+    <changeSet id="20250516093133-1-data" author="jhipster" context="faker">
         <loadData
                   file="config/liquibase/fake-data/inventory_transaction.csv"
                   separator=";"

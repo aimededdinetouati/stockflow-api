@@ -11,7 +11,7 @@
   -->
 
   <!-- BATCH_JOB_INSTANCE Table -->
-  <changeSet runOnChange="true" id="20250528130001-1" author="system">
+  <changeSet id="20250528130001-1" author="system">
     <createTable tableName="BATCH_JOB_INSTANCE">
       <column name="JOB_INSTANCE_ID" type="bigint" autoIncrement="true">
         <constraints primaryKey="true" nullable="false"/>
@@ -29,7 +29,7 @@
   </changeSet>
 
   <!-- BATCH_JOB_EXECUTION Table -->
-  <changeSet runOnChange="true" id="20250528130002-1" author="system">
+  <changeSet id="20250528130002-1" author="system">
     <createTable tableName="BATCH_JOB_EXECUTION">
       <column name="JOB_EXECUTION_ID" type="bigint" autoIncrement="true">
         <constraints primaryKey="true" nullable="false"/>
@@ -65,7 +65,7 @@
   </changeSet>
 
   <!-- BATCH_JOB_EXECUTION_PARAMS Table -->
-  <changeSet runOnChange="true" id="20250528130003-1" author="system">
+  <changeSet id="20250528130003-1" author="system">
     <createTable tableName="BATCH_JOB_EXECUTION_PARAMS">
       <column name="JOB_EXECUTION_ID" type="bigint">
         <constraints nullable="false"/>
@@ -86,7 +86,7 @@
   </changeSet>
 
   <!-- BATCH_STEP_EXECUTION Table -->
-  <changeSet runOnChange="true" id="20250528130004-1" author="system">
+  <changeSet id="20250528130004-1" author="system">
     <createTable tableName="BATCH_STEP_EXECUTION">
       <column name="STEP_EXECUTION_ID" type="bigint" autoIncrement="true">
         <constraints primaryKey="true" nullable="false"/>
@@ -149,7 +149,7 @@
   </changeSet>
 
   <!-- BATCH_JOB_EXECUTION_CONTEXT Table -->
-  <changeSet runOnChange="true" id="20250528130005-1" author="system">
+  <changeSet id="20250528130005-1" author="system">
     <createTable tableName="BATCH_JOB_EXECUTION_CONTEXT">
       <column name="JOB_EXECUTION_ID" type="bigint">
         <constraints primaryKey="true" nullable="false"/>
@@ -164,7 +164,7 @@
   </changeSet>
 
   <!-- BATCH_STEP_EXECUTION_CONTEXT Table -->
-  <changeSet runOnChange="true" id="20250528130006-1" author="system">
+  <changeSet id="20250528130006-1" author="system">
     <createTable tableName="BATCH_STEP_EXECUTION_CONTEXT">
       <column name="STEP_EXECUTION_ID" type="bigint">
         <constraints primaryKey="true" nullable="false"/>
@@ -179,7 +179,7 @@
   </changeSet>
 
   <!-- Add Foreign Key Constraints -->
-  <changeSet runOnChange="true" id="20250528130007-1" author="system">
+  <changeSet id="20250528130007-1" author="system">
     <addForeignKeyConstraint
       baseColumnNames="JOB_INSTANCE_ID"
       baseTableName="BATCH_JOB_EXECUTION"
@@ -188,7 +188,7 @@
       referencedTableName="BATCH_JOB_INSTANCE"/>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20250528130008-1" author="system">
+  <changeSet id="20250528130008-1" author="system">
     <addForeignKeyConstraint
       baseColumnNames="JOB_EXECUTION_ID"
       baseTableName="BATCH_JOB_EXECUTION_PARAMS"
@@ -197,7 +197,7 @@
       referencedTableName="BATCH_JOB_EXECUTION"/>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20250528130009-1" author="system">
+  <changeSet id="20250528130009-1" author="system">
     <addForeignKeyConstraint
       baseColumnNames="JOB_EXECUTION_ID"
       baseTableName="BATCH_STEP_EXECUTION"
@@ -206,7 +206,7 @@
       referencedTableName="BATCH_JOB_EXECUTION"/>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20250528130010-1" author="system">
+  <changeSet id="20250528130010-1" author="system">
     <addForeignKeyConstraint
       baseColumnNames="JOB_EXECUTION_ID"
       baseTableName="BATCH_JOB_EXECUTION_CONTEXT"
@@ -215,7 +215,7 @@
       referencedTableName="BATCH_JOB_EXECUTION"/>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20250528130011-1" author="system">
+  <changeSet id="20250528130011-1" author="system">
     <addForeignKeyConstraint
       baseColumnNames="STEP_EXECUTION_ID"
       baseTableName="BATCH_STEP_EXECUTION_CONTEXT"
@@ -225,7 +225,7 @@
   </changeSet>
 
 <!--  &lt;!&ndash; Add Unique Constraints &ndash;&gt;-->
-<!--  <changeSet runOnChange="true" id="20250528130012-1" author="system">-->
+<!--  <changeSet id="20250528130012-1" author="system">-->
 <!--    <addUniqueConstraint-->
 <!--      columnNames="JOB_NAME, JOB_KEY"-->
 <!--      constraintName="JOB_INST_UN"-->
@@ -233,27 +233,27 @@
 <!--  </changeSet>-->
 
   <!-- Add Indexes for Performance -->
-  <changeSet runOnChange="true" id="20250528130013-1" author="system">
+  <changeSet id="20250528130013-1" author="system">
     <createIndex indexName="JOB_INST_UN" tableName="BATCH_JOB_INSTANCE" unique="true">
       <column name="JOB_NAME"/>
       <column name="JOB_KEY"/>
     </createIndex>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20250528130014-1" author="system">
+  <changeSet id="20250528130014-1" author="system">
     <createIndex indexName="JOB_EXEC_IDX" tableName="BATCH_JOB_EXECUTION">
       <column name="JOB_INSTANCE_ID"/>
     </createIndex>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20250528130015-1" author="system">
+  <changeSet id="20250528130015-1" author="system">
     <createIndex indexName="STEP_EXEC_IDX" tableName="BATCH_STEP_EXECUTION">
       <column name="JOB_EXECUTION_ID"/>
     </createIndex>
   </changeSet>
 
   <!-- Sequences for batch tables -->
-  <changeSet runOnChange="true" id="20250601090000-1" author="aimed">
+  <changeSet id="20250601090000-1" author="aimed">
     <createSequence sequenceName="BATCH_JOB_SEQ" startValue="1" incrementBy="1"/>
     <createSequence sequenceName="BATCH_JOB_EXECUTION_SEQ" startValue="1" incrementBy="1"/>
     <createSequence sequenceName="BATCH_STEP_EXECUTION_SEQ" startValue="1" incrementBy="1"/>

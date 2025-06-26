@@ -8,7 +8,7 @@
     <!--
         Added the constraints for entity ReturnOrder.
     -->
-    <changeSet runOnChange="true" id="20250516093138-2" author="jhipster">
+    <changeSet id="20250516093138-2" author="jhipster">
 
         <addForeignKeyConstraint baseColumnNames="client_account_id"
                                  baseTableName="return_order"
