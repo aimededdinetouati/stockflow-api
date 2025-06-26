@@ -9,7 +9,7 @@
   <!--
       Create the customer_client_association table for managing customer-company relationships.
   -->
-  <changeSet runOnChange="true" id="20241201000002-1" author="jhipster">
+  <changeSet id="20241201000002-1" author="jhipster">
     <createTable tableName="customer_client_association">
       <column name="id" type="bigint" autoIncrement="true">
         <constraints primaryKey="true" nullable="false"/>
@@ -40,7 +40,7 @@
     </createTable>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241201000002-2" author="jhipster">
+  <changeSet id="20241201000002-2" author="jhipster">
     <!-- Add foreign key constraints -->
     <addForeignKeyConstraint baseColumnNames="customer_id"
                              baseTableName="customer_client_association"
@@ -55,7 +55,7 @@
                              referencedTableName="client_account"/>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241201000002-3" author="jhipster">
+  <changeSet id="20241201000002-3" author="jhipster">
     <!-- Add indexes for performance -->
     <createIndex indexName="idx_customer_client_association_customer"
                  tableName="customer_client_association">
@@ -92,14 +92,14 @@
     </createIndex>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241201000002-4" author="jhipster">
+  <changeSet id="20241201000002-4" author="jhipster">
     <!-- Add unique constraint to prevent duplicate associations -->
     <addUniqueConstraint columnNames="customer_id, client_account_id, association_type"
                          constraintName="uc_customer_client_association_unique"
                          tableName="customer_client_association"/>
   </changeSet>
 
-  <changeSet runOnChange="true" id="20241201000002-5" author="jhipster">
+  <changeSet id="20241201000002-5" author="jhipster">
     <!-- Add check constraints for enum values -->
     <sql>
       ALTER TABLE customer_client_association

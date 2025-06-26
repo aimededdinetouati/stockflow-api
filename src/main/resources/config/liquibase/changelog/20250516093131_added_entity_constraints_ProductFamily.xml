@@ -8,7 +8,7 @@
     <!--
         Added the constraints for entity ProductFamily.
     -->
-    <changeSet runOnChange="true" id="20250516093131-2" author="jhipster">
+    <changeSet id="20250516093131-2" author="jhipster">
 
         <addForeignKeyConstraint baseColumnNames="client_account_id"
                                  baseTableName="product_family"

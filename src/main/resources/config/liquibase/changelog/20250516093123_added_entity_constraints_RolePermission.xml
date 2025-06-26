@@ -8,7 +8,7 @@
     <!--
         Added the constraints for entity RolePermission.
     -->
-    <changeSet runOnChange="true" id="20250516093123-2" author="jhipster">
+    <changeSet id="20250516093123-2" author="jhipster">
 
         <addForeignKeyConstraint baseColumnNames="role_id"
                                  baseTableName="role_permission"

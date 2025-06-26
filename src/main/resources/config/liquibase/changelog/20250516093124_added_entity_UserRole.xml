@@ -9,7 +9,7 @@
     <!--
         Added the entity UserRole.
     -->
-    <changeSet runOnChange="true" id="20250516093124-1" author="jhipster">
+    <changeSet id="20250516093124-1" author="jhipster">
         <createTable tableName="user_role">
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
@@ -48,7 +48,7 @@
           This can be customized by adding or removing 'faker' in the 'spring.liquibase.contexts'
           Spring Boot configuration key.
     -->
-    <changeSet runOnChange="true" id="20250516093124-1-data" author="jhipster" context="faker">
+    <changeSet id="20250516093124-1-data" author="jhipster" context="faker">
         <loadData
                   file="config/liquibase/fake-data/user_role.csv"
                   separator=";"

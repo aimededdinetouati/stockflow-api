@@ -12,7 +12,7 @@
   <property name="datetimeType" value="datetime" dbms="postgresql"/>
 
   <!-- Create Permissions -->
-  <changeSet runOnChange="true" id="20250517000001" author="system">
+  <changeSet id="20250517000001" author="system">
     <createTable tableName="permission">
       <column name="id" type="bigint" autoIncrement="true">
         <constraints primaryKey="true" nullable="false"/>
@@ -328,7 +328,7 @@
   </changeSet>
 
   <!-- Create Default System RolesConstants -->
-  <changeSet runOnChange="true" id="20250517000002" author="system">
+  <changeSet id="20250517000002" author="system">
     <!-- Create System-wide RolesConstants (not associated with a specific client account) -->
     <insert tableName="role">
       <column name="id" valueNumeric="1"/>
@@ -414,7 +414,7 @@
   </changeSet>
 
   <!-- Assign Permissions to RolesConstants -->
-  <changeSet runOnChange="true" id="20250517000003" author="system">
+  <changeSet id="20250517000003" author="system">
     <!-- Assign all permissions to SUPER_ADMIN -->
     <sql>
       INSERT INTO role_permission (role_id, permission_id, created_date, last_modified_date)
