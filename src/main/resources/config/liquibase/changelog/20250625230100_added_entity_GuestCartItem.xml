@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <!--
+        Added the entity GuestCart and GuestCartItem.
+    -->
+    <changeSet runOnChange="true" id="20250622120000-1" author="jhipster">
+        <createTable tableName="guest_cart">
+            <column name="session_id" type="varchar(255)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="created_date" type="${datetimeType}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expires_at" type="${datetimeType}">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet runOnChange="true" id="20250622120000-2" author="jhipster">
+        <createTable tableName="guest_cart_item">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="session_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="quantity" type="decimal(21,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="price_at_time" type="decimal(21,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="added_date" type="${datetimeType}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Adding the entity audit columns -->
+    <changeSet runOnChange="true" id="20250622120000-1-relations" author="jhipster">
+        <!-- Add foreign key constraints -->
+        <addForeignKeyConstraint baseColumnNames="product_id"
+                                 baseTableName="guest_cart_item"
+                                 constraintName="fk_guest_cart_item__product_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="product"/>
+
+        <addForeignKeyConstraint baseColumnNames="session_id"
+                                 baseTableName="guest_cart_item"
+                                 constraintName="fk_guest_cart_item__session_id"
+                                 referencedColumnNames="session_id"
+                                 referencedTableName="guest_cart"/>
+    </changeSet>
+
+    <!-- Add indexes for performance -->
+    <changeSet runOnChange="true" id="20250622120000-1-indexes" author="jhipster">
+        <createIndex indexName="idx_guest_cart_expires_at" tableName="guest_cart">
+            <column name="expires_at"/>
+        </createIndex>
+
+        <createIndex indexName="idx_guest_cart_item_session_id" tableName="guest_cart_item">
+            <column name="session_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_guest_cart_item_product_id" tableName="guest_cart_item">
+            <column name="product_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_guest_cart_item_session_product" tableName="guest_cart_item">
+            <column name="session_id"/>
+            <column name="product_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
