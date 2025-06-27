@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,7 +39,7 @@ public class SecurityConfiguration {
         http
             // CORS must be configured FIRST before other security rules
             .cors(withDefaults())
-            .csrf(csrf -> csrf.disable())
+            .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(authz ->
                 authz
                     // Public authentication endpoints
@@ -54,7 +55,7 @@ public class SecurityConfiguration {
                     .permitAll()
                     .requestMatchers(mvc.pattern("/api/account/reset-password/finish"))
                     .permitAll()
-                    // ADD THESE LINES FOR PUBLIC SWAGGER ACCESS
+                    // TODO Swagger endpoints should be auntenticated
                     .requestMatchers(mvc.pattern("/swagger-ui/**"))
                     .permitAll()
                     .requestMatchers(mvc.pattern("/swagger-ui.html"))
@@ -77,8 +78,6 @@ public class SecurityConfiguration {
                     .hasAuthority(AuthoritiesConstants.ADMIN)
                     .requestMatchers(mvc.pattern("/api/**"))
                     .authenticated()
-                    .requestMatchers(mvc.pattern("/api/public/**"))
-                    .permitAll()
                     .requestMatchers(mvc.pattern("/websocket/**"))
                     .authenticated()
                     .requestMatchers(mvc.pattern("/management/health"))

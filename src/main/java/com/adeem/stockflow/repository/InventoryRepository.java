@@ -16,7 +16,7 @@ import org.springframework.stereotype.Repository;
 @SuppressWarnings("unused")
 @Repository
 public interface InventoryRepository extends JpaRepository<Inventory, Long>, JpaSpecificationExecutor<Inventory> {
-    Optional<Inventory> findByProductId(Long id);
+    Set<Inventory> findByProductId(Long id);
 
     // Financial aggregations
     @Query(

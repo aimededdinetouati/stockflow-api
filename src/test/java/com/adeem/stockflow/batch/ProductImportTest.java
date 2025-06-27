@@ -189,16 +189,17 @@ class ProductImportBatchTest {
                         .withFailMessage("Expected product code in map: " + product.getCode())
                         .containsKey(product.getCode());
 
-                    var inventoryOpt = inventoryRepository.findByProductId(product.getId());
-                    assertThat(inventoryOpt).withFailMessage("Expected inventory for product: " + product.getCode()).isPresent();
-                    assertThat(inventoryOpt.get().getQuantity().compareTo(productQuantities.get(product.getCode())))
+                    var inventorySet = inventoryRepository.findByProductId(product.getId());
+                    assertThat(inventorySet).withFailMessage("Expected inventory for product: " + product.getCode()).isNotEmpty();
+                    var inventory = inventorySet.iterator().next();
+                    assertThat(inventory.getQuantity().compareTo(productQuantities.get(product.getCode())))
                         .withFailMessage(
                             "Expected inventory quantity for product: " +
                             product.getCode() +
                             " to match import quantity: " +
                             productQuantities.get(product.getCode()) +
                             " but found: " +
-                            inventoryOpt.get().getQuantity()
+                            inventory.getQuantity()
                         )
                         .isZero();
                 });

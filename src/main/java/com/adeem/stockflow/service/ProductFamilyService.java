@@ -403,7 +403,7 @@ public class ProductFamilyService {
      * @return the family detail statistics.
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = "family-detail-stats", key = "#family.id + '_' + #clientAccountId")
+    //@Cacheable(value = "family-detail-stats", key = "#family.id + '_' + #clientAccountId")
     public ProductFamilyStatsDTO.FamilyDetailStatsDTO getFamilyDetailStats(ProductFamily family, Long clientAccountId) {
         LOG.debug("Request to get detailed statistics for ProductFamily : {} for client account : {}", family.getId(), clientAccountId);
 
