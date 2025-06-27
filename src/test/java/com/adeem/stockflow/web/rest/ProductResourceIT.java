@@ -36,6 +36,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -263,7 +264,7 @@ class ProductResourceIT {
 
         // Verify that inventory was created
         var inventory = inventoryRepository.findByProductId(returnedProduct.getId());
-        assertThat(inventory).isPresent();
+        assertThat(inventory).isNotEmpty();
 
         // Verify that image was attached
         List<Attachment> attachments = attachmentRepository.findByProductId(returnedProduct.getId());
@@ -808,9 +809,9 @@ class ProductResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Find the inventory to update
-        Optional<Inventory> inventoryOpt = inventoryRepository.findByProductId(insertedProduct.getId());
-        assertThat(inventoryOpt).isPresent();
-        Inventory inventoryToUpdate = inventoryOpt.get();
+        Set<Inventory> inventorySet = inventoryRepository.findByProductId(insertedProduct.getId());
+        assertThat(inventorySet).isNotEmpty();
+        Inventory inventoryToUpdate = inventorySet.iterator().next();
 
         // Count the initial images
         List<Attachment> initialAttachments = attachmentRepository.findByProductId(insertedProduct.getId());
@@ -909,9 +910,9 @@ class ProductResourceIT {
         ProductDTO productDTO = productMapper.toDto(updatedProduct);
 
         // Find the inventory to update
-        Optional<Inventory> inventoryOpt = inventoryRepository.findByProductId(insertedProduct.getId());
-        assertThat(inventoryOpt).isPresent();
-        Inventory inventoryToUpdate = inventoryOpt.get();
+        Set<Inventory> inventorySet = inventoryRepository.findByProductId(insertedProduct.getId());
+        assertThat(inventorySet).isNotEmpty();
+        Inventory inventoryToUpdate = inventorySet.iterator().next();
 
         // Update inventory
         InventoryDTO updatedInventory = new InventoryDTO();

@@ -8,6 +8,7 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
+import java.util.List;
 import org.springframework.data.jpa.domain.Specification;
 import tech.jhipster.service.QueryService;
 import tech.jhipster.service.filter.RangeFilter;
@@ -108,6 +109,10 @@ public class ProductSpecification extends QueryService<Product> {
 
     public static Specification<Product> withId(Long id) {
         return BaseSpecification.equals("id", id);
+    }
+
+    public static Specification<Product> withIdNot(Long id) {
+        return BaseSpecification.notEqual("id", id);
     }
 
     /**
@@ -263,5 +268,167 @@ public class ProductSpecification extends QueryService<Product> {
             var join = root.join("clientAccount", jakarta.persistence.criteria.JoinType.LEFT);
             return criteriaBuilder.equal(join.get("id"), clientAccountId);
         };
+    }
+
+    // === MARKETPLACE-SPECIFIC SPECIFICATIONS ===
+
+    /**
+     * Full-text search in product name and description.
+     */
+    public static Specification<Product> withNameOrDescriptionContaining(String searchTerm) {
+        return (root, query, criteriaBuilder) -> {
+            if (searchTerm == null || searchTerm.trim().isEmpty()) {
+                return criteriaBuilder.conjunction();
+            }
+
+            String searchPattern = "%" + searchTerm.toLowerCase() + "%";
+
+            Predicate namePredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), searchPattern);
+
+            Predicate descriptionPredicate = criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), searchPattern);
+
+            return criteriaBuilder.or(namePredicate, descriptionPredicate);
+        };
+    }
+
+    /**
+     * Filter by company name containing the specified text.
+     */
+    public static Specification<Product> withCompanyNameContaining(String companyName) {
+        return (root, query, criteriaBuilder) -> {
+            if (companyName == null || companyName.trim().isEmpty()) {
+                return criteriaBuilder.conjunction();
+            }
+
+            Join<Product, ClientAccount> clientAccountJoin = root.join("clientAccount", JoinType.INNER);
+            String searchPattern = "%" + companyName.toLowerCase() + "%";
+
+            return criteriaBuilder.like(criteriaBuilder.lower(clientAccountJoin.get("companyName")), searchPattern);
+        };
+    }
+
+    /**
+     * Filter products that have available inventory (quantity > 0).
+     */
+    public static Specification<Product> withAvailableInventory() {
+        return (root, query, criteriaBuilder) -> {
+            Join<Product, Inventory> inventoryJoin = root.join("inventories", JoinType.LEFT);
+
+            return criteriaBuilder.greaterThan(inventoryJoin.get("availableQuantity"), BigDecimal.ZERO);
+        };
+    }
+
+    /**
+     * Filter products by availability status.
+     */
+    public static Specification<Product> withAvailabilityStatus(Boolean available) {
+        return (root, query, criteriaBuilder) -> {
+            if (available == null) {
+                return criteriaBuilder.conjunction();
+            }
+
+            Join<Product, Inventory> inventoryJoin = root.join("inventories", JoinType.LEFT);
+
+            if (available) {
+                return criteriaBuilder.and(
+                    criteriaBuilder.isTrue(root.get("isVisibleToCustomers")),
+                    criteriaBuilder.greaterThan(inventoryJoin.get("availableQuantity"), BigDecimal.ZERO)
+                );
+            } else {
+                return criteriaBuilder.or(
+                    criteriaBuilder.isFalse(root.get("isVisibleToCustomers")),
+                    criteriaBuilder.lessThanOrEqualTo(inventoryJoin.get("availableQuantity"), BigDecimal.ZERO)
+                );
+            }
+        };
+    }
+
+    /**
+     * Filter products by company location (city).
+     */
+    public static Specification<Product> withCompanyCity(String city) {
+        return (root, query, criteriaBuilder) -> {
+            if (city == null || city.trim().isEmpty()) {
+                return criteriaBuilder.conjunction();
+            }
+
+            Join<Product, ClientAccount> clientAccountJoin = root.join("clientAccount", JoinType.INNER);
+            Join<ClientAccount, Address> addressJoin = clientAccountJoin.join("address", JoinType.LEFT);
+
+            return criteriaBuilder.equal(criteriaBuilder.lower(addressJoin.get("city")), city.toLowerCase());
+        };
+    }
+
+    /**
+     * Filter products by company location (country).
+     */
+    public static Specification<Product> withCompanyCountry(String country) {
+        return (root, query, criteriaBuilder) -> {
+            if (country == null || country.trim().isEmpty()) {
+                return criteriaBuilder.conjunction();
+            }
+
+            Join<Product, ClientAccount> clientAccountJoin = root.join("clientAccount", JoinType.INNER);
+            Join<ClientAccount, Address> addressJoin = clientAccountJoin.join("address", JoinType.LEFT);
+
+            return criteriaBuilder.equal(criteriaBuilder.lower(addressJoin.get("country")), country.toLowerCase());
+        };
+    }
+
+    /**
+     * Filter products with images.
+     */
+    public static Specification<Product> withImages() {
+        return (root, query, criteriaBuilder) -> {
+            Join<Product, Attachment> imagesJoin = root.join("images", JoinType.LEFT);
+            return criteriaBuilder.isNotNull(imagesJoin.get("id"));
+        };
+    }
+
+    /**
+     * Complex marketplace filter combining visibility and availability.
+     */
+    public static Specification<Product> forMarketplace() {
+        return Specification.where(withVisibleToCustomers(true)).and(withAvailableInventory());
+    }
+
+    /**
+     * Filter for marketplace search with multiple criteria.
+     */
+    public static Specification<Product> marketplaceSearch(
+        String searchTerm,
+        String category,
+        BigDecimal minPrice,
+        BigDecimal maxPrice,
+        String companyName,
+        Boolean availableOnly
+    ) {
+        Specification<Product> spec = Specification.where(withVisibleToCustomers(true));
+
+        if (searchTerm != null && !searchTerm.trim().isEmpty()) {
+            spec = spec.and(withNameOrDescriptionContaining(searchTerm));
+        }
+
+        if (category != null && !category.trim().isEmpty()) {
+            spec = spec.and(withCategory(category));
+        }
+
+        if (minPrice != null) {
+            spec = spec.and(withSellingPriceGreaterThanOrEqual(minPrice));
+        }
+
+        if (maxPrice != null) {
+            spec = spec.and(withSellingPriceLessThanOrEqual(maxPrice));
+        }
+
+        if (companyName != null && !companyName.trim().isEmpty()) {
+            spec = spec.and(withCompanyNameContaining(companyName));
+        }
+
+        if (Boolean.TRUE.equals(availableOnly)) {
+            spec = spec.and(withAvailableInventory());
+        }
+
+        return spec;
     }
 }

@@ -5,6 +5,7 @@ package com.adeem.stockflow.domain.enumeration;
  */
 public enum TransactionType {
     INITIAL,
+    DELETION,
     PURCHASE,
     SALE,
     RETURN,

@@ -28,6 +28,15 @@ public class BaseSpecification {
         };
     }
 
+    public static <T, U> Specification<T> notEqual(String field, U value) {
+        return (root, query, criteriaBuilder) -> {
+            if (value == null) {
+                return criteriaBuilder.conjunction();
+            }
+            return criteriaBuilder.notEqual(root.get(field), value);
+        };
+    }
+
     /**
      * Creates a specification for a string containing the given value (case-insensitive).
      *
