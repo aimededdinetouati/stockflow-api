@@ -12,34 +12,12 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring", uses = { GuestCartItemMapper.class })
 public interface GuestCartMapper extends EntityMapper<GuestCartDTO, GuestCart> {
-    @Mapping(target = "items", source = "items")
     @Mapping(target = "totalAmount", ignore = true)
     @Mapping(target = "totalItems", ignore = true)
     @Mapping(target = "isExpired", ignore = true)
     GuestCartDTO toDto(GuestCart guestCart);
 
-    @Mapping(target = "items", source = "items")
     GuestCart toEntity(GuestCartDTO guestCartDTO);
-
-    @AfterMapping
-    default void calculateTotals(@MappingTarget GuestCartDTO dto, GuestCart entity) {
-        if (dto.getItems() != null) {
-            dto.setTotalItems(dto.getItems().size());
-            dto.setTotalAmount(
-                dto
-                    .getItems()
-                    .stream()
-                    .map(item -> item.getQuantity().multiply(item.getPriceAtTime()))
-                    .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add)
-            );
-        } else {
-            dto.setTotalItems(0);
-            dto.setTotalAmount(java.math.BigDecimal.ZERO);
-        }
-
-        // Check if cart is expired
-        dto.setIsExpired(dto.getExpiresAt() != null && dto.getExpiresAt().isBefore(Instant.now()));
-    }
 
     default GuestCart fromId(String sessionId) {
         if (sessionId == null) {

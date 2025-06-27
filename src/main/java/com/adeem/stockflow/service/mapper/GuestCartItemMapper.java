@@ -14,7 +14,6 @@ public interface GuestCartItemMapper extends EntityMapper<GuestCartItemDTO, Gues
     GuestCartItemDTO toDto(GuestCartItem guestCartItem);
 
     @Mapping(target = "product", source = "product")
-    @Mapping(target = "guestCart", ignore = true)
     GuestCartItem toEntity(GuestCartItemDTO guestCartItemDTO);
 
     @AfterMapping

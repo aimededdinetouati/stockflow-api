@@ -18,7 +18,10 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import org.mapstruct.MappingTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -86,10 +89,41 @@ public class GuestCartService {
      * @return the guest cart DTO if found and not expired
      */
     @Transactional(readOnly = true)
-    public Optional<GuestCartDTO> findGuestCart(String sessionId) {
+    public GuestCartDTO findGuestCart(String sessionId) {
         LOG.debug("Request to get guest cart: {}", sessionId);
+        GuestCart guestCart = guestCartRepository
+            .findValidGuestCart(sessionId, Instant.now())
+            .orElseThrow(() -> new BadRequestAlertException("Guest cart not found", "", ErrorConstants.GUEST_CART_NOT_FOUND));
+        GuestCartDTO guestCartDTO = guestCartMapper.toDto(guestCart);
+        List<GuestCartItemDTO> guestCartItems = guestCartItemRepository
+            .findBySessionId(sessionId)
+            .stream()
+            .map(guestCartItemMapper::toDto)
+            .toList();
+        guestCartDTO.setItems(guestCartItems);
+        calculateTotals(guestCartDTO);
 
-        return guestCartRepository.findValidGuestCart(sessionId, Instant.now()).map(guestCartMapper::toDto);
+        return guestCartDTO;
+    }
+
+    public GuestCartDTO calculateTotals(GuestCartDTO dto) {
+        if (dto.getItems() != null) {
+            dto.setTotalItems(dto.getItems().size());
+            dto.setTotalAmount(
+                dto
+                    .getItems()
+                    .stream()
+                    .map(item -> item.getQuantity().multiply(item.getPriceAtTime()))
+                    .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add)
+            );
+        } else {
+            dto.setTotalItems(0);
+            dto.setTotalAmount(java.math.BigDecimal.ZERO);
+        }
+
+        // Check if cart is expired
+        dto.setIsExpired(dto.getExpiresAt() != null && dto.getExpiresAt().isBefore(Instant.now()));
+        return dto;
     }
 
     /**
@@ -102,7 +136,7 @@ public class GuestCartService {
         LOG.debug("Request to add item to guest cart: {} - Product: {}, Quantity: {}", sessionId, productId, quantity);
 
         // Validate session
-        GuestCart guestCart = getValidGuestCart(sessionId);
+        getValidGuestCart(sessionId);
 
         // Validate product
         Product product = getValidMarketplaceProduct(productId);
@@ -123,7 +157,6 @@ public class GuestCartService {
             cartItem.setQuantity(quantity);
             cartItem.setPriceAtTime(product.getSellingPrice());
             cartItem.setAddedDate(Instant.now());
-            cartItem.setGuestCart(guestCart);
         }
 
         cartItem = guestCartItemRepository.save(cartItem);
@@ -203,19 +236,6 @@ public class GuestCartService {
         guestCartItemRepository.deleteAll(items);
 
         LOG.debug("Cleared guest cart: {}", sessionId);
-    }
-
-    /**
-     * Get guest cart with calculated totals.
-     *
-     * @param sessionId the session ID
-     * @return the guest cart DTO with totals
-     */
-    @Transactional(readOnly = true)
-    public Optional<GuestCartDTO> getGuestCartWithTotals(String sessionId) {
-        LOG.debug("Request to get guest cart with totals: {}", sessionId);
-
-        return findGuestCart(sessionId);
     }
 
     /**

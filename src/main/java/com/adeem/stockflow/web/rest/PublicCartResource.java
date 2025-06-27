@@ -6,6 +6,7 @@ import com.adeem.stockflow.service.dto.GuestCartDTO;
 import com.adeem.stockflow.service.dto.GuestCartItemDTO;
 import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -69,8 +70,8 @@ public class PublicCartResource {
     public ResponseEntity<GuestCartDTO> getGuestCart(@PathVariable String sessionId) {
         LOG.debug("REST request to get guest cart : {}", sessionId);
 
-        Optional<GuestCartDTO> guestCartDTO = guestCartService.findGuestCart(sessionId);
-        return ResponseUtil.wrapOrNotFound(guestCartDTO);
+        GuestCartDTO guestCartDTO = guestCartService.findGuestCart(sessionId);
+        return ResponseEntity.ok(guestCartDTO);
     }
 
     /**
@@ -84,7 +85,7 @@ public class PublicCartResource {
     public ResponseEntity<GuestCartItemDTO> addToGuestCart(
         @PathVariable String sessionId,
         @RequestParam Long productId,
-        @RequestParam BigDecimal quantity
+        @RequestParam @Min(1) BigDecimal quantity
     ) throws URISyntaxException {
         LOG.debug("REST request to add item to guest cart : {} - Product: {}, Quantity: {}", sessionId, productId, quantity);
 

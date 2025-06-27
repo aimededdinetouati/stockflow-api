@@ -51,11 +51,6 @@ public class GuestCartItem implements Serializable {
     @JsonIgnoreProperties(value = { "category", "clientAccount", "inventories", "cartItems", "guestCartItems" }, allowSetters = true)
     private Product product;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @NotNull
-    @JsonIgnoreProperties(value = { "items" }, allowSetters = true)
-    private GuestCart guestCart;
-
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
     public Long getId() {
@@ -133,19 +128,6 @@ public class GuestCartItem implements Serializable {
 
     public GuestCartItem product(Product product) {
         this.setProduct(product);
-        return this;
-    }
-
-    public GuestCart getGuestCart() {
-        return this.guestCart;
-    }
-
-    public void setGuestCart(GuestCart guestCart) {
-        this.guestCart = guestCart;
-    }
-
-    public GuestCartItem guestCart(GuestCart guestCart) {
-        this.setGuestCart(guestCart);
         return this;
     }
 
