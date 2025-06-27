@@ -3,7 +3,9 @@ package com.adeem.stockflow.repository;
 import com.adeem.stockflow.domain.Inventory;
 import com.adeem.stockflow.repository.projection.InventoryFinancialStatsDTO;
 import com.adeem.stockflow.repository.projection.InventoryStockLevelStatsDTO;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -51,4 +53,11 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long>, Jpa
     InventoryStockLevelStatsDTO getStockLevelStats(@Param("clientAccountId") Long clientAccountId);
 
     Optional<Inventory> findByProductIdAndClientAccountId(Long productId, Long currentClientAccountId);
+
+    @Query("SELECT i FROM Inventory i WHERE i.product.id IN :productIds")
+    List<Inventory> findByProductIdIn(@Param("productIds") List<Long> productIds);
+
+    @Modifying
+    @Query("DELETE FROM Inventory i WHERE i.product.id IN :productIds")
+    int deleteByProductIdIn(@Param("productIds") List<Long> productIds);
 }

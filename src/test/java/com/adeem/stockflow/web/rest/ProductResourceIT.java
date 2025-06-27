@@ -1122,6 +1122,132 @@ class ProductResourceIT {
             .andExpect(jsonPath("$").value(1));
     }
 
+    // Example test methods for ProductResourceIT.java
+
+    @Test
+    @Transactional
+    void testBulkDeleteProducts() throws Exception {
+        // Setup - create test products
+        setSecurityContextWithClientAccountId(clientAccount.getId());
+
+        Product product1 = createEntity();
+        product1.setCode("BULK_TEST_1");
+        product1.setClientAccount(clientAccount);
+
+        Product product2 = createEntity();
+        product2.setCode("BULK_TEST_2");
+        product2.setClientAccount(clientAccount);
+
+        Product savedProduct1 = productRepository.saveAndFlush(product1);
+        Product savedProduct2 = productRepository.saveAndFlush(product2);
+
+        List<Long> productIds = List.of(savedProduct1.getId(), savedProduct2.getId());
+
+        try {
+            // Test bulk deletion
+            restProductMockMvc
+                .perform(delete(ENTITY_API_URL + "/bulk").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(productIds)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.deletedCount").value(2))
+                .andExpect(jsonPath("$.failedCount").value(0))
+                .andExpect(jsonPath("$.totalRequested").value(2));
+
+            // Verify products are actually deleted
+            em.clear();
+            em.flush();
+            assertThat(productRepository.findById(savedProduct1.getId())).isEmpty();
+            assertThat(productRepository.findById(savedProduct2.getId())).isEmpty();
+        } finally {
+            // Cleanup is not needed as products are deleted
+        }
+    }
+
+    @Test
+    @Transactional
+    void testBulkToggleVisibility() throws Exception {
+        // Setup - create test products
+        setSecurityContextWithClientAccountId(clientAccount.getId());
+
+        Product product1 = createEntity();
+        product1.setCode("VISIBILITY_TEST_1");
+        product1.setIsVisibleToCustomers(true);
+        product1.setClientAccount(clientAccount);
+
+        Product product2 = createEntity();
+        product2.setCode("VISIBILITY_TEST_2");
+        product2.setIsVisibleToCustomers(false);
+        product2.setClientAccount(clientAccount);
+
+        Product savedProduct1 = productRepository.saveAndFlush(product1);
+        Product savedProduct2 = productRepository.saveAndFlush(product2);
+
+        List<Long> productIds = List.of(savedProduct1.getId(), savedProduct2.getId());
+
+        try {
+            // Test bulk visibility toggle
+            restProductMockMvc
+                .perform(
+                    patch(ENTITY_API_URL + "/bulk/toggle-visibility")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(om.writeValueAsBytes(productIds))
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.updatedCount").value(2))
+                .andExpect(jsonPath("$.failedCount").value(0))
+                .andExpect(jsonPath("$.totalRequested").value(2))
+                .andExpect(jsonPath("$.updatedProducts", hasSize(2)));
+
+            // Verify visibility was toggled
+            em.clear();
+            em.flush();
+            Product updatedProduct1 = productRepository.findById(savedProduct1.getId()).orElseThrow();
+            Product updatedProduct2 = productRepository.findById(savedProduct2.getId()).orElseThrow();
+
+            assertThat(updatedProduct1.getIsVisibleToCustomers()).isFalse(); // was true, now false
+            assertThat(updatedProduct2.getIsVisibleToCustomers()).isTrue(); // was false, now true
+        } finally {
+            // Cleanup
+            productRepository.delete(savedProduct1);
+            productRepository.delete(savedProduct2);
+        }
+    }
+
+    @Test
+    @Transactional
+    void testBulkDeleteWithInvalidIds() throws Exception {
+        setSecurityContextWithClientAccountId(clientAccount.getId());
+
+        // Test with non-existent IDs
+        List<Long> invalidIds = List.of(99999L, 99998L);
+
+        restProductMockMvc
+            .perform(delete(ENTITY_API_URL + "/bulk").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(invalidIds)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(jsonPath("$.deletedCount").value(0))
+            .andExpect(jsonPath("$.failedCount").value(2))
+            .andExpect(jsonPath("$.totalRequested").value(2))
+            .andExpect(jsonPath("$.failedIds", hasSize(2)))
+            .andExpect(jsonPath("$.failedIds[0]").value(99999))
+            .andExpect(jsonPath("$.failedIds[1]").value(99998));
+    }
+
+    @Test
+    @Transactional
+    void testBulkOperationsWithEmptyList() throws Exception {
+        setSecurityContextWithClientAccountId(clientAccount.getId());
+
+        // Test with empty list
+        List<Long> emptyIds = List.of();
+
+        // Should return 400 Bad Request for empty list
+        restProductMockMvc
+            .perform(delete(ENTITY_API_URL + "/bulk").contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(emptyIds)))
+            .andExpect(status().isBadRequest());
+    }
+
     protected long getRepositoryCount() {
         return productRepository.count();
     }

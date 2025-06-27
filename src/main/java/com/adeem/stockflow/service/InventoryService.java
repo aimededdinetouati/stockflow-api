@@ -82,7 +82,7 @@ public class InventoryService {
         inventoryRepository.saveAll(inventoriesToSave);
     }
 
-    @CacheEvict(value = "inventoryStats", key = "#inventoryDTO.clientAccountId")
+    //@CacheEvict(value = "inventoryStats", key = "#inventoryDTO.clientAccountId")
     public InventoryDTO create(InventoryDTO inventoryDTO) {
         LOG.debug("Request to create Inventory : {}", inventoryDTO);
 
@@ -101,7 +101,7 @@ public class InventoryService {
      * @param inventoryDTO the entity to save.
      * @return the persisted entity.
      */
-    @CacheEvict(value = "inventoryStats", key = "#inventoryDTO.clientAccountId")
+    //@CacheEvict(value = "inventoryStats", key = "#inventoryDTO.clientAccountId")
     public InventoryDTO update(InventoryDTO inventoryDTO) {
         LOG.debug("Request to update Inventory : {}", inventoryDTO);
 
@@ -299,7 +299,7 @@ public class InventoryService {
      * @param clientAccountId the client account ID
      * @return inventory statistics
      */
-    @Cacheable(value = "inventoryStats", key = "#clientAccountId")
+    //@Cacheable(value = "inventoryStats", key = "#clientAccountId")
     @Transactional(readOnly = true)
     public InventoryStatsDTO getInventoryStats(Long clientAccountId) {
         LOG.debug("Request to get Inventory stats for client account: {}", clientAccountId);
@@ -514,6 +514,54 @@ public class InventoryService {
         var specification = InventoryTransactionSpecification.withProductId(inventory.getProduct().getId());
         // Get transactions for this product
         return inventoryTransactionRepository.findAll(specification, pageable).map(inventoryTransactionMapper::toDto);
+    }
+
+    /**
+     * Bulk delete all inventory records for multiple products.
+     * This method is used for efficient bulk product deletion.
+     *
+     * @param productIds the list of product IDs whose inventory records should be deleted
+     * @return the number of deleted inventory records
+     */
+    @Transactional
+    //@CacheEvict(value = "inventories", allEntries = true)
+    public int deleteByProductIdsBulk(Long clientAccountId, List<Long> productIds) {
+        LOG.debug("Request to delete all inventory records for product IDs: {}", productIds);
+
+        try {
+            // Find all inventory records for these products
+            List<Inventory> inventoryRecords = inventoryRepository.findByProductIdIn(productIds);
+
+            if (!inventoryRecords.isEmpty()) {
+                // Create bulk transaction records for audit trail
+                List<InventoryTransaction> transactions = inventoryRecords
+                    .stream()
+                    .map(inventory -> {
+                        InventoryTransaction transaction = new InventoryTransaction();
+                        transaction.setInventory(inventory);
+                        transaction.setTransactionType(TransactionType.DELETION);
+                        transaction.setQuantity(inventory.getQuantity().negate());
+                        transaction.setReferenceNumber(inventoryTransactionService.generateReference(clientAccountId));
+                        transaction.setNotes("Bulk product deletion - inventory cleanup");
+                        return transaction;
+                    })
+                    .toList();
+
+                // Save all transaction records
+                inventoryTransactionRepository.saveAll(transactions);
+
+                // Perform bulk deletion of inventory records
+                int deletedCount = inventoryRepository.deleteByProductIdIn(productIds);
+
+                LOG.debug("Successfully deleted {} inventory records for {} products", deletedCount, productIds.size());
+                return deletedCount;
+            }
+
+            return 0;
+        } catch (Exception e) {
+            LOG.error("Error deleting inventory records for product IDs {}: {}", productIds, e.getMessage());
+            throw new BadRequestAlertException("Failed to delete inventory records for products", "inventory", "bulkdeletionfailed");
+        }
     }
 
     public Optional<Inventory> findByProductIdAndClientAccountId(Long productId, Long currentClientAccountId) {

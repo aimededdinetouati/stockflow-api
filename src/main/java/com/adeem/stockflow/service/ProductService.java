@@ -72,7 +72,7 @@ public class ProductService {
         return productMapper.toDto(product);
     }
 
-    @CacheEvict(value = "inventoryStats", key = "#productDTO.clientAccountId")
+    //@CacheEvict(value = "inventoryStats", key = "#productDTO.clientAccountId")
     public ProductDTO create(ProductDTO productDTO, InventoryDTO inventoryDTO, List<MultipartFile> images) throws IOException {
         LOG.debug("Request to create Product : {}", productDTO);
         checkFields(productDTO);
@@ -103,7 +103,7 @@ public class ProductService {
      * @param images the product images to add (optional)
      * @return the updated entity
      */
-    @CacheEvict(value = "inventoryStats", key = "#productDTO.clientAccountId")
+    //@CacheEvict(value = "inventoryStats", key = "#productDTO.clientAccountId")
     public ProductDTO update(ProductDTO productDTO, InventoryDTO inventoryDTO, List<MultipartFile> images) throws IOException {
         LOG.debug("Request to update Product : {}", productDTO);
 
@@ -395,5 +395,109 @@ public class ProductService {
     public void delete(Long id) {
         LOG.debug("Request to delete Product : {}", id);
         productRepository.deleteById(id);
+    }
+
+    // Add these methods to your ProductService.java class
+
+    /**
+     * Delete multiple products by IDs for a specific client account using efficient bulk queries.
+     *
+     * @param productIds the list of product IDs to delete
+     * @param clientAccountId the client account ID for security validation
+     * @return BulkOperationResult containing success/failure counts and failed IDs
+     */
+    @Transactional
+    //@CacheEvict(value = "products", allEntries = true)
+    public BulkOperationResult deleteBulk(List<Long> productIds, Long clientAccountId) {
+        LOG.debug("Request to delete Products in bulk: {} for client account: {}", productIds, clientAccountId);
+
+        BulkOperationResult result = new BulkOperationResult();
+
+        try {
+            // First, get the list of valid product IDs that belong to the client account
+            List<Long> validProductIds = productRepository.findValidProductIdsForClientAccount(productIds, clientAccountId);
+
+            if (!validProductIds.isEmpty()) {
+                // Delete related inventory records first using bulk operation
+                int deletedInventoryCount = inventoryService.deleteByProductIdsBulk(clientAccountId, validProductIds);
+                LOG.debug("Deleted {} inventory records for {} products", deletedInventoryCount, validProductIds.size());
+
+                // Perform bulk product deletion
+                int deletedProductCount = productRepository.deleteByIdsAndClientAccount(validProductIds, clientAccountId);
+
+                result.setSuccessCount(deletedProductCount);
+                LOG.debug("Successfully deleted {} products", deletedProductCount);
+            }
+
+            // Calculate failed IDs
+            List<Long> failedIds = productIds.stream().filter(id -> !validProductIds.contains(id)).toList();
+
+            result.setFailedCount(failedIds.size());
+            result.setFailedIds(failedIds);
+
+            if (!failedIds.isEmpty()) {
+                LOG.warn("Failed to delete products with IDs: {} (not found or access denied)", failedIds);
+            }
+        } catch (Exception e) {
+            LOG.error("Error during bulk product deletion: {}", e.getMessage());
+            // If bulk operation fails, treat all as failed
+            result.setFailedCount(productIds.size());
+            result.setFailedIds(new ArrayList<>(productIds));
+        }
+
+        LOG.debug("Bulk deletion completed: {} successful, {} failed", result.getSuccessCount(), result.getFailedCount());
+        return result;
+    }
+
+    /**
+     * Toggle isVisibleToCustomers field for multiple products by IDs using efficient bulk queries.
+     *
+     * @param productIds the list of product IDs to toggle visibility
+     * @param clientAccountId the client account ID for security validation
+     * @return BulkOperationResult containing success/failure counts, failed IDs, and updated products
+     */
+    @Transactional
+    //@CacheEvict(value = "products", allEntries = true)
+    public BulkOperationResult toggleVisibilityBulk(List<Long> productIds, Long clientAccountId) {
+        LOG.debug("Request to toggle visibility for Products in bulk: {} for client account: {}", productIds, clientAccountId);
+
+        BulkOperationResult result = new BulkOperationResult();
+
+        try {
+            // Get products that belong to the client account before update
+            List<Product> validProducts = productRepository.findByIdsAndClientAccount(productIds, clientAccountId);
+            List<Long> validProductIds = validProducts.stream().map(Product::getId).toList();
+
+            if (!validProductIds.isEmpty()) {
+                // Perform bulk visibility toggle using case statement
+                int updatedCount = productRepository.toggleVisibilityByIdsAndClientAccount(validProductIds, clientAccountId);
+
+                // Get updated products to return in response
+                List<Product> updatedProducts = productRepository.findByIdsAndClientAccount(validProductIds, clientAccountId);
+                List<ProductDTO> updatedProductDTOs = updatedProducts.stream().map(productMapper::toDto).toList();
+
+                result.setSuccessCount(updatedCount);
+                result.setUpdatedEntities(new ArrayList<>(updatedProductDTOs));
+                LOG.debug("Successfully toggled visibility for {} products", updatedCount);
+            }
+
+            // Calculate failed IDs
+            List<Long> failedIds = productIds.stream().filter(id -> !validProductIds.contains(id)).toList();
+
+            result.setFailedCount(failedIds.size());
+            result.setFailedIds(failedIds);
+
+            if (!failedIds.isEmpty()) {
+                LOG.warn("Failed to toggle visibility for products with IDs: {} (not found or access denied)", failedIds);
+            }
+        } catch (Exception e) {
+            LOG.error("Error during bulk visibility toggle: {}", e.getMessage());
+            // If bulk operation fails, treat all as failed
+            result.setFailedCount(productIds.size());
+            result.setFailedIds(new ArrayList<>(productIds));
+        }
+
+        LOG.debug("Bulk visibility toggle completed: {} successful, {} failed", result.getSuccessCount(), result.getFailedCount());
+        return result;
     }
 }

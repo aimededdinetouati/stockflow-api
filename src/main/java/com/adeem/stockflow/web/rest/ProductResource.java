@@ -9,6 +9,7 @@ import com.adeem.stockflow.service.ProductService;
 import com.adeem.stockflow.service.criteria.InventorySpecification;
 import com.adeem.stockflow.service.criteria.ProductSpecification;
 import com.adeem.stockflow.service.criteria.filter.ProductCriteria;
+import com.adeem.stockflow.service.dto.BulkOperationResult;
 import com.adeem.stockflow.service.dto.InventoryDTO;
 import com.adeem.stockflow.service.dto.ProductDTO;
 import com.adeem.stockflow.service.dto.ProductWithInventoryDTO;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -224,6 +226,98 @@ public class ProductResource {
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
             .build();
+    }
+
+    // Add these new endpoints to your ProductResource.java class
+
+    /**
+     * {@code DELETE  /products/bulk} : delete multiple products by list of IDs.
+     *
+     * @param productIds the list of product IDs to delete.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body containing deletion summary.
+     */
+    @DeleteMapping("/bulk")
+    public ResponseEntity<Map<String, Object>> deleteProductsBulk(@RequestBody List<Long> productIds) {
+        LOG.debug("REST request to delete Products with IDs: {}", productIds);
+
+        if (productIds == null || productIds.isEmpty()) {
+            throw new BadRequestAlertException("Product IDs list cannot be empty", ENTITY_NAME, "emptylist");
+        }
+
+        // Get current client account ID
+        Long clientAccountId = SecurityUtils.getCurrentClientAccountId();
+
+        // Perform bulk deletion
+        BulkOperationResult result = productService.deleteBulk(productIds, clientAccountId);
+
+        Map<String, Object> response = Map.of(
+            "deletedCount",
+            result.getSuccessCount(),
+            "failedCount",
+            result.getFailedCount(),
+            "totalRequested",
+            productIds.size(),
+            "failedIds",
+            result.getFailedIds()
+        );
+
+        return ResponseEntity.ok()
+            .headers(
+                HeaderUtil.createAlert(
+                    applicationName,
+                    String.format("Bulk deletion completed: %d deleted, %d failed", result.getSuccessCount(), result.getFailedCount()),
+                    "bulk-delete"
+                )
+            )
+            .body(response);
+    }
+
+    /**
+     * {@code PATCH  /products/bulk/toggle-visibility} : toggle isVisibleToCustomers for multiple products.
+     *
+     * @param productIds the list of product IDs to toggle visibility.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body containing toggle summary.
+     */
+    @PatchMapping("/bulk/toggle-visibility")
+    public ResponseEntity<Map<String, Object>> toggleProductsVisibilityBulk(@RequestBody List<Long> productIds) {
+        LOG.debug("REST request to toggle visibility for Products with IDs: {}", productIds);
+
+        if (productIds == null || productIds.isEmpty()) {
+            throw new BadRequestAlertException("Product IDs list cannot be empty", ENTITY_NAME, "emptylist");
+        }
+
+        // Get current client account ID
+        Long clientAccountId = SecurityUtils.getCurrentClientAccountId();
+
+        // Perform bulk visibility toggle
+        BulkOperationResult result = productService.toggleVisibilityBulk(productIds, clientAccountId);
+
+        Map<String, Object> response = Map.of(
+            "updatedCount",
+            result.getSuccessCount(),
+            "failedCount",
+            result.getFailedCount(),
+            "totalRequested",
+            productIds.size(),
+            "failedIds",
+            result.getFailedIds(),
+            "updatedProducts",
+            result.getUpdatedEntities()
+        );
+
+        return ResponseEntity.ok()
+            .headers(
+                HeaderUtil.createAlert(
+                    applicationName,
+                    String.format(
+                        "Bulk visibility toggle completed: %d updated, %d failed",
+                        result.getSuccessCount(),
+                        result.getFailedCount()
+                    ),
+                    "bulk-toggle-visibility"
+                )
+            )
+            .body(response);
     }
 
     /**

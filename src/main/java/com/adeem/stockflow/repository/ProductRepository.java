@@ -8,10 +8,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -22,13 +19,6 @@ import org.springframework.stereotype.Repository;
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
     Optional<Product> findByCodeAndClientAccountId(String code, Long clientAccountId);
 
-    /**
-     * Find products with inventory below minimum stock level for a client account.
-     *
-     * @param clientAccountId the client account ID.
-     * @param pageable the pagination information.
-     * @return the products with low stock.
-     */
     @Query(
         "SELECT p, i FROM Product p " +
         "LEFT JOIN p.inventories i " +
@@ -66,4 +56,37 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     List<CategoryStatsProjection> getCategoryStatsOptimized(@Param("clientAccountId") Long clientAccountId);
 
     boolean existsByProductFamilyId(Long familyId);
+
+    @Query("SELECT p.id FROM Product p WHERE p.id IN :productIds AND p.clientAccount.id = :clientAccountId")
+    List<Long> findValidProductIdsForClientAccount(
+        @Param("productIds") List<Long> productIds,
+        @Param("clientAccountId") Long clientAccountId
+    );
+
+    /**
+     * Find products by IDs that belong to the specified client account.
+     *
+     * @param productIds the list of product IDs
+     * @param clientAccountId the client account ID for security validation
+     * @return list of products that belong to the client account
+     */
+    @Query("SELECT p FROM Product p WHERE p.id IN :productIds AND p.clientAccount.id = :clientAccountId")
+    List<Product> findByIdsAndClientAccount(@Param("productIds") List<Long> productIds, @Param("clientAccountId") Long clientAccountId);
+
+    @Modifying
+    @Query("DELETE FROM Product p WHERE p.id IN :productIds AND p.clientAccount.id = :clientAccountId")
+    int deleteByIdsAndClientAccount(@Param("productIds") List<Long> productIds, @Param("clientAccountId") Long clientAccountId);
+
+    @Modifying
+    @Query(
+        """
+        UPDATE Product p
+        SET p.isVisibleToCustomers = CASE
+            WHEN p.isVisibleToCustomers = true THEN false
+            ELSE true
+        END
+        WHERE p.id IN :productIds AND p.clientAccount.id = :clientAccountId
+        """
+    )
+    int toggleVisibilityByIdsAndClientAccount(@Param("productIds") List<Long> productIds, @Param("clientAccountId") Long clientAccountId);
 }

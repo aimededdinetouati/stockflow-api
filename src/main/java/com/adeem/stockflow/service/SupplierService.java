@@ -73,7 +73,7 @@ public class SupplierService {
      * @param addressDTO the optional address data
      * @return the persisted supplier
      */
-    @CacheEvict(value = "supplierStats", key = "#supplierDTO.clientAccountId")
+    //@CacheEvict(value = "supplierStats", key = "#supplierDTO.clientAccountId")
     public SupplierDTO create(SupplierDTO supplierDTO, AddressDTO addressDTO) {
         LOG.debug("Request to create Supplier : {}", supplierDTO);
 
@@ -103,7 +103,7 @@ public class SupplierService {
      * @param addressDTO the optional address data
      * @return the updated supplier
      */
-    @CacheEvict(value = "supplierStats", key = "#supplierDTO.clientAccountId")
+    //@CacheEvict(value = "supplierStats", key = "#supplierDTO.clientAccountId")
     public SupplierDTO update(SupplierDTO supplierDTO, AddressDTO addressDTO) {
         LOG.debug("Request to update Supplier : {}", supplierDTO);
 
@@ -236,7 +236,7 @@ public class SupplierService {
      * @param id the id of the entity
      * @param clientAccountId the client account ID
      */
-    @CacheEvict(value = "supplierStats", key = "#clientAccountId")
+    //@CacheEvict(value = "supplierStats", key = "#clientAccountId")
     public void softDelete(Long id, Long clientAccountId) {
         LOG.debug("Request to soft delete Supplier : {} for client account : {}", id, clientAccountId);
 
@@ -263,7 +263,7 @@ public class SupplierService {
      * @param id the id of the entity
      * @param clientAccountId the client account ID
      */
-    @CacheEvict(value = "supplierStats", key = "#clientAccountId")
+    //@CacheEvict(value = "supplierStats", key = "#clientAccountId")
     public void reactivate(Long id, Long clientAccountId) {
         LOG.debug("Request to reactivate Supplier : {} for client account : {}", id, clientAccountId);
 
@@ -282,7 +282,7 @@ public class SupplierService {
      * @param clientAccountId the client account ID
      * @return the supplier statistics
      */
-    @Cacheable(value = "supplierStats", key = "#clientAccountId")
+    //@Cacheable(value = "supplierStats", key = "#clientAccountId")
     @Transactional(readOnly = true)
     public SupplierStatsDTO getSupplierStatistics(Long clientAccountId) {
         LOG.debug("Request to get Supplier statistics for client account : {}", clientAccountId);

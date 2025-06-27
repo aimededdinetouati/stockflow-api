@@ -71,7 +71,7 @@ public class CustomerService {
      * @param customerDTO the entity to save.
      * @return the persisted entity.
      */
-    @CacheEvict(value = "customerStats", key = "#root.target.getCurrentClientAccountId()")
+    //@CacheEvict(value = "customerStats", key = "#root.target.getCurrentClientAccountId()")
     public CustomerDTO create(CustomerDTO customerDTO) {
         LOG.debug("Request to save Customer : {}", customerDTO);
 
@@ -112,7 +112,7 @@ public class CustomerService {
      * @param customerDTO the entity to save.
      * @return the persisted entity.
      */
-    @CacheEvict(value = "customerStats", key = "#root.target.getCurrentClientAccountId()")
+    //@CacheEvict(value = "customerStats", key = "#root.target.getCurrentClientAccountId()")
     public CustomerDTO update(CustomerDTO customerDTO) {
         LOG.debug("Request to update Customer : {}", customerDTO);
 
@@ -150,7 +150,7 @@ public class CustomerService {
      * @param customerDTO the entity to update partially.
      * @return the persisted entity.
      */
-    @CacheEvict(value = "customerStats", key = "#root.target.getCurrentClientAccountId()")
+    //@CacheEvict(value = "customerStats", key = "#root.target.getCurrentClientAccountId()")
     public Optional<CustomerDTO> partialUpdate(CustomerDTO customerDTO) {
         LOG.debug("Request to partially update Customer : {}", customerDTO);
 
@@ -234,7 +234,7 @@ public class CustomerService {
      *
      * @param id the id of the entity.
      */
-    @CacheEvict(value = "customerStats", key = "#root.target.getCurrentClientAccountId()")
+    //@CacheEvict(value = "customerStats", key = "#root.target.getCurrentClientAccountId()")
     public void delete(Long id) {
         LOG.debug("Request to delete Customer : {}", id);
 
@@ -260,7 +260,7 @@ public class CustomerService {
      *
      * @param id the id of the entity.
      */
-    @CacheEvict(value = "customerStats", key = "#root.target.getCurrentClientAccountId()")
+    //@CacheEvict(value = "customerStats", key = "#root.target.getCurrentClientAccountId()")
     public void reactivate(Long id) {
         LOG.debug("Request to reactivate Customer : {}", id);
 
@@ -301,7 +301,7 @@ public class CustomerService {
      * @return the statistics.
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = "customerStats", key = "#root.target.getCurrentClientAccountId()")
+    //@Cacheable(value = "customerStats", key = "#root.target.getCurrentClientAccountId()")
     public CustomerStatsDTO getStatistics() {
         LOG.debug("Request to get Customer statistics");
         Long clientAccountId = getCurrentClientAccountId();
