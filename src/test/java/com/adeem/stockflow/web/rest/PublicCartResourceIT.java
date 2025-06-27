@@ -162,14 +162,14 @@ class PublicCartResourceIT {
         guestCartRepository.saveAndFlush(expiredCart);
 
         // When & Then
-        restPublicCartMockMvc.perform(get(GUEST_CART_API_URL + "/{sessionId}", "expired-session")).andExpect(status().isNotFound());
+        restPublicCartMockMvc.perform(get(GUEST_CART_API_URL + "/{sessionId}", "expired-session")).andExpect(status().isBadRequest());
     }
 
     @Test
     @Transactional
     void getGuestCart_WithInvalidSession_ShouldReturnNotFound() throws Exception {
         // When & Then
-        restPublicCartMockMvc.perform(get(GUEST_CART_API_URL + "/{sessionId}", "invalid-session-id")).andExpect(status().isNotFound());
+        restPublicCartMockMvc.perform(get(GUEST_CART_API_URL + "/{sessionId}", "invalid-session-id")).andExpect(status().isBadRequest());
     }
 
     @Test

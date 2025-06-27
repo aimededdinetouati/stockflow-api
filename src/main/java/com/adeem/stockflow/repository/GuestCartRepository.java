@@ -1,9 +1,12 @@
 package com.adeem.stockflow.repository;
 
 import com.adeem.stockflow.domain.GuestCart;
+import com.adeem.stockflow.domain.GuestCartItem;
+import com.adeem.stockflow.service.dto.GuestCartItemDTO;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;

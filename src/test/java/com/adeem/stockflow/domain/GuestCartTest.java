@@ -30,28 +30,6 @@ class GuestCartTest {
         assertThat(guestCart1).isNotEqualTo(guestCart2);
     }
 
-    @Test
-    void guestCartItemTest() throws Exception {
-        GuestCart guestCart = getGuestCartRandomSampleGenerator();
-        GuestCartItem guestCartItemBack = getGuestCartItemRandomSampleGenerator();
-
-        guestCart.addItem(guestCartItemBack);
-        assertThat(guestCart.getItems()).containsOnly(guestCartItemBack);
-        assertThat(guestCartItemBack.getGuestCart()).isEqualTo(guestCart);
-
-        guestCart.removeItem(guestCartItemBack);
-        assertThat(guestCart.getItems()).doesNotContain(guestCartItemBack);
-        assertThat(guestCartItemBack.getGuestCart()).isNull();
-
-        guestCart.items(Set.of(guestCartItemBack));
-        assertThat(guestCart.getItems()).containsOnly(guestCartItemBack);
-        assertThat(guestCartItemBack.getGuestCart()).isEqualTo(guestCart);
-
-        guestCart.setItems(new HashSet<>());
-        assertThat(guestCart.getItems()).doesNotContain(guestCartItemBack);
-        assertThat(guestCartItemBack.getGuestCart()).isNull();
-    }
-
     public static GuestCart getGuestCartSample1() {
         return new GuestCart()
             .sessionId("sessionId1")

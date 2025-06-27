@@ -1,9 +1,11 @@
 package com.adeem.stockflow.repository;
 
 import com.adeem.stockflow.domain.GuestCartItem;
+import com.adeem.stockflow.service.dto.GuestCartItemDTO;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -29,7 +31,11 @@ public interface GuestCartItemRepository extends JpaRepository<GuestCartItem, Lo
      * Delete all items for expired carts
      */
     @Modifying
-    @Query("DELETE FROM GuestCartItem gci WHERE gci.guestCart.expiresAt < :expirationTime")
+    @Query(
+        value = "DELETE FROM guest_cart_item gci USING guest_cart gc " +
+        "WHERE gci.session_id = gc.session_id AND gc.expires_at < :expirationTime",
+        nativeQuery = true
+    )
     int deleteItemsForExpiredCarts(@Param("expirationTime") Instant expirationTime);
 
     /**
@@ -37,4 +43,6 @@ public interface GuestCartItemRepository extends JpaRepository<GuestCartItem, Lo
      */
     @Query("SELECT COUNT(gci) FROM GuestCartItem gci WHERE gci.sessionId = :sessionId")
     Long countItemsBySessionId(@Param("sessionId") String sessionId);
+
+    List<GuestCartItem> findBySessionId(String sessionId);
 }
