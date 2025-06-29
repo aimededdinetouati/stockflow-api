@@ -9,11 +9,11 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring", uses = { ProductMapper.class, GuestCartMapper.class })
 public interface GuestCartItemMapper extends EntityMapper<GuestCartItemDTO, GuestCartItem> {
-    @Mapping(target = "product", source = "product")
+    @Mapping(target = "productId", source = "product.id")
     @Mapping(target = "totalPrice", ignore = true)
     GuestCartItemDTO toDto(GuestCartItem guestCartItem);
 
-    @Mapping(target = "product", source = "product")
+    @Mapping(target = "product", source = "productId")
     GuestCartItem toEntity(GuestCartItemDTO guestCartItemDTO);
 
     @AfterMapping

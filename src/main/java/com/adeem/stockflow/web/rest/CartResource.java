@@ -1,34 +1,33 @@
+// File: src/main/java/com/adeem/stockflow/web/rest/CartResource.java
 package com.adeem.stockflow.web.rest;
 
-import com.adeem.stockflow.repository.CartRepository;
+import com.adeem.stockflow.security.AuthoritiesConstants;
 import com.adeem.stockflow.service.CartService;
-import com.adeem.stockflow.service.dto.CartDTO;
+import com.adeem.stockflow.service.dto.*;
 import com.adeem.stockflow.service.exceptions.BadRequestAlertException;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.PaginationUtil;
 import tech.jhipster.web.util.ResponseUtil;
 
 /**
- * REST controller for managing {@link com.adeem.stockflow.domain.Cart}.
+ * REST controller for managing marketplace cart functionality.
+ * Provides comprehensive cart management for authenticated customers.
  */
 @RestController
-@RequestMapping("/api/carts")
+@RequestMapping("/api/cart")
+@PreAuthorize("hasAuthority('" + AuthoritiesConstants.USER_CUSTOMER + "')")
 public class CartResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(CartResource.class);
@@ -40,140 +39,137 @@ public class CartResource {
 
     private final CartService cartService;
 
-    private final CartRepository cartRepository;
-
-    public CartResource(CartService cartService, CartRepository cartRepository) {
+    public CartResource(CartService cartService) {
         this.cartService = cartService;
-        this.cartRepository = cartRepository;
     }
 
     /**
-     * {@code POST  /carts} : Create a new cart.
+     * {@code GET  /api/cart} : Get current user's cart with totals and details.
      *
-     * @param cartDTO the cartDTO to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new cartDTO, or with status {@code 400 (Bad Request)} if the cart has already an ID.
-     * @throws URISyntaxException if the Location URI syntax is incorrect.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the cart with totals.
      */
-    @PostMapping("")
-    public ResponseEntity<CartDTO> createCart(@Valid @RequestBody CartDTO cartDTO) throws URISyntaxException {
-        LOG.debug("REST request to save Cart : {}", cartDTO);
-        if (cartDTO.getId() != null) {
-            throw new BadRequestAlertException("A new cart cannot already have an ID", ENTITY_NAME, "idexists");
-        }
-        cartDTO = cartService.save(cartDTO);
-        return ResponseEntity.created(new URI("/api/carts/" + cartDTO.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, cartDTO.getId().toString()))
-            .body(cartDTO);
+    @GetMapping
+    public ResponseEntity<CartWithTotalsDTO> getCurrentCart() {
+        LOG.debug("REST request to get current user's cart");
+
+        CartWithTotalsDTO cart = cartService.getCurrentUserCart();
+        return ResponseEntity.ok().body(cart);
     }
 
     /**
-     * {@code PUT  /carts/:id} : Updates an existing cart.
+     * {@code GET  /api/cart/summary} : Get cart summary for current user.
      *
-     * @param id the id of the cartDTO to save.
-     * @param cartDTO the cartDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated cartDTO,
-     * or with status {@code 400 (Bad Request)} if the cartDTO is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the cartDTO couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the cart summary.
+     */
+    @GetMapping("/summary")
+    public ResponseEntity<CartSummaryDTO> getCartSummary() {
+        LOG.debug("REST request to get cart summary");
+
+        CartSummaryDTO summary = cartService.getCartSummary();
+        return ResponseEntity.ok().body(summary);
+    }
+
+    /**
+     * {@code POST  /api/cart/items} : Add item to cart.
+     *
+     * @param request the add to cart request containing product ID and quantity.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the added cart item detail,
+     *         or with status {@code 400 (Bad Request)} if the request is not valid.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
-    @PutMapping("/{id}")
-    public ResponseEntity<CartDTO> updateCart(
-        @PathVariable(value = "id", required = false) final Long id,
-        @Valid @RequestBody CartDTO cartDTO
-    ) throws URISyntaxException {
-        LOG.debug("REST request to update Cart : {}, {}", id, cartDTO);
-        if (cartDTO.getId() == null) {
-            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
-        }
-        if (!Objects.equals(id, cartDTO.getId())) {
-            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
-        }
+    @PostMapping("/items")
+    public ResponseEntity<CartItemDetailDTO> addItemToCart(@Valid @RequestBody AddToCartRequestDTO request) throws URISyntaxException {
+        LOG.debug("REST request to add item to cart: {}", request);
 
-        if (!cartRepository.existsById(id)) {
-            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
-        }
+        CartItemDetailDTO result = cartService.addItemToCart(request);
 
-        cartDTO = cartService.update(cartDTO);
+        return ResponseEntity.created(new URI("/api/cart/items/" + result.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+            .body(result);
+    }
+
+    /**
+     * {@code PUT  /api/cart/items/{itemId}/quantity} : Update cart item quantity.
+     *
+     * @param itemId the cart item ID.
+     * @param quantity the new quantity.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated cart item,
+     *         or with status {@code 400 (Bad Request)} if the quantity is not valid,
+     *         or with status {@code 404 (Not Found)} if the cart item is not found.
+     */
+    @PutMapping("/items/{itemId}/quantity")
+    public ResponseEntity<CartItemDetailDTO> updateItemQuantity(
+        @PathVariable Long itemId,
+        @RequestBody @NotNull @DecimalMin(value = "0.01") BigDecimal quantity
+    ) {
+        LOG.debug("REST request to update cart item quantity: itemId={}, quantity={}", itemId, quantity);
+
+        CartItemDetailDTO result = cartService.updateCartItemQuantity(itemId, quantity);
+
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, cartDTO.getId().toString()))
-            .body(cartDTO);
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, itemId.toString()))
+            .body(result);
     }
 
     /**
-     * {@code PATCH  /carts/:id} : Partial updates given fields of an existing cart, field will ignore if it is null
+     * {@code DELETE  /api/cart/items/{itemId}} : Remove item from cart.
      *
-     * @param id the id of the cartDTO to save.
-     * @param cartDTO the cartDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated cartDTO,
-     * or with status {@code 400 (Bad Request)} if the cartDTO is not valid,
-     * or with status {@code 404 (Not Found)} if the cartDTO is not found,
-     * or with status {@code 500 (Internal Server Error)} if the cartDTO couldn't be updated.
-     * @throws URISyntaxException if the Location URI syntax is incorrect.
+     * @param itemId the cart item ID to remove.
+     * @return the {@link ResponseEntity} with status {@code 204 (No Content)}.
      */
-    @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
-    public ResponseEntity<CartDTO> partialUpdateCart(
-        @PathVariable(value = "id", required = false) final Long id,
-        @NotNull @RequestBody CartDTO cartDTO
-    ) throws URISyntaxException {
-        LOG.debug("REST request to partial update Cart partially : {}, {}", id, cartDTO);
-        if (cartDTO.getId() == null) {
-            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
-        }
-        if (!Objects.equals(id, cartDTO.getId())) {
-            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
-        }
+    @DeleteMapping("/items/{itemId}")
+    public ResponseEntity<Void> removeCartItem(@PathVariable Long itemId) {
+        LOG.debug("REST request to remove cart item: {}", itemId);
 
-        if (!cartRepository.existsById(id)) {
-            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
-        }
+        cartService.removeCartItem(itemId);
 
-        Optional<CartDTO> result = cartService.partialUpdate(cartDTO);
-
-        return ResponseUtil.wrapOrNotFound(
-            result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, cartDTO.getId().toString())
-        );
-    }
-
-    /**
-     * {@code GET  /carts} : get all the carts.
-     *
-     * @param pageable the pagination information.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of carts in body.
-     */
-    @GetMapping("")
-    public ResponseEntity<List<CartDTO>> getAllCarts(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
-        LOG.debug("REST request to get a page of Carts");
-        Page<CartDTO> page = cartService.findAll(pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        return ResponseEntity.ok().headers(headers).body(page.getContent());
-    }
-
-    /**
-     * {@code GET  /carts/:id} : get the "id" cart.
-     *
-     * @param id the id of the cartDTO to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the cartDTO, or with status {@code 404 (Not Found)}.
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<CartDTO> getCart(@PathVariable("id") Long id) {
-        LOG.debug("REST request to get Cart : {}", id);
-        Optional<CartDTO> cartDTO = cartService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(cartDTO);
-    }
-
-    /**
-     * {@code DELETE  /carts/:id} : delete the "id" cart.
-     *
-     * @param id the id of the cartDTO to delete.
-     * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
-     */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCart(@PathVariable("id") Long id) {
-        LOG.debug("REST request to delete Cart : {}", id);
-        cartService.delete(id);
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, itemId.toString()))
             .build();
+    }
+
+    /**
+     * {@code DELETE  /api/cart} : Clear entire cart.
+     *
+     * @return the {@link ResponseEntity} with status {@code 204 (No Content)}.
+     */
+    @DeleteMapping
+    public ResponseEntity<Void> clearCart() {
+        LOG.debug("REST request to clear cart");
+
+        cartService.clearCart();
+
+        return ResponseEntity.noContent().headers(HeaderUtil.createAlert(applicationName, "Cart cleared successfully", "")).build();
+    }
+
+    /**
+     * {@code POST  /api/cart/validate} : Validate cart before checkout.
+     *
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the validation response.
+     */
+    @PostMapping("/validate")
+    public ResponseEntity<CartValidationResponseDTO> validateCart() {
+        LOG.debug("REST request to validate cart");
+
+        CartValidationResponseDTO validation = cartService.validateCart();
+        return ResponseEntity.ok().body(validation);
+    }
+
+    /**
+     * {@code POST  /api/cart/migrate/{sessionId}} : Migrate guest cart to authenticated user cart.
+     *
+     * @param sessionId the guest cart session ID.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the migrated cart,
+     *         or with status {@code 404 (Not Found)} if the guest cart is not found.
+     */
+    @PostMapping("/migrate/{sessionId}")
+    public ResponseEntity<CartWithTotalsDTO> migrateGuestCart(@PathVariable String sessionId) {
+        LOG.debug("REST request to migrate guest cart: {}", sessionId);
+
+        CartWithTotalsDTO result = cartService.migrateGuestCart(sessionId);
+
+        return ResponseEntity.ok()
+            .headers(HeaderUtil.createAlert(applicationName, "Guest cart migrated successfully", sessionId))
+            .body(result);
     }
 }

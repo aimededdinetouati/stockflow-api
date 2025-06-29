@@ -50,28 +50,6 @@ class CustomerTest {
     }
 
     @Test
-    void cartsTest() {
-        Customer customer = getCustomerRandomSampleGenerator();
-        Cart cartBack = getCartRandomSampleGenerator();
-
-        customer.addCarts(cartBack);
-        assertThat(customer.getCarts()).containsOnly(cartBack);
-        assertThat(cartBack.getCustomer()).isEqualTo(customer);
-
-        customer.removeCarts(cartBack);
-        assertThat(customer.getCarts()).doesNotContain(cartBack);
-        assertThat(cartBack.getCustomer()).isNull();
-
-        customer.carts(new HashSet<>(Set.of(cartBack)));
-        assertThat(customer.getCarts()).containsOnly(cartBack);
-        assertThat(cartBack.getCustomer()).isEqualTo(customer);
-
-        customer.setCarts(new HashSet<>());
-        assertThat(customer.getCarts()).doesNotContain(cartBack);
-        assertThat(cartBack.getCustomer()).isNull();
-    }
-
-    @Test
     void clientAccountTest() {
         Customer customer = getCustomerRandomSampleGenerator();
         ClientAccount clientAccountBack = getClientAccountRandomSampleGenerator();

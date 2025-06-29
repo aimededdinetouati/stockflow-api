@@ -313,4 +313,9 @@ public class GuestCartService {
                 )
             );
     }
+
+    public void deleteGuestCart(String sessionId) {
+        guestCartItemRepository.deleteBySessionId(sessionId);
+        guestCartRepository.deleteById(sessionId);
+    }
 }

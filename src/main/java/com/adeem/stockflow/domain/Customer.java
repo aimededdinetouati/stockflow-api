@@ -99,10 +99,9 @@ public class Customer extends AbstractAuditingEntity<Long> implements Serializab
     @JsonIgnoreProperties(value = { "customer", "clientAccount", "supplier" }, allowSetters = true)
     private Set<Address> addresses = new HashSet<>();
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "customer")
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @OneToOne(mappedBy = "customer", fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "cartItems", "customer" }, allowSetters = true)
-    private Set<Cart> carts = new HashSet<>();
+    private Cart cart;
 
     @Transient
     private boolean isPersisted;
@@ -327,35 +326,12 @@ public class Customer extends AbstractAuditingEntity<Long> implements Serializab
         return this;
     }
 
-    public Set<Cart> getCarts() {
-        return this.carts;
+    public Cart getCart() {
+        return cart;
     }
 
-    public void setCarts(Set<Cart> carts) {
-        if (this.carts != null) {
-            this.carts.forEach(i -> i.setCustomer(null));
-        }
-        if (carts != null) {
-            carts.forEach(i -> i.setCustomer(this));
-        }
-        this.carts = carts;
-    }
-
-    public Customer carts(Set<Cart> carts) {
-        this.setCarts(carts);
-        return this;
-    }
-
-    public Customer addCarts(Cart cart) {
-        this.carts.add(cart);
-        cart.setCustomer(this);
-        return this;
-    }
-
-    public Customer removeCarts(Cart cart) {
-        this.carts.remove(cart);
-        cart.setCustomer(null);
-        return this;
+    public void setCart(Cart cart) {
+        this.cart = cart;
     }
 
     @Override

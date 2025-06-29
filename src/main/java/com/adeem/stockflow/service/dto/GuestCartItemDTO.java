@@ -30,7 +30,7 @@ public class GuestCartItemDTO implements Serializable {
     private Instant addedDate;
 
     @NotNull
-    private MarketplaceProductDTO product;
+    private Long productId;
 
     private BigDecimal totalPrice;
 
@@ -78,12 +78,12 @@ public class GuestCartItemDTO implements Serializable {
         this.addedDate = addedDate;
     }
 
-    public MarketplaceProductDTO getProduct() {
-        return product;
+    public Long getProductId() {
+        return productId;
     }
 
-    public void setProduct(MarketplaceProductDTO product) {
-        this.product = product;
+    public void setProductId(Long productId) {
+        this.productId = productId;
     }
 
     public BigDecimal getTotalPrice() {

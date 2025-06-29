@@ -1,8 +1,10 @@
 package com.adeem.stockflow.repository;
 
 import com.adeem.stockflow.domain.Inventory;
+import com.adeem.stockflow.domain.Product;
 import com.adeem.stockflow.repository.projection.InventoryFinancialStatsDTO;
 import com.adeem.stockflow.repository.projection.InventoryStockLevelStatsDTO;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -60,4 +62,22 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long>, Jpa
     @Modifying
     @Query("DELETE FROM Inventory i WHERE i.product.id IN :productIds")
     int deleteByProductIdIn(@Param("productIds") List<Long> productIds);
+
+    @Query("SELECT COALESCE(SUM(i.availableQuantity), 0) FROM Inventory i WHERE i.product.id = :productId")
+    Optional<BigDecimal> getTotalAvailableQuantityForProduct(@Param("productId") Long productId);
+
+    @Query(
+        "SELECT CASE WHEN COALESCE(SUM(i.availableQuantity), 0) >= :requiredQuantity THEN true ELSE false END " +
+        "FROM Inventory i WHERE i.product.id = :productId"
+    )
+    boolean hasInsufficientStock(@Param("productId") Long productId, @Param("requiredQuantity") BigDecimal requiredQuantity);
+
+    @Query(
+        "SELECT DISTINCT p FROM Product p " +
+        "JOIN p.inventories i " +
+        "JOIN CartItem ci ON ci.product = p " +
+        "WHERE i.availableQuantity <= p.minimumStockLevel " +
+        "AND p.clientAccount.id = :clientAccountId"
+    )
+    List<Product> findLowStockProductsInCarts(@Param("clientAccountId") Long clientAccountId);
 }

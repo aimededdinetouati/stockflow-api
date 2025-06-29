@@ -31,11 +31,6 @@ public class Cart extends AbstractAuditingEntity<Long> implements Serializable, 
     private Long id;
 
     @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private CartStatus status;
-
-    @NotNull
     @Column(name = "created_date", nullable = false)
     private Instant createdDate;
 
@@ -53,8 +48,9 @@ public class Cart extends AbstractAuditingEntity<Long> implements Serializable, 
     @JsonIgnoreProperties(value = { "product", "cart" }, allowSetters = true)
     private Set<CartItem> cartItems = new HashSet<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JsonIgnoreProperties(value = { "user", "addressLists", "carts", "clientAccount" }, allowSetters = true)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", unique = true)
+    @JsonIgnoreProperties(value = { "user", "addressLists", "cart", "clientAccount" }, allowSetters = true)
     private Customer customer;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
@@ -70,19 +66,6 @@ public class Cart extends AbstractAuditingEntity<Long> implements Serializable, 
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public CartStatus getStatus() {
-        return this.status;
-    }
-
-    public Cart status(CartStatus status) {
-        this.setStatus(status);
-        return this;
-    }
-
-    public void setStatus(CartStatus status) {
-        this.status = status;
     }
 
     public Instant getCreatedDate() {
@@ -209,7 +192,6 @@ public class Cart extends AbstractAuditingEntity<Long> implements Serializable, 
     public String toString() {
         return "Cart{" +
             "id=" + getId() +
-            ", status='" + getStatus() + "'" +
             ", createdDate='" + getCreatedDate() + "'" +
             ", lastModifiedDate='" + getLastModifiedDate() + "'" +
             ", createdBy='" + getCreatedBy() + "'" +
