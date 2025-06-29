@@ -1,7 +1,5 @@
 package com.adeem.stockflow.security;
 
-import com.adeem.stockflow.security.AuthoritiesConstants;
-import com.adeem.stockflow.security.SecurityUtils;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
@@ -67,6 +65,39 @@ public class TestSecurityContextHelper {
         SecurityContextHolder.setContext(context);
     }
 
+    public static void setSecurityContextWithUser(Long userId, String username) {
+        Long effectiveUserId = userId != null ? userId : 1L;
+        String effectiveUsername = username != null ? username : DEFAULT_USERNAME;
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+
+        // Create JWT with necessary claims
+        Instant now = Instant.now();
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("alg", JwsAlgorithms.HS512);
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put(SecurityUtils.USER_ID_CLAIM, effectiveUserId);
+        claims.put(SecurityUtils.AUTHORITIES_CLAIM, Collections.singletonList(AuthoritiesConstants.USER_ADMIN));
+
+        Jwt jwt = Jwt.withTokenValue("mock-token")
+            .headers(h -> h.putAll(headers))
+            .claims(c -> c.putAll(claims))
+            .subject(effectiveUsername)
+            .issuedAt(now)
+            .expiresAt(now.plusSeconds(300))
+            .build();
+
+        List<SimpleGrantedAuthority> authorities = Collections.singletonList(
+            new SimpleGrantedAuthority(AuthoritiesConstants.USER_CUSTOMER)
+        );
+
+        Authentication auth = new JwtAuthenticationToken(jwt, authorities);
+        context.setAuthentication(auth);
+
+        SecurityContextHolder.setContext(context);
+    }
+
     /**
      * Sets up the security context with the given client account ID.
      * Simplified version that uses default values for userId and username.
@@ -75,6 +106,10 @@ public class TestSecurityContextHelper {
      */
     public static void setSecurityContextWithClientAccountId(Long clientAccountId) {
         setSecurityContextWithClientAccountId(clientAccountId, 1L, DEFAULT_USERNAME);
+    }
+
+    public static void setSecurityContextWithUserId(Long userId) {
+        setSecurityContextWithUser(userId, DEFAULT_USERNAME);
     }
 
     /**

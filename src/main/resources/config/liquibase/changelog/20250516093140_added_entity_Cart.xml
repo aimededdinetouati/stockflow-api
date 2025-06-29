@@ -14,9 +14,6 @@
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="status" type="varchar(255)">
-                <constraints nullable="false" />
-            </column>
             <column name="created_date" type="${datetimeType}">
                 <constraints nullable="false" />
             </column>
@@ -55,7 +52,6 @@
                   tableName="cart"
                   usePreparedStatements="true">
             <column name="id" type="numeric"/>
-            <column name="status" type="string"/>
             <column name="created_date" type="date"/>
             <column name="last_modified_date" type="date"/>
             <column name="created_by" type="string"/>

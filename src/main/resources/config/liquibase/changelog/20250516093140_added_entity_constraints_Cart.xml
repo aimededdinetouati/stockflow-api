@@ -8,13 +8,16 @@
     <!--
         Added the constraints for entity Cart.
     -->
-    <changeSet id="20250516093140-2" author="jhipster">
+  <changeSet id="20250628-01" author="aimed">
+    <addForeignKeyConstraint baseColumnNames="customer_id"
+                             baseTableName="cart"
+                             constraintName="fk_cart__customer_id"
+                             referencedColumnNames="id"
+                             referencedTableName="customer"/>
 
-        <addForeignKeyConstraint baseColumnNames="customer_id"
-                                 baseTableName="cart"
-                                 constraintName="fk_cart__customer_id"
-                                 referencedColumnNames="id"
-                                 referencedTableName="customer"
-                                 />
-    </changeSet>
+    <addUniqueConstraint columnNames="customer_id"
+                         tableName="cart"
+                         constraintName="uk_cart_customer_id"/>
+  </changeSet>
+
 </databaseChangeLog>

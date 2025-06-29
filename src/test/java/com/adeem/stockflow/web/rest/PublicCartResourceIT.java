@@ -191,8 +191,7 @@ class PublicCartResourceIT {
             )
             .andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.product.id").value(testProduct.getId().intValue()))
-            .andExpect(jsonPath("$.product.name").value(testProduct.getName()))
+            .andExpect(jsonPath("$.productId").value(testProduct.getId().intValue()))
             .andExpect(jsonPath("$.quantity").value(2))
             .andExpect(jsonPath("$.priceAtTime").value(99.99))
             .andExpect(jsonPath("$.totalPrice").value(199.98))
@@ -206,7 +205,7 @@ class PublicCartResourceIT {
             .andExpect(jsonPath("$.totalItems").value(1))
             .andExpect(jsonPath("$.totalAmount").value(199.98))
             .andExpect(jsonPath("$.items").isArray())
-            .andExpect(jsonPath("$.items[0].product.id").value(testProduct.getId().intValue()));
+            .andExpect(jsonPath("$.items[0].productId").value(testProduct.getId().intValue()));
     }
 
     @Test

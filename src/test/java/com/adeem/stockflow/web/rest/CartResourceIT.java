@@ -1,24 +1,23 @@
 package com.adeem.stockflow.web.rest;
 
-import static com.adeem.stockflow.domain.CartAsserts.*;
-import static com.adeem.stockflow.web.rest.TestUtil.createUpdateProxyForBean;
+import static com.adeem.stockflow.security.TestSecurityContextHelper.setSecurityContextWithUserId;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.adeem.stockflow.IntegrationTest;
-import com.adeem.stockflow.domain.Cart;
-import com.adeem.stockflow.domain.enumeration.CartStatus;
-import com.adeem.stockflow.repository.CartRepository;
-import com.adeem.stockflow.service.dto.CartDTO;
-import com.adeem.stockflow.service.mapper.CartMapper;
+import com.adeem.stockflow.domain.*;
+import com.adeem.stockflow.domain.enumeration.*;
+import com.adeem.stockflow.repository.*;
+import com.adeem.stockflow.security.AuthoritiesConstants;
+import com.adeem.stockflow.service.dto.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
+import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +25,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -34,23 +35,10 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @IntegrationTest
 @AutoConfigureMockMvc
-@WithMockUser
 class CartResourceIT {
 
-    private static final CartStatus DEFAULT_STATUS = CartStatus.ACTIVE;
-    private static final CartStatus UPDATED_STATUS = CartStatus.ABANDONED;
-
-    private static final Instant DEFAULT_CREATED_DATE = Instant.ofEpochMilli(0L);
-    private static final Instant UPDATED_CREATED_DATE = Instant.now().truncatedTo(ChronoUnit.MILLIS);
-
-    private static final Instant DEFAULT_LAST_MODIFIED_DATE = Instant.ofEpochMilli(0L);
-    private static final Instant UPDATED_LAST_MODIFIED_DATE = Instant.now().truncatedTo(ChronoUnit.MILLIS);
-
-    private static final String ENTITY_API_URL = "/api/carts";
-    private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
-
-    private static Random random = new Random();
-    private static AtomicLong longCount = new AtomicLong(random.nextInt() + (2 * Integer.MAX_VALUE));
+    private static final String ENTITY_API_URL = "/api/cart";
+    private static final String ENTITY_API_URL_ITEMS = ENTITY_API_URL + "/items";
 
     @Autowired
     private ObjectMapper om;
@@ -59,7 +47,22 @@ class CartResourceIT {
     private CartRepository cartRepository;
 
     @Autowired
-    private CartMapper cartMapper;
+    private CartItemRepository cartItemRepository;
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private ClientAccountRepository clientAccountRepository;
+
+    @Autowired
+    private InventoryRepository inventoryRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private EntityManager em;
@@ -67,400 +70,391 @@ class CartResourceIT {
     @Autowired
     private MockMvc restCartMockMvc;
 
-    private Cart cart;
-
-    private Cart insertedCart;
-
-    /**
-     * Create an entity for this test.
-     *
-     * This is a static method, as tests for other entities might also need it,
-     * if they test an entity which requires the current entity.
-     */
-    public static Cart createEntity() {
-        return new Cart().status(DEFAULT_STATUS).createdDate(DEFAULT_CREATED_DATE).lastModifiedDate(DEFAULT_LAST_MODIFIED_DATE);
-    }
-
-    /**
-     * Create an updated entity for this test.
-     *
-     * This is a static method, as tests for other entities might also need it,
-     * if they test an entity which requires the current entity.
-     */
-    public static Cart createUpdatedEntity() {
-        return new Cart().status(UPDATED_STATUS).createdDate(UPDATED_CREATED_DATE).lastModifiedDate(UPDATED_LAST_MODIFIED_DATE);
-    }
+    private User user;
+    private Customer customer;
+    private ClientAccount clientAccount;
+    private Product product1;
+    private Product product2;
+    private Inventory inventory1;
+    private Inventory inventory2;
 
     @BeforeEach
-    void initTest() {
-        cart = createEntity();
+    void setUp() {
+        setupTestData();
     }
 
     @AfterEach
-    void cleanup() {
-        if (insertedCart != null) {
-            cartRepository.delete(insertedCart);
-            insertedCart = null;
-        }
+    void tearDown() {
+        cleanupTestData();
+    }
+
+    void setupTestData() {
+        // Create client account
+        clientAccount = createTestClientAccount();
+        clientAccount = clientAccountRepository.saveAndFlush(clientAccount);
+
+        // Create user
+        user = createTestUser();
+        user = userRepository.saveAndFlush(user);
+
+        // Create customer
+        customer = createTestCustomer();
+        customer.setUser(user);
+        customer = customerRepository.saveAndFlush(customer);
+
+        // Create products
+        product1 = createTestProduct("Test Product 1", "TP001", new BigDecimal("10.00"));
+        product1.setClientAccount(clientAccount);
+        product1 = productRepository.saveAndFlush(product1);
+
+        product2 = createTestProduct("Test Product 2", "TP002", new BigDecimal("20.00"));
+        product2.setClientAccount(clientAccount);
+        product2 = productRepository.saveAndFlush(product2);
+
+        // Create inventories
+        inventory1 = createTestInventory(product1, new BigDecimal("100"));
+        inventory1 = inventoryRepository.saveAndFlush(inventory1);
+
+        inventory2 = createTestInventory(product2, new BigDecimal("50"));
+        inventory2 = inventoryRepository.saveAndFlush(inventory2);
+    }
+
+    void cleanupTestData() {
+        // Clear the persistence context to avoid dirty state issues
+        em.clear();
+
+        // Use deleteAllInBatch for better performance and fewer cascading issues
+        cartItemRepository.deleteAllInBatch();
+        cartRepository.deleteAllInBatch();
+        inventoryRepository.deleteAllInBatch();
+        productRepository.deleteAllInBatch();
+        customerRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
+        clientAccountRepository.deleteAllInBatch();
+
+        // Flush to ensure all deletions are executed
+        em.flush();
     }
 
     @Test
     @Transactional
-    void createCart() throws Exception {
-        long databaseSizeBeforeCreate = getRepositoryCount();
-        // Create the Cart
-        CartDTO cartDTO = cartMapper.toDto(cart);
-        var returnedCartDTO = om.readValue(
-            restCartMockMvc
-                .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(cartDTO)))
-                .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString(),
-            CartDTO.class
-        );
-
-        // Validate the Cart in the database
-        assertIncrementedRepositoryCount(databaseSizeBeforeCreate);
-        var returnedCart = cartMapper.toEntity(returnedCartDTO);
-        assertCartUpdatableFieldsEquals(returnedCart, getPersistedCart(returnedCart));
-
-        insertedCart = returnedCart;
-    }
-
-    @Test
-    @Transactional
-    void createCartWithExistingId() throws Exception {
-        // Create the Cart with an existing ID
-        cart.setId(1L);
-        CartDTO cartDTO = cartMapper.toDto(cart);
-
-        long databaseSizeBeforeCreate = getRepositoryCount();
-
-        // An entity with an existing ID cannot be created, so this API call must fail
-        restCartMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(cartDTO)))
-            .andExpect(status().isBadRequest());
-
-        // Validate the Cart in the database
-        assertSameRepositoryCount(databaseSizeBeforeCreate);
-    }
-
-    @Test
-    @Transactional
-    void checkStatusIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        cart.setStatus(null);
-
-        // Create the Cart, which fails.
-        CartDTO cartDTO = cartMapper.toDto(cart);
-
-        restCartMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(cartDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
-    void checkCreatedDateIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        cart.setCreatedDate(null);
-
-        // Create the Cart, which fails.
-        CartDTO cartDTO = cartMapper.toDto(cart);
-
-        restCartMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(cartDTO)))
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
-    void getAllCarts() throws Exception {
-        // Initialize the database
-        insertedCart = cartRepository.saveAndFlush(cart);
-
-        // Get all the cartList
-        restCartMockMvc
-            .perform(get(ENTITY_API_URL + "?sort=id,desc"))
+    void getCurrentCart_WhenNoCartExists_ShouldCreateNewCart() throws Exception {
+        setSecurityContextWithUserId(user.getId());
+        // When
+        MvcResult result = restCartMockMvc
+            .perform(get(ENTITY_API_URL))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.[*].id").value(hasItem(cart.getId().intValue())))
-            .andExpect(jsonPath("$.[*].status").value(hasItem(DEFAULT_STATUS.toString())))
-            .andExpect(jsonPath("$.[*].createdDate").value(hasItem(DEFAULT_CREATED_DATE.toString())))
-            .andExpect(jsonPath("$.[*].lastModifiedDate").value(hasItem(DEFAULT_LAST_MODIFIED_DATE.toString())));
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn();
+
+        // Then
+        CartWithTotalsDTO cartDTO = om.readValue(result.getResponse().getContentAsString(), CartWithTotalsDTO.class);
+        assertThat(cartDTO).isNotNull();
+        assertThat(cartDTO.getId()).isNotNull();
+        assertThat(cartDTO.getItems()).isEmpty();
+        assertThat(cartDTO.getGrandTotal()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(cartDTO.getTotalItems()).isZero();
     }
 
     @Test
     @Transactional
-    void getCart() throws Exception {
-        // Initialize the database
-        insertedCart = cartRepository.saveAndFlush(cart);
+    void addItemToCart_WithValidRequest_ShouldAddItem() throws Exception {
+        setSecurityContextWithUserId(user.getId());
+        // Given
+        AddToCartRequestDTO request = new AddToCartRequestDTO();
+        request.setProductId(product1.getId());
+        request.setQuantity(new BigDecimal("5"));
 
-        // Get the cart
+        // When
+        MvcResult result = restCartMockMvc
+            .perform(post(ENTITY_API_URL_ITEMS).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(request)))
+            .andExpect(status().isCreated())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn();
+
+        // Then
+        CartItemDetailDTO itemDTO = om.readValue(result.getResponse().getContentAsString(), CartItemDetailDTO.class);
+        assertThat(itemDTO).isNotNull();
+        assertThat(itemDTO.getProductId()).isEqualTo(product1.getId());
+        assertThat(itemDTO.getQuantity()).isEqualByComparingTo(new BigDecimal("5"));
+        assertThat(itemDTO.getPrice()).isEqualByComparingTo(product1.getSellingPrice());
+        assertThat(itemDTO.getLineTotal()).isEqualByComparingTo(new BigDecimal("50.00"));
+
+        // Verify cart was created and item added
+        List<Cart> carts = cartRepository.findByCustomerIdOrderByCreatedDateDesc(customer.getId());
+        assertThat(carts).hasSize(1);
+        assertThat(carts.get(0).getCartItems()).hasSize(1);
+    }
+
+    @Test
+    @Transactional
+    void addItemToCart_WithInsufficientStock_ShouldReturnBadRequest() throws Exception {
+        setSecurityContextWithUserId(user.getId());
+        // Given - Request more than available stock
+        AddToCartRequestDTO request = new AddToCartRequestDTO();
+        request.setProductId(product1.getId());
+        request.setQuantity(new BigDecimal("150")); // More than available (100)
+
+        // When & Then
         restCartMockMvc
-            .perform(get(ENTITY_API_URL_ID, cart.getId()))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(cart.getId().intValue()))
-            .andExpect(jsonPath("$.status").value(DEFAULT_STATUS.toString()))
-            .andExpect(jsonPath("$.createdDate").value(DEFAULT_CREATED_DATE.toString()))
-            .andExpect(jsonPath("$.lastModifiedDate").value(DEFAULT_LAST_MODIFIED_DATE.toString()));
-    }
-
-    @Test
-    @Transactional
-    void getNonExistingCart() throws Exception {
-        // Get the cart
-        restCartMockMvc.perform(get(ENTITY_API_URL_ID, Long.MAX_VALUE)).andExpect(status().isNotFound());
-    }
-
-    @Test
-    @Transactional
-    void putExistingCart() throws Exception {
-        // Initialize the database
-        insertedCart = cartRepository.saveAndFlush(cart);
-
-        long databaseSizeBeforeUpdate = getRepositoryCount();
-
-        // Update the cart
-        Cart updatedCart = cartRepository.findById(cart.getId()).orElseThrow();
-        // Disconnect from session so that the updates on updatedCart are not directly saved in db
-        em.detach(updatedCart);
-        updatedCart.status(UPDATED_STATUS).createdDate(UPDATED_CREATED_DATE).lastModifiedDate(UPDATED_LAST_MODIFIED_DATE);
-        CartDTO cartDTO = cartMapper.toDto(updatedCart);
-
-        restCartMockMvc
-            .perform(put(ENTITY_API_URL_ID, cartDTO.getId()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(cartDTO)))
-            .andExpect(status().isOk());
-
-        // Validate the Cart in the database
-        assertSameRepositoryCount(databaseSizeBeforeUpdate);
-        assertPersistedCartToMatchAllProperties(updatedCart);
-    }
-
-    @Test
-    @Transactional
-    void putNonExistingCart() throws Exception {
-        long databaseSizeBeforeUpdate = getRepositoryCount();
-        cart.setId(longCount.incrementAndGet());
-
-        // Create the Cart
-        CartDTO cartDTO = cartMapper.toDto(cart);
-
-        // If the entity doesn't have an ID, it will throw BadRequestAlertException
-        restCartMockMvc
-            .perform(put(ENTITY_API_URL_ID, cartDTO.getId()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(cartDTO)))
+            .perform(post(ENTITY_API_URL_ITEMS).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(request)))
             .andExpect(status().isBadRequest());
-
-        // Validate the Cart in the database
-        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
-    void putWithIdMismatchCart() throws Exception {
-        long databaseSizeBeforeUpdate = getRepositoryCount();
-        cart.setId(longCount.incrementAndGet());
+    void addItemToCart_WithInvalidQuantity_ShouldReturnBadRequest() throws Exception {
+        setSecurityContextWithUserId(user.getId());
+        // Given
+        AddToCartRequestDTO request = new AddToCartRequestDTO();
+        request.setProductId(product1.getId());
+        request.setQuantity(BigDecimal.ZERO); // Invalid quantity
 
-        // Create the Cart
-        CartDTO cartDTO = cartMapper.toDto(cart);
+        // When & Then
+        restCartMockMvc
+            .perform(post(ENTITY_API_URL_ITEMS).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(request)))
+            .andExpect(status().isBadRequest());
+    }
 
-        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
+    @Test
+    @Transactional
+    void addItemToCart_ExistingItem_ShouldUpdateQuantity() throws Exception {
+        setSecurityContextWithUserId(user.getId());
+        // Given - Add item first time
+        AddToCartRequestDTO request1 = new AddToCartRequestDTO();
+        request1.setProductId(product1.getId());
+        request1.setQuantity(new BigDecimal("3"));
+
+        restCartMockMvc
+            .perform(post(ENTITY_API_URL_ITEMS).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(request1)))
+            .andExpect(status().isCreated());
+
+        // When - Add same item again
+        AddToCartRequestDTO request2 = new AddToCartRequestDTO();
+        request2.setProductId(product1.getId());
+        request2.setQuantity(new BigDecimal("2"));
+
+        MvcResult result = restCartMockMvc
+            .perform(post(ENTITY_API_URL_ITEMS).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(request2)))
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        // Then - Quantity should be updated (3 + 2 = 5)
+        CartItemDetailDTO itemDTO = om.readValue(result.getResponse().getContentAsString(), CartItemDetailDTO.class);
+        assertThat(itemDTO.getQuantity()).isEqualByComparingTo(new BigDecimal("5"));
+
+        // Verify only one cart item exists
+        List<Cart> carts = cartRepository.findByCustomerIdOrderByCreatedDateDesc(customer.getId());
+        assertThat(carts.get(0).getCartItems()).hasSize(1);
+    }
+
+    @Test
+    @Transactional
+    void updateItemQuantity_WithValidData_ShouldUpdateQuantity() throws Exception {
+        setSecurityContextWithUserId(user.getId());
+        // Given - Create cart with item
+        Cart cart = createCartWithItems();
+        CartItem cartItem = cart.getCartItems().iterator().next();
+
+        // When
         restCartMockMvc
             .perform(
-                put(ENTITY_API_URL_ID, longCount.incrementAndGet())
+                put(ENTITY_API_URL_ITEMS + "/{itemId}/quantity", cartItem.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(cartDTO))
+                    .content(om.writeValueAsBytes(new BigDecimal("10")))
             )
-            .andExpect(status().isBadRequest());
-
-        // Validate the Cart in the database
-        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.quantity").value(10))
+            .andExpect(jsonPath("$.lineTotal").value(100.00));
     }
 
     @Test
     @Transactional
-    void putWithMissingIdPathParamCart() throws Exception {
-        long databaseSizeBeforeUpdate = getRepositoryCount();
-        cart.setId(longCount.incrementAndGet());
+    void removeCartItem_WithValidId_ShouldRemoveItem() throws Exception {
+        setSecurityContextWithUserId(user.getId());
+        // Given
+        Cart cart = createCartWithItems();
+        CartItem cartItem = cart.getCartItems().iterator().next();
+        Long cartItemId = cartItem.getId();
 
-        // Create the Cart
-        CartDTO cartDTO = cartMapper.toDto(cart);
+        // When
+        restCartMockMvc.perform(delete(ENTITY_API_URL_ITEMS + "/{itemId}", cartItemId)).andExpect(status().isNoContent());
 
-        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
-        restCartMockMvc
-            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(cartDTO)))
-            .andExpect(status().isMethodNotAllowed());
-
-        // Validate the Cart in the database
-        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        // Then
+        assertThat(cartItemRepository.findById(cartItemId)).isEmpty();
     }
 
     @Test
     @Transactional
-    void partialUpdateCartWithPatch() throws Exception {
-        // Initialize the database
-        insertedCart = cartRepository.saveAndFlush(cart);
+    void clearCart_ShouldRemoveAllItems() throws Exception {
+        setSecurityContextWithUserId(user.getId());
+        // Given
+        Cart cart = createCartWithItems();
+        assertThat(cart.getCartItems()).isNotEmpty();
 
-        long databaseSizeBeforeUpdate = getRepositoryCount();
+        // When
+        restCartMockMvc.perform(delete(ENTITY_API_URL)).andExpect(status().isNoContent());
 
-        // Update the cart using partial update
-        Cart partialUpdatedCart = new Cart();
-        partialUpdatedCart.setId(cart.getId());
-
-        partialUpdatedCart.status(UPDATED_STATUS).createdDate(UPDATED_CREATED_DATE).lastModifiedDate(UPDATED_LAST_MODIFIED_DATE);
-
-        restCartMockMvc
-            .perform(
-                patch(ENTITY_API_URL_ID, partialUpdatedCart.getId())
-                    .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(partialUpdatedCart))
-            )
-            .andExpect(status().isOk());
-
-        // Validate the Cart in the database
-
-        assertSameRepositoryCount(databaseSizeBeforeUpdate);
-        assertCartUpdatableFieldsEquals(createUpdateProxyForBean(partialUpdatedCart, cart), getPersistedCart(cart));
+        // Then
+        Cart updatedCart = cartRepository.findByCustomerId(customer.getId()).orElseThrow();
+        assertThat(cartItemRepository.findByCartIdOrderByAddedDateDesc(updatedCart.getId())).isEmpty();
     }
 
     @Test
     @Transactional
-    void fullUpdateCartWithPatch() throws Exception {
-        // Initialize the database
-        insertedCart = cartRepository.saveAndFlush(cart);
+    void validateCart_WithValidCart_ShouldReturnValid() throws Exception {
+        setSecurityContextWithUserId(user.getId());
+        // Given
+        createCartWithItems();
 
-        long databaseSizeBeforeUpdate = getRepositoryCount();
+        // When
+        MvcResult result = restCartMockMvc.perform(post(ENTITY_API_URL + "/validate")).andExpect(status().isOk()).andReturn();
 
-        // Update the cart using partial update
-        Cart partialUpdatedCart = new Cart();
-        partialUpdatedCart.setId(cart.getId());
-
-        partialUpdatedCart.status(UPDATED_STATUS).createdDate(UPDATED_CREATED_DATE).lastModifiedDate(UPDATED_LAST_MODIFIED_DATE);
-
-        restCartMockMvc
-            .perform(
-                patch(ENTITY_API_URL_ID, partialUpdatedCart.getId())
-                    .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(partialUpdatedCart))
-            )
-            .andExpect(status().isOk());
-
-        // Validate the Cart in the database
-
-        assertSameRepositoryCount(databaseSizeBeforeUpdate);
-        assertCartUpdatableFieldsEquals(partialUpdatedCart, getPersistedCart(partialUpdatedCart));
+        // Then
+        CartValidationResponseDTO validation = om.readValue(result.getResponse().getContentAsString(), CartValidationResponseDTO.class);
+        assertThat(validation.getIsValid()).isTrue();
+        assertThat(validation.getIssues()).isEmpty();
     }
 
     @Test
     @Transactional
-    void patchNonExistingCart() throws Exception {
-        long databaseSizeBeforeUpdate = getRepositoryCount();
-        cart.setId(longCount.incrementAndGet());
+    void validateCart_WithInsufficientStock_ShouldReturnInvalid() throws Exception {
+        setSecurityContextWithUserId(user.getId());
+        // Given - Create cart with item that has insufficient stock
+        Cart cart = createCartWithItems();
+        CartItem cartItem = cart.getCartItems().iterator().next();
 
-        // Create the Cart
-        CartDTO cartDTO = cartMapper.toDto(cart);
+        // Reduce inventory to create insufficient stock
+        inventory1.setAvailableQuantity(new BigDecimal("2"));
+        inventoryRepository.saveAndFlush(inventory1);
 
-        // If the entity doesn't have an ID, it will throw BadRequestAlertException
-        restCartMockMvc
-            .perform(
-                patch(ENTITY_API_URL_ID, cartDTO.getId()).contentType("application/merge-patch+json").content(om.writeValueAsBytes(cartDTO))
-            )
-            .andExpect(status().isBadRequest());
+        // When
+        MvcResult result = restCartMockMvc.perform(post(ENTITY_API_URL + "/validate")).andExpect(status().isOk()).andReturn();
 
-        // Validate the Cart in the database
-        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        // Then
+        CartValidationResponseDTO validation = om.readValue(result.getResponse().getContentAsString(), CartValidationResponseDTO.class);
+        assertThat(validation.getIsValid()).isFalse();
+        assertThat(validation.getIssues()).isNotEmpty();
+        assertThat(validation.getIssues().get(0).getIssueType()).isEqualTo(CartValidationIssueDTO.IssueType.INSUFFICIENT_STOCK);
     }
 
     @Test
     @Transactional
-    void patchWithIdMismatchCart() throws Exception {
-        long databaseSizeBeforeUpdate = getRepositoryCount();
-        cart.setId(longCount.incrementAndGet());
+    void getCartSummary_ShouldReturnSummary() throws Exception {
+        setSecurityContextWithUserId(user.getId());
+        // Given
+        createCartWithItems();
 
-        // Create the Cart
-        CartDTO cartDTO = cartMapper.toDto(cart);
+        // When
+        MvcResult result = restCartMockMvc.perform(get(ENTITY_API_URL + "/summary")).andExpect(status().isOk()).andReturn();
 
-        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
-        restCartMockMvc
-            .perform(
-                patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
-                    .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(cartDTO))
-            )
-            .andExpect(status().isBadRequest());
-
-        // Validate the Cart in the database
-        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        // Then
+        CartSummaryDTO summary = om.readValue(result.getResponse().getContentAsString(), CartSummaryDTO.class);
+        assertThat(summary.getItemCount()).isEqualTo(2);
+        assertThat(summary.getTotal()).isEqualByComparingTo(new BigDecimal("90.00"));
     }
 
     @Test
     @Transactional
-    void patchWithMissingIdPathParamCart() throws Exception {
-        long databaseSizeBeforeUpdate = getRepositoryCount();
-        cart.setId(longCount.incrementAndGet());
-
-        // Create the Cart
-        CartDTO cartDTO = cartMapper.toDto(cart);
-
-        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
-        restCartMockMvc
-            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(om.writeValueAsBytes(cartDTO)))
-            .andExpect(status().isMethodNotAllowed());
-
-        // Validate the Cart in the database
-        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+    @WithMockUser(authorities = AuthoritiesConstants.USER_ADMIN)
+    void accessCartAsAdmin_ShouldBeForbidden() throws Exception {
+        setSecurityContextWithUserId(user.getId());
+        // When & Then - Admin should not be able to access customer cart endpoints
+        restCartMockMvc.perform(get(ENTITY_API_URL)).andExpect(status().isForbidden());
     }
 
-    @Test
-    @Transactional
-    void deleteCart() throws Exception {
-        // Initialize the database
-        insertedCart = cartRepository.saveAndFlush(cart);
+    // Helper methods
 
-        long databaseSizeBeforeDelete = getRepositoryCount();
+    private Cart createCartWithItems() {
+        Cart cart = createEmptyCart();
 
-        // Delete the cart
-        restCartMockMvc
-            .perform(delete(ENTITY_API_URL_ID, cart.getId()).accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNoContent());
+        CartItem item1 = createCartItem(cart, product1, new BigDecimal("5"));
+        CartItem item2 = createCartItem(cart, product2, new BigDecimal("2"));
 
-        // Validate the database contains one less item
-        assertDecrementedRepositoryCount(databaseSizeBeforeDelete);
-    }
+        cartItemRepository.saveAndFlush(item1);
+        cartItemRepository.saveAndFlush(item2);
 
-    protected long getRepositoryCount() {
-        return cartRepository.count();
-    }
+        cart.addCartItems(item1);
+        cart.addCartItems(item2);
 
-    protected void assertIncrementedRepositoryCount(long countBefore) {
-        assertThat(countBefore + 1).isEqualTo(getRepositoryCount());
-    }
-
-    protected void assertDecrementedRepositoryCount(long countBefore) {
-        assertThat(countBefore - 1).isEqualTo(getRepositoryCount());
-    }
-
-    protected void assertSameRepositoryCount(long countBefore) {
-        assertThat(countBefore).isEqualTo(getRepositoryCount());
-    }
-
-    protected Cart getPersistedCart(Cart cart) {
+        // Refresh cart to get items
         return cartRepository.findById(cart.getId()).orElseThrow();
     }
 
-    protected void assertPersistedCartToMatchAllProperties(Cart expectedCart) {
-        assertCartAllPropertiesEquals(expectedCart, getPersistedCart(expectedCart));
+    private Cart createEmptyCart() {
+        Cart cart = new Cart();
+        cart.setCustomer(customer);
+        cart.setCreatedDate(Instant.now());
+        cart.setLastModifiedDate(Instant.now());
+        return cartRepository.saveAndFlush(cart);
     }
 
-    protected void assertPersistedCartToMatchUpdatableProperties(Cart expectedCart) {
-        assertCartAllUpdatablePropertiesEquals(expectedCart, getPersistedCart(expectedCart));
+    private CartItem createCartItem(Cart cart, Product product, BigDecimal quantity) {
+        CartItem cartItem = new CartItem();
+        cartItem.setCart(cart);
+        cartItem.setProduct(product);
+        cartItem.setQuantity(quantity);
+        cartItem.setPrice(product.getSellingPrice());
+        cartItem.setAddedDate(Instant.now());
+        cartItem.setCreatedDate(Instant.now());
+        return cartItem;
+    }
+
+    private ClientAccount createTestClientAccount() {
+        ClientAccount clientAccount = new ClientAccount();
+        clientAccount.setCompanyName("Test Company");
+        clientAccount.setPhone("0676841436");
+        clientAccount.setEmail("test@company.com");
+        clientAccount.setStatus(AccountStatus.ENABLED);
+        clientAccount.setCreatedDate(Instant.now());
+        return clientAccount;
+    }
+
+    private User createTestUser() {
+        User user = new User();
+        user.setLogin(String.valueOf(new Random().nextDouble()));
+        user.setPassword("hashedpassword");
+        user.setFirstName("Test");
+        user.setLastName("User");
+        user.setEmail("test" + new Random().nextDouble() + "@example.com");
+        user.setActivated(true);
+        user.setLangKey("en");
+        user.setCreatedDate(Instant.now());
+        return user;
+    }
+
+    private Customer createTestCustomer() {
+        Customer customer = new Customer();
+        customer.setFirstName("Test");
+        customer.setLastName("Customer");
+        customer.setPhone("+1234567890");
+        customer.setEnabled(true);
+        customer.setCreatedDate(Instant.now());
+        return customer;
+    }
+
+    private Product createTestProduct(String name, String code, BigDecimal price) {
+        Product product = new Product();
+        product.setName(name);
+        product.setCode(code);
+        product.setDescription("Test product description");
+        product.setSellingPrice(price);
+        product.setCostPrice(price.multiply(new BigDecimal("0.7")));
+        product.setCategory(ProductCategory.ELECTRONICS);
+        product.setIsVisibleToCustomers(true);
+        product.setApplyTva(false);
+        product.setMinimumStockLevel(new BigDecimal("10"));
+        product.setCreatedDate(Instant.now());
+        return product;
+    }
+
+    private Inventory createTestInventory(Product product, BigDecimal quantity) {
+        Inventory inventory = new Inventory();
+        inventory.setProduct(product);
+        inventory.setQuantity(quantity);
+        inventory.setAvailableQuantity(quantity);
+        inventory.setStatus(InventoryStatus.AVAILABLE);
+        inventory.setCreatedDate(Instant.now());
+        return inventory;
     }
 }

@@ -45,4 +45,6 @@ public interface GuestCartItemRepository extends JpaRepository<GuestCartItem, Lo
     Long countItemsBySessionId(@Param("sessionId") String sessionId);
 
     List<GuestCartItem> findBySessionId(String sessionId);
+
+    void deleteBySessionId(String sessionId);
 }

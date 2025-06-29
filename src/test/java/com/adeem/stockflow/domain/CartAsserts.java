@@ -22,7 +22,6 @@ public class CartAsserts {
      * @param actual the actual entity
      */
     public static void assertCartAllUpdatablePropertiesEquals(Cart expected, Cart actual) {
-        assertCartUpdatableFieldsEquals(expected, actual);
         assertCartUpdatableRelationshipsEquals(expected, actual);
     }
 
@@ -37,19 +36,6 @@ public class CartAsserts {
             .as("Verify Cart auto generated properties")
             .satisfies(a -> assertThat(a.getId()).as("check id").isEqualTo(expected.getId()))
             .satisfies(a -> assertThat(a.getCreatedBy()).as("check createdBy").isEqualTo(expected.getCreatedBy()));
-    }
-
-    /**
-     * Asserts that the entity has all the updatable fields set.
-     *
-     * @param expected the expected entity
-     * @param actual the actual entity
-     */
-    public static void assertCartUpdatableFieldsEquals(Cart expected, Cart actual) {
-        assertThat(actual)
-            .as("Verify Cart relevant properties")
-            .satisfies(a -> assertThat(a.getStatus()).as("check status").isEqualTo(expected.getStatus()))
-            .satisfies(a -> assertThat(a.getCreatedDate()).as("check createdDate").isEqualTo(expected.getCreatedDate()));
     }
 
     /**
