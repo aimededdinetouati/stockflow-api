@@ -13,6 +13,7 @@ import com.adeem.stockflow.domain.enumeration.AddressType;
 import com.adeem.stockflow.repository.AddressRepository;
 import com.adeem.stockflow.service.dto.AddressDTO;
 import com.adeem.stockflow.service.mapper.AddressMapper;
+import com.adeem.stockflow.web.rest.uncostomized.AddressResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import java.util.Random;

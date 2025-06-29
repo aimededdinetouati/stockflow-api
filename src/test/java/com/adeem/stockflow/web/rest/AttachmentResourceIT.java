@@ -14,6 +14,7 @@ import com.adeem.stockflow.repository.AttachmentRepository;
 import com.adeem.stockflow.repository.UserRepository;
 import com.adeem.stockflow.service.dto.AttachmentDTO;
 import com.adeem.stockflow.service.mapper.AttachmentMapper;
+import com.adeem.stockflow.web.rest.uncostomized.AttachmentResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import java.util.Random;

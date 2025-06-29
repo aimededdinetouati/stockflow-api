@@ -14,6 +14,7 @@ import com.adeem.stockflow.domain.enumeration.ReceiptStatus;
 import com.adeem.stockflow.repository.PaymentReceiptRepository;
 import com.adeem.stockflow.service.dto.PaymentReceiptDTO;
 import com.adeem.stockflow.service.mapper.PaymentReceiptMapper;
+import com.adeem.stockflow.web.rest.uncostomized.PaymentReceiptResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;

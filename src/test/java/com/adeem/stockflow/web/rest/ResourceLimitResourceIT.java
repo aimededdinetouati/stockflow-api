@@ -12,6 +12,7 @@ import com.adeem.stockflow.domain.ResourceLimit;
 import com.adeem.stockflow.repository.ResourceLimitRepository;
 import com.adeem.stockflow.service.dto.ResourceLimitDTO;
 import com.adeem.stockflow.service.mapper.ResourceLimitMapper;
+import com.adeem.stockflow.web.rest.uncostomized.ResourceLimitResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import java.util.Random;

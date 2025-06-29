@@ -12,6 +12,7 @@ import com.adeem.stockflow.domain.PlanFeature;
 import com.adeem.stockflow.repository.PlanFeatureRepository;
 import com.adeem.stockflow.service.dto.PlanFeatureDTO;
 import com.adeem.stockflow.service.mapper.PlanFeatureMapper;
+import com.adeem.stockflow.web.rest.uncostomized.PlanFeatureResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import java.util.Random;

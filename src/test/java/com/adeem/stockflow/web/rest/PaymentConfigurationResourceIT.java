@@ -12,6 +12,7 @@ import com.adeem.stockflow.domain.PaymentConfiguration;
 import com.adeem.stockflow.repository.PaymentConfigurationRepository;
 import com.adeem.stockflow.service.dto.PaymentConfigurationDTO;
 import com.adeem.stockflow.service.mapper.PaymentConfigurationMapper;
+import com.adeem.stockflow.web.rest.uncostomized.PaymentConfigurationResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import java.util.Random;

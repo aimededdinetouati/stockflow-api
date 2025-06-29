@@ -12,6 +12,7 @@ import com.adeem.stockflow.domain.Permission;
 import com.adeem.stockflow.repository.PermissionRepository;
 import com.adeem.stockflow.service.dto.PermissionDTO;
 import com.adeem.stockflow.service.mapper.PermissionMapper;
+import com.adeem.stockflow.web.rest.uncostomized.PermissionResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import java.util.Random;

@@ -1,4 +1,4 @@
-package com.adeem.stockflow.web.rest;
+package com.adeem.stockflow.web.rest.uncostomized;
 
 import com.adeem.stockflow.repository.PurchaseOrderRepository;
 import com.adeem.stockflow.service.PurchaseOrderService;

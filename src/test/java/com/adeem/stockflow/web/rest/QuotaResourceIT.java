@@ -13,6 +13,7 @@ import com.adeem.stockflow.domain.Quota;
 import com.adeem.stockflow.repository.QuotaRepository;
 import com.adeem.stockflow.service.dto.QuotaDTO;
 import com.adeem.stockflow.service.mapper.QuotaMapper;
+import com.adeem.stockflow.web.rest.uncostomized.QuotaResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;

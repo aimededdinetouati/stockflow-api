@@ -12,6 +12,7 @@ import com.adeem.stockflow.domain.UserRole;
 import com.adeem.stockflow.repository.UserRoleRepository;
 import com.adeem.stockflow.service.dto.UserRoleDTO;
 import com.adeem.stockflow.service.mapper.UserRoleMapper;
+import com.adeem.stockflow.web.rest.uncostomized.UserRoleResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import java.util.Random;

@@ -15,6 +15,7 @@ import com.adeem.stockflow.domain.enumeration.SubscriptionStatus;
 import com.adeem.stockflow.repository.SubscriptionRepository;
 import com.adeem.stockflow.service.dto.SubscriptionDTO;
 import com.adeem.stockflow.service.mapper.SubscriptionMapper;
+import com.adeem.stockflow.web.rest.uncostomized.SubscriptionResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
